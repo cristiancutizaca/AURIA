@@ -1,24 +1,39 @@
 #!/usr/bin/env bash
-# Import the complete, unmodified public Levyra source into AURIA.
-# Run in GitHub Codespaces, Linux/macOS or Termux (git + tar required).
+# Import all original Levyra files ONLY into the AURIA import branch.
+# Use GitHub Codespaces (or any authenticated Linux/macOS git shell).
 set -euo pipefail
 SOURCE="https://github.com/LUC4N3X/Levyra-deepsound.git"
 DEST="https://github.com/cristiancutizaca/AURIA.git"
-TEMP_DIR="$(mktemp -d)"
-trap 'rm -rf "$TEMP_DIR"' EXIT
+BRANCH="import/levyra-source"
+TEMPDIR="$(mktemp -d)"
+trap 'rm -rf "$TEMPDIR"' EXIT
 
-git clone --depth=1 --branch main "$SOURCE" "$TEMP_DIR/levyra"
-git clone "$DEST" "$TEMP_DIR/auria"
+git clone --depth 1 --branch main "$SOURCE" "$TEMPDIR/source"
+git clone --branch "$BRANCH" "$DEST" "$TEMPDIR/auria"
 
-# Keep AURIA's own git history, while importing all Levyra project files.
-tar -C "$TEMP_DIR/levyra" --exclude="./.git" -cf - . | tar -C "$TEMP_DIR/auria" -xf -
+# Copy source, preserving all source files, including binary images and native libraries.
+# Never overwrite the target repository's git history.
+tar -C "$TEMPDIR/source" --exclude='./.git' -cf - . | tar -C "$TEMPDIR/auria" -xf -
+cd "$TEMPDIR/auria"
+cat > AURIA_UPSTREAM.md <<'EOF'
+# AURIA: upstream source and attribution
 
-cd "$TEMP_DIR/auria"
+Original software: Levyra by LUC4N3X
+Source: https://github.com/LUC4N3X/Levyra-deepsound
+
+Levyra is distributed under GPL-3.0. Preserve LICENSE and original
+copyright/attribution notices. This is an independently modified version.
+
+This branch contains the imported base source for future AURIA features.
+Do not merge into main until the import and Android/Windows builds are verified.
+EOF
+git config user.name "AURIA Source Import"
+git config user.email "179149340+cristiancutizaca@users.noreply.github.com"
 git add -A
 if git diff --cached --quiet; then
-  echo "No changes to import"
+  echo "Source was already imported; no changes."
   exit 0
 fi
-git -c user.name="AURIA Developer" -c user.email="179149340+cristiancutizaca@users.noreply.github.com" commit -m "chore: import Levyra source as AURIA base"
-git push origin main
-printf '\nSource uploaded: https://github.com/cristiancutizaca/AURIA\n'
+git commit -m "chore: import complete Levyra source into AURIA staging branch"
+git push origin "HEAD:$BRANCH"
+echo "Uploaded all source files to https://github.com/cristiancutizaca/AURIA/tree/$BRANCH"
