@@ -1,0 +1,46 @@
+name: Stage full Levyra source on import branch
+
+on:
+  push:
+    paths:
+      - ".github/workflows/stage-levyra.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stage-levyra-source
+  cancel-in-progress: false
+
+jobs:
+  stage:
+    if: github.ref == 'refs/heads/import/levyra-source'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AURIA import branch
+        uses: actions/checkout@v4
+        with:
+          ref: import/levyra-source
+          persist-credentials: true
+      - name: Download original Levyra (not a fork, stage as project files)
+        run: |
+          git clone --depth=1 --branch main https://github.com/LUC4N3X/Levyra-deepsound.git /tmp/levyra-original
+          rsync -a --exclude='.git/' /tmp/levyra-original/ ./
+          cat > AURIA_UPSTREAM.md <<'EOF'
+          # AURIA / Levyra attribution
+
+          Base: [Levyra](https://github.com/LUC4N3X/Levyra-deepsound)
+          GPL-3.0 licensed. Keep original attribution and the license.
+
+          This branch contains the full Levyra source imported for developing
+          AURIA, including Android, Windows, source assets and dependencies.
+          Merge only after build verification.
+          EOF
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: stage complete Levyra source on import branch"
+            git push origin HEAD:import/levyra-source
+          fi
