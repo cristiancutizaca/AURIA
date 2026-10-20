@@ -69,7 +69,7 @@ object AuriaDjPlanner {
             } ?: break
             result += best.track
             pending.remove(best)
-            lastArtists += artistIdentity(best.track.artist)
+            lastArtists += AuriaDjIdentity.artistKey(best.track.artist)
             if (lastArtists.size > 2) lastArtists.removeAt(0)
         }
         return result
