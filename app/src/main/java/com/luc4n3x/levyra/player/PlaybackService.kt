@@ -162,6 +162,7 @@ class PlaybackService : MediaLibraryService() {
     private var stickyRestoreJob: Job? = null
     private var playbackWatchdogJob: Job? = null
     private var queueTransitionJob: Job? = null
+    private var djTransitionHoldJob: Job? = null
     private var queueTransitionMonitorJob: Job? = null
     private var memoryGuardJob: Job? = null
     private var castHandoffJob: Job? = null
@@ -1963,6 +1964,7 @@ class PlaybackService : MediaLibraryService() {
         val currentIdentity = playbackQueueIdentity(current)
         val targetIdentity = playbackQueueIdentity(target)
         var secondary: ExoPlayer? = null
+        var mixCompleted = false
         val mixVisual = AuriaDjTransition(
             sourceId = currentIdentity,
             targetId = targetIdentity,
@@ -1992,6 +1994,7 @@ class PlaybackService : MediaLibraryService() {
             if (!transitionStillValid(snapshot.generation, currentIdentity, targetIdentity, primary)) return
 
             isQueueTransitionInProgress = true
+            djTransitionHoldJob?.cancel()
             if (snapshot.radioEnabled) _djTransitionFlow.value = mixVisual
             secondary.play()
             fadePlayers(primary, secondary, plan.transitionMs) {
@@ -2028,13 +2031,24 @@ class PlaybackService : MediaLibraryService() {
                 handoffStillValid(primary, secondary, targetIdentity)
             }
             queueEngine.updatePosition(primary.currentPosition)
+            mixCompleted = true
             if (!isLocalPlaybackTrack(resolved)) prefetchServiceQueueNext()
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
             Timber.w(error, "Queue crossfade failed")
         } finally {
-            if (_djTransitionFlow.value == mixVisual) _djTransitionFlow.value = null
+            if (_djTransitionFlow.value == mixVisual) {
+                if (mixCompleted) {
+                    djTransitionHoldJob?.cancel()
+                    djTransitionHoldJob = serviceScope.launch {
+                        delay(9_000L)
+                        if (_djTransitionFlow.value == mixVisual) _djTransitionFlow.value = null
+                    }
+                } else {
+                    _djTransitionFlow.value = null
+                }
+            }
             isQueueTransitionInProgress = false
             primary.volume = 1f
             releaseTransitionPlayer(secondary)
@@ -2455,6 +2469,8 @@ class PlaybackService : MediaLibraryService() {
     }
 
     private fun cancelQueueTransition() {
+        djTransitionHoldJob?.cancel()
+        djTransitionHoldJob = null
         _djTransitionFlow.value = null
         queueTransitionJob?.cancel()
         queueTransitionJob = null
