@@ -44,8 +44,7 @@ object HomeLocalMusicRecommendations {
         limit: Int = 20
     ): List<Track> {
         if (limit <= 0) return emptyList()
-        val local = localSongs.asSequence().filter(::valid)
-            .distinctBy(::identity).take(MAX_SOURCE).toList()
+        val local = sampledLibrary(localSongs)
         if (local.isEmpty()) return emptyList()
         val weights = artistScores(local, recent, favorites)
         val favoriteKeys = favorites.mapTo(HashSet(), ::identity)
@@ -97,11 +96,25 @@ object HomeLocalMusicRecommendations {
         return selected.take(limit)
     }
 
+    private fun sampledLibrary(songs: List<Track>): List<Track> {
+        if (songs.isEmpty()) return emptyList()
+        // Library catalogs are commonly sorted by title; taking the first N
+        // would teach AURIA that the user's music starts and ends with "A".
+        val stride = ((songs.size.toLong() + MAX_SOURCE - 1L) / MAX_SOURCE)
+            .coerceAtLeast(1L).toInt()
+        return songs.asSequence()
+            .filterIndexed { index, _ -> index % stride == 0 }
+            .filter(::valid)
+            .distinctBy(::identity)
+            .take(MAX_SOURCE)
+            .toList()
+    }
+
     private fun artistScores(
         localSongs: List<Track>, recent: List<Track>, favorites: List<Track>
     ): Map<String, Int> {
         val scores = HashMap<String, Int>()
-        val localArtists = localSongs.asSequence().filter(::valid).take(MAX_SOURCE)
+        val localArtists = sampledLibrary(localSongs).asSequence()
             .groupingBy { artistKey(it.artist) }.eachCount()
         for ((artist, count) in localArtists) {
             scores[artist] = minOf(6, count) * 4
