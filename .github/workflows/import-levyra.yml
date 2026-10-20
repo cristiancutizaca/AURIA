@@ -14,12 +14,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout AURIA
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
       - name: Checkout Levyra at pinned revision
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: LUC4N3X/Levyra-deepsound
           ref: 9436698b4718faf935ff28b9f20526abb31fc437
