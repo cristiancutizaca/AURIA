@@ -317,6 +317,7 @@ import com.luc4n3x.levyra.player.advancedPrefetchAllowed
 import com.luc4n3x.levyra.player.advancedPrefetchNetworkAllowed
 import com.luc4n3x.levyra.player.radioTailFetchLimit
 import com.luc4n3x.levyra.player.radioTailTargetUpcoming
+import com.luc4n3x.levyra.player.auriaDjForPlayback
 import com.luc4n3x.levyra.player.advancedPrefetchBudgetBytes
 import com.luc4n3x.levyra.player.advancedPrefetchTrackLimit
 import com.luc4n3x.levyra.player.PlaybackService
@@ -1198,6 +1199,8 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
     private var excludedArtistsGeneration = 0L
     private var followedArtistsGeneration = 0L
     private var radioJob: Job? = null
+    private var radioEndContinuationJob: Job? = null
+    private var auriaDjManuallyDisabled = false
     private val radioSession = AtomicReference<RadioSession?>(null)
     private var sponsorSegments: List<SponsorSegment> = emptyList()
     private val sponsorSkipTracker = SponsorBlockSkipOnceTracker()
@@ -4047,7 +4050,13 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         val nextTrack = queueEngine.next()
         when {
             nextTrack != null -> startResolve(nextTrack, autoRetryWhenOffline = true)
-            queueEngine.state.value.radioEnabled -> ensureRadioTail(force = true, playWhenReady = true)
+            queueEngine.state.value.radioEnabled -> {
+                if (radioJob?.isActive == true) {
+                    continueAfterPendingRadio()
+                } else {
+                    ensureRadioTail(force = true, playWhenReady = true)
+                }
+            }
             loopCurrentQueueOnCompletion && queueEngine.state.value.tracks.isNotEmpty() -> {
                 val first = queueEngine.select(0, rememberCurrent = true)
                 if (first != null) startResolve(first)
@@ -6897,6 +6906,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
     fun toggleContinuousRadio() {
         if (_state.value.currentTrack?.isLiveRadio() == true) return
         val enabled = !queueEngine.state.value.radioEnabled
+        auriaDjManuallyDisabled = !enabled
         queueEngine.setRadioEnabled(enabled)
         if (enabled) {
             radioJob?.cancel()
@@ -6911,6 +6921,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
     fun startSongRadio() {
         if (_state.value.currentTrack?.isLiveRadio() == true) return
         if (jamController.rejectGuestLocalMutation()) return
+        auriaDjManuallyDisabled = false
         if (!queueEngine.state.value.radioEnabled) queueEngine.setRadioEnabled(true)
         radioJob?.cancel()
         beginRadioSession()
@@ -9827,7 +9838,16 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         val contextualQueue = queueForTrack(track)
         loopCurrentQueueOnCompletion = contextualQueue.size > 1
         val index = contextualQueue.indexOfFirst { samePlayableTrack(it, track) }.coerceAtLeast(0)
-        queueEngine.replace(contextualQueue, index, keepPlaybackModes = true, radioEnabled = queueEngine.state.value.radioEnabled)
+        val useDj = auriaDjForPlayback(
+            existing = queueEngine.state.value.radioEnabled,
+            manuallyDisabled = auriaDjManuallyDisabled,
+            loopingPlaylist = false,
+            videoMode = _state.value.isVideoMode,
+            local = isLocalPlaybackTrack(track),
+            liveRadio = track.isLiveRadio()
+        )
+        queueEngine.replace(contextualQueue, index, keepPlaybackModes = true, radioEnabled = useDj)
+        if (useDj) beginRadioSession()
         queueIndex = index
         startResolve(contextualQueue.getOrElse(index) { track })
     }
@@ -9841,7 +9861,16 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         leaveLiveRadioQueue()
         loopCurrentQueueOnCompletion = loopOnCompletion
         val index = list.indexOfFirst { samePlayableTrack(it, track) }.coerceAtLeast(0)
-        queueEngine.replace(list, index, keepPlaybackModes = true, radioEnabled = queueEngine.state.value.radioEnabled)
+        val useDj = auriaDjForPlayback(
+            existing = queueEngine.state.value.radioEnabled,
+            manuallyDisabled = auriaDjManuallyDisabled,
+            loopingPlaylist = loopOnCompletion,
+            videoMode = _state.value.isVideoMode,
+            local = isLocalPlaybackTrack(track),
+            liveRadio = track.isLiveRadio()
+        )
+        queueEngine.replace(list, index, keepPlaybackModes = true, radioEnabled = useDj)
+        if (useDj) beginRadioSession()
         queueIndex = index
         startResolve(list.getOrElse(index) { track })
     }
@@ -12419,6 +12448,26 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         val session: RadioSession?
     )
 
+    private fun continueAfterPendingRadio() {
+        if (radioEndContinuationJob?.isActive == true) return
+        val initial = queueEngine.state.value
+        val expected = initial.currentTrack ?: return
+        radioEndContinuationJob = viewModelScope.launch {
+            radioJob?.join()
+            val current = queueEngine.state.value
+            if (!current.radioEnabled ||
+                current.spaceId != initial.spaceId ||
+                current.currentTrack?.let(::playbackIdentity) != playbackIdentity(expected)
+            ) return@launch
+            val next = queueEngine.next(respectRepeatOne = false)
+            if (next != null) {
+                startResolve(next, autoRetryWhenOffline = true)
+            } else {
+                ensureRadioTail(force = true, playWhenReady = true)
+            }
+        }
+    }
+
     private fun ensureRadioTail(
         force: Boolean,
         playWhenReady: Boolean = false,
@@ -13011,7 +13060,10 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
             startResolve(nextTrack)
             return
         }
-        if (queueEngine.state.value.radioEnabled) ensureRadioTail(force = true, playWhenReady = true)
+        if (queueEngine.state.value.radioEnabled) {
+            if (radioJob?.isActive == true) continueAfterPendingRadio()
+            else ensureRadioTail(force = true, playWhenReady = true)
+        }
     }
 
     fun previous() {
