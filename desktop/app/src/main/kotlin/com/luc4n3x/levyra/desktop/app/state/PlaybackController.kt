@@ -54,6 +54,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 data class PlaybackUiState(
     val queue: PlayerQueue = PlayerQueue(),
@@ -1189,7 +1190,7 @@ class PlaybackController(
 
         val related = if (seed.videoUrl.isNotBlank()) {
             try {
-                catalog.radio(seed, DJ_RELATED_LIMIT)
+                withTimeoutOrNull(DJ_NETWORK_TIMEOUT_MS) { catalog.radio(seed, DJ_RELATED_LIMIT) }.orEmpty()
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (error: Exception) {
@@ -1202,7 +1203,7 @@ class PlaybackController(
         val searched = if (related.size < DJ_REFILL_AT + 2) {
             val query = seed.artist.substringBefore(',').trim().ifBlank { seed.title.trim() }
             try {
-                catalog.search(query, SearchFilter.SONGS).tracks
+                withTimeoutOrNull(DJ_NETWORK_TIMEOUT_MS) { catalog.search(query, SearchFilter.SONGS).tracks }.orEmpty()
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (error: Exception) {
@@ -1501,6 +1502,7 @@ class PlaybackController(
         const val DJ_REFILL_AT = 3
         const val DJ_ADD_AT_ONCE = 8
         const val DJ_RELATED_LIMIT = 35
+        const val DJ_NETWORK_TIMEOUT_MS = 6_000L
         const val DJ_MIN_SKIP_LISTEN_MS = 5_000L
         const val DJ_EARLY_SKIP_PERCENT = 65L
         const val DJ_COMPLETION_PERCENT = 75L
