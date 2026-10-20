@@ -1591,9 +1591,18 @@ class PlaybackService : MediaLibraryService() {
         val initial = queueEngine.state.value
         if (!initial.radioEnabled) return null
         val seed = initial.currentTrack ?: return null
-        if (isLocalPlaybackTrack(seed) || !hasInternetCapableNetwork()) return null
+        if (!hasInternetCapableNetwork()) return null
         val additions = try {
-            musicRepository.radio(seed, LevyraPreferences(this).languageCode(), 5)
+            val languageCode = LevyraPreferences(this).languageCode()
+            val playableSeed = if (isLocalPlaybackTrack(seed)) {
+                withTimeoutOrNull(6_000L) {
+                    musicRepository.searchSongMatch(seed.title, seed.artist, languageCode)
+                }
+            } else {
+                seed
+            }
+            if (playableSeed == null) emptyList()
+            else musicRepository.radio(playableSeed, languageCode, 5)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {

@@ -6934,7 +6934,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun beginRadioSession() {
         val snapshot = queueEngine.state.value
-        val seed = snapshot.currentTrack?.takeUnless { it.isLiveRadio() || isLocalPlaybackTrack(it) }
+        val seed = snapshot.currentTrack?.takeUnless { it.isLiveRadio() }
         radioSession.set(seed?.let { RadioSession(spaceId = snapshot.spaceId, seed = it) })
     }
 
@@ -9847,7 +9847,6 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
             manuallyDisabled = auriaDjManuallyDisabled,
             loopingPlaylist = false,
             videoMode = _state.value.isVideoMode,
-            local = isLocalPlaybackTrack(track),
             liveRadio = track.isLiveRadio()
         )
         queueEngine.replace(contextualQueue, index, keepPlaybackModes = true, radioEnabled = useDj)
@@ -9870,7 +9869,6 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
             manuallyDisabled = auriaDjManuallyDisabled,
             loopingPlaylist = loopOnCompletion,
             videoMode = _state.value.isVideoMode,
-            local = isLocalPlaybackTrack(track),
             liveRadio = track.isLiveRadio()
         )
         queueEngine.replace(list, index, keepPlaybackModes = true, radioEnabled = useDj)
@@ -12209,7 +12207,11 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
     private fun prefetchNextTracks(playable: Track) {
         prefetchJob?.cancel()
         PlaybackService.clearPreparedQueueNextIfStale()
-        if (isLocalPlaybackTrack(playable) || !lyricsNetworkProfile().connected) return
+        if (isLocalPlaybackTrack(playable)) {
+            ensureRadioTail(force = false)
+            return
+        }
+        if (!lyricsNetworkProfile().connected) return
         if (!queuePrefetchAllowed(_state.value.audioSettings)) {
             ensureRadioTail(force = false)
             return
@@ -12491,7 +12493,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         val targetUpcoming = radioTailTargetUpcoming(_state.value.audioSettings.advancedQueuePrefetchTracks)
         if (!force && queueEngine.upcoming(targetUpcoming).size >= targetUpcoming) return null
         if (radioJob?.isActive == true) return null
-        if (isLocalPlaybackTrack(anchor) || !lyricsNetworkProfile().connected) return null
+        if (!lyricsNetworkProfile().connected) return null
         val session = radioSession.get()?.takeIf { it.isActiveFor(snapshot) }
         val seed = radioSeedFor(session, snapshot) ?: return null
         return RadioTailRequest(seed = seed, anchor = anchor, generation = snapshot.generation, session = session)
@@ -12516,13 +12518,28 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
 
     private suspend fun fetchRadioTracks(request: RadioTailRequest, fetchLimit: Int): List<Track> =
         try {
-            repository.radio(
-                seed = request.seed,
-                languageCode = _state.value.languageCode,
-                limit = fetchLimit,
-                excludeIds = request.session?.addedIds.orEmpty(),
-                diversify = true
-            )
+            val playableSeed = if (isLocalPlaybackTrack(request.seed)) {
+                withTimeoutOrNull(6_000L) {
+                    repository.searchSongMatch(
+                        request.seed.title,
+                        request.seed.artist,
+                        _state.value.languageCode
+                    )
+                }
+            } else {
+                request.seed
+            }
+            if (playableSeed == null) {
+                emptyList()
+            } else {
+                repository.radio(
+                    seed = playableSeed,
+                    languageCode = _state.value.languageCode,
+                    limit = fetchLimit,
+                    excludeIds = request.session?.addedIds.orEmpty(),
+                    diversify = true
+                )
+            }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {

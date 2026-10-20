@@ -5,9 +5,8 @@ internal fun auriaDjForPlayback(
     manuallyDisabled: Boolean,
     loopingPlaylist: Boolean,
     videoMode: Boolean,
-    local: Boolean,
     liveRadio: Boolean
 ): Boolean {
-    if (loopingPlaylist || videoMode || local || liveRadio) return false
+    if (loopingPlaylist || videoMode || liveRadio) return false
     return existing || !manuallyDisabled
 }
