@@ -36,8 +36,8 @@ class AutoMixPlannerTest {
     @Test
     fun djAutomaticallyMixesWithoutManualCrossfadeSetting() {
         val plan = planAutoMix(
-            track("old"),
-            track("new"),
+            track("old").copy(energy = 0, vocal = 0),
+            track("new").copy(energy = 0, vocal = 0),
             LevyraAudioSettings(crossfadeSeconds = 0),
             RepeatMode.Off,
             videoMode = false,
