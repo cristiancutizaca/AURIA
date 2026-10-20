@@ -361,6 +361,15 @@ fun SettingsScreen(
                     checked = settings.smartCrossfade,
                     onCheckedChange = { value -> onUpdate { it.copy(smartCrossfade = value) } }
                 )
+                ChoiceRow(
+                    title = "AURIA DJ · ${strings.crossfade}",
+                    body = strings.crossfadeBody,
+                    selected = DesktopSettings.normalizeCrossfade(settings.auriaDjMixMs),
+                    options = DesktopSettings.CROSSFADE_STEPS_MS.map { step ->
+                        step to if (step == 0) strings.sleepTimerOff else "${step / 1_000}s"
+                    },
+                    onSelect = { value -> onUpdate { it.copy(auriaDjMixMs = value) } }
+                )
                 SettingsToggle(
                     title = strings.settingsPreloadNext,
                     body = strings.settingsPreloadNextBody,

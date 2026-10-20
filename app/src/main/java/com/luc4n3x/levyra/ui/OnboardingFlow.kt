@@ -12,7 +12,7 @@ internal enum class OnboardingStep {
         Intro -> Language
         Language -> Appearance
         Appearance -> Profile
-        Profile -> Taste
+        Profile -> YoutubeMusic
         Taste -> YoutubeMusic
         YoutubeMusic -> YoutubeMusic
     }
@@ -23,16 +23,17 @@ internal enum class OnboardingStep {
         Appearance -> Language
         Profile -> Appearance
         Taste -> Profile
-        YoutubeMusic -> Taste
+        YoutubeMusic -> Profile
     }
 }
 
 internal fun onboardingPrimaryEnabled(
     step: OnboardingStep,
     selectedTasteCount: Int
-): Boolean = step != OnboardingStep.Taste || selectedTasteCount >= 3
+): Boolean = true
 
-internal fun onboardingShowsChrome(step: OnboardingStep): Boolean = step != OnboardingStep.Intro
+internal fun onboardingShowsChrome(step: OnboardingStep): Boolean =
+    step != OnboardingStep.Intro && step != OnboardingStep.Taste
 
 internal fun onboardingProgressSteps(): List<OnboardingStep> =
     OnboardingStep.entries.filter(::onboardingShowsChrome)

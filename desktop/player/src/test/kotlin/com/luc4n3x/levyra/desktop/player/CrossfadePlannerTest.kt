@@ -31,6 +31,24 @@ class CrossfadePlannerTest {
     }
 
     @Test
+    fun djAutoMixUsesFourSecondsWhenTheDjIsActive() {
+        assertEquals(4_000, CrossfadePlanner.requestedDjCrossfadeMs(0, 4_000, true))
+        assertEquals(0, CrossfadePlanner.requestedDjCrossfadeMs(0, 4_000, false))
+        assertEquals(0, CrossfadePlanner.requestedDjCrossfadeMs(0, 0, true))
+        assertEquals(8_000, CrossfadePlanner.requestedDjCrossfadeMs(8_000, 4_000, true))
+        assertEquals(
+            0L,
+            CrossfadePlanner.transitionDurationMs(
+                requestedMs = 4_000,
+                smartCrossfade = true,
+                current = track(album = "Collection"),
+                next = track(album = "Collection"),
+                currentDurationMs = 240_000L
+            )
+        )
+    }
+
+    @Test
     fun smartCrossfadeSkipsConsecutiveTracksOfTheSameAlbum() {
         val current = track(album = "Blurred")
         val next = track(album = "blurred")

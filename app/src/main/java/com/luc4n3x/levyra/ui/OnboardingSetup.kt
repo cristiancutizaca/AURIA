@@ -242,7 +242,8 @@ internal fun OnboardingOverlay(
     val youtubeMusicAccount = youtubeMusic.active
     val youtubeMusicError = youtubeMusic.error?.takeIf { youtubeMusicAccount == null && !youtubeMusic.restoring }
     val animated = LocalAnimationsEnabled.current
-    LaunchedEffect(languageCode) { onTasteLanguage(languageCode) }
+    // AURIA infers music taste from the device library and listening history;
+    // do not download onboarding artist portraits or require manual taste selection.
     val accent by animateColorAsState(onboardingAccent(step), setupMotion(animated, tween(520)), label = "setup-accent")
     val introLevel = rememberSetupIntroLevel(step, animated)
     val finish: () -> Unit = { onDone(name, selected, languageCode) }

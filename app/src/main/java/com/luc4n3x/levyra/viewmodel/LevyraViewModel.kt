@@ -97,6 +97,7 @@ import com.luc4n3x.levyra.data.local.toTrack
 import com.luc4n3x.levyra.domain.ArtistBiography
 import com.luc4n3x.levyra.domain.HighQualityAudioMode
 import com.luc4n3x.levyra.domain.HomeSection
+import com.luc4n3x.levyra.domain.HomeLocalMusicRecommendations
 import com.luc4n3x.levyra.domain.LevyraAudioQuality
 import com.luc4n3x.levyra.domain.ArtistProfile
 import com.luc4n3x.levyra.domain.ArtistRelease
@@ -317,6 +318,7 @@ import com.luc4n3x.levyra.player.advancedPrefetchAllowed
 import com.luc4n3x.levyra.player.advancedPrefetchNetworkAllowed
 import com.luc4n3x.levyra.player.radioTailFetchLimit
 import com.luc4n3x.levyra.player.radioTailTargetUpcoming
+import com.luc4n3x.levyra.player.auriaDjForPlayback
 import com.luc4n3x.levyra.player.advancedPrefetchBudgetBytes
 import com.luc4n3x.levyra.player.advancedPrefetchTrackLimit
 import com.luc4n3x.levyra.player.PlaybackService
@@ -1198,6 +1200,10 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
     private var excludedArtistsGeneration = 0L
     private var followedArtistsGeneration = 0L
     private var radioJob: Job? = null
+    private var radioEndContinuationJob: Job? = null
+    private val auriaDjPreferences = getApplication<Application>()
+        .getSharedPreferences("auria_dj", Context.MODE_PRIVATE)
+    private var auriaDjManuallyDisabled = auriaDjPreferences.getBoolean("explicitly_disabled", false)
     private val radioSession = AtomicReference<RadioSession?>(null)
     private var sponsorSegments: List<SponsorSegment> = emptyList()
     private val sponsorSkipTracker = SponsorBlockSkipOnceTracker()
@@ -1905,6 +1911,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         startTicker()
         observeQueueSpaces()
         observeLocalLibrary()
+        refreshLocalLibraryAccess()
         observeDownloads()
         observeSmartOfflineSettings()
         observeDownloadTasks()
@@ -4047,7 +4054,13 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         val nextTrack = queueEngine.next()
         when {
             nextTrack != null -> startResolve(nextTrack, autoRetryWhenOffline = true)
-            queueEngine.state.value.radioEnabled -> ensureRadioTail(force = true, playWhenReady = true)
+            queueEngine.state.value.radioEnabled -> {
+                if (radioJob?.isActive == true) {
+                    continueAfterPendingRadio()
+                } else {
+                    ensureRadioTail(force = true, playWhenReady = true)
+                }
+            }
             loopCurrentQueueOnCompletion && queueEngine.state.value.tracks.isNotEmpty() -> {
                 val first = queueEngine.select(0, rememberCurrent = true)
                 if (first != null) startResolve(first)
@@ -4953,7 +4966,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         val normalizedLanguage = LevyraLanguageCatalog.normalize(languageCode)
         preferences.setLanguageCode(normalizedLanguage)
         preferences.setUserName(name.trim())
-        preferences.setOnboarded(tasteIds)
+        preferences.setOnboarded(emptySet())
         preferences.setYoutubeMusicIntroSeen()
         _state.update { it.copy(showOnboarding = false, youtubeMusicIntroPending = false, userName = name.trim()) }
         applyLanguageContent(normalizedLanguage, refreshRemote = true)
@@ -6190,6 +6203,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
             charts = chartTracks,
             cachedOrbit = cachedOrbit,
             limit = LevyraPersonalOrbit.DISPLAY_LIMIT,
+            localSongs = _state.value.localLibrary.catalog.songs,
             languageCode = languageCode,
             discoveries = smartOrbitDiscoveries,
             excluded = smartOrbitExclusion()
@@ -6356,7 +6370,31 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
                     val catalog = withContext(Dispatchers.Default) {
                         buildLocalLibraryCatalog(rows, sort.first, sort.second)
                     }
-                    _state.update { it.copy(localLibrary = it.localLibrary.copy(catalog = catalog)) }
+                    // MediaStore can contain thousands of songs; never rank the
+                    // library inside StateFlow.update on the Compose main thread.
+                    val snapshot = _state.value
+                    val orbit = withContext(Dispatchers.Default) {
+                        HomeLocalMusicRecommendations.rank(
+                            localSongs = catalog.songs,
+                            recent = listOfNotNull(snapshot.currentTrack) +
+                                snapshot.recentListens + snapshot.recentSearches,
+                            favorites = snapshot.favorites,
+                            online = snapshot.homeSections.flatMap { it.tracks } +
+                                snapshot.charts + snapshot.tracks + smartOrbitDiscoveries,
+                            limit = LevyraPersonalOrbit.DISPLAY_LIMIT
+                        )
+                    }
+                    _state.update { current ->
+                        val visibleOrbit = orbit.ifEmpty {
+                            current.personalOrbitTracks.filterNot { it.id.startsWith(LOCAL_MEDIA_TRACK_ID_PREFIX) }
+                        }
+                        current.copy(
+                            localLibrary = current.localLibrary.copy(catalog = catalog),
+                            personalOrbitTracks = visibleOrbit,
+                            quickPickSeeds = if (orbit.isNotEmpty()) orbit.take(10)
+                                else current.quickPickSeeds.filterNot { it.id.startsWith(LOCAL_MEDIA_TRACK_ID_PREFIX) }
+                        )
+                    }
                 }
         }
         viewModelScope.launch {
@@ -6897,6 +6935,8 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
     fun toggleContinuousRadio() {
         if (_state.value.currentTrack?.isLiveRadio() == true) return
         val enabled = !queueEngine.state.value.radioEnabled
+        auriaDjManuallyDisabled = !enabled
+        auriaDjPreferences.edit().putBoolean("explicitly_disabled", !enabled).apply()
         queueEngine.setRadioEnabled(enabled)
         if (enabled) {
             radioJob?.cancel()
@@ -6911,6 +6951,8 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
     fun startSongRadio() {
         if (_state.value.currentTrack?.isLiveRadio() == true) return
         if (jamController.rejectGuestLocalMutation()) return
+        auriaDjManuallyDisabled = false
+        auriaDjPreferences.edit().putBoolean("explicitly_disabled", false).apply()
         if (!queueEngine.state.value.radioEnabled) queueEngine.setRadioEnabled(true)
         radioJob?.cancel()
         beginRadioSession()
@@ -6919,7 +6961,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun beginRadioSession() {
         val snapshot = queueEngine.state.value
-        val seed = snapshot.currentTrack?.takeUnless { it.isLiveRadio() || isLocalPlaybackTrack(it) }
+        val seed = snapshot.currentTrack?.takeUnless { it.isLiveRadio() }
         radioSession.set(seed?.let { RadioSession(spaceId = snapshot.spaceId, seed = it) })
     }
 
@@ -9085,6 +9127,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
             charts = snapshot.charts,
             cachedOrbit = snapshot.personalOrbitTracks,
             limit = LevyraPersonalOrbit.DISPLAY_LIMIT,
+            localSongs = snapshot.localLibrary.catalog.songs,
             languageCode = snapshot.languageCode,
             discoveries = smartOrbitDiscoveries,
             excluded = smartOrbitExclusion()
@@ -9445,6 +9488,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
                 charts = charts,
                 cachedOrbit = cachedOrbit,
                 limit = LevyraPersonalOrbit.DISPLAY_LIMIT,
+                localSongs = current.localLibrary.catalog.songs,
                 languageCode = current.languageCode,
                 discoveries = smartOrbitDiscoveries,
                 excluded = orbitExclusion
@@ -9827,7 +9871,14 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         val contextualQueue = queueForTrack(track)
         loopCurrentQueueOnCompletion = contextualQueue.size > 1
         val index = contextualQueue.indexOfFirst { samePlayableTrack(it, track) }.coerceAtLeast(0)
-        queueEngine.replace(contextualQueue, index, keepPlaybackModes = true, radioEnabled = queueEngine.state.value.radioEnabled)
+        val useDj = auriaDjForPlayback(
+            manuallyDisabled = auriaDjManuallyDisabled,
+            loopingPlaylist = false,
+            videoMode = _state.value.isVideoMode,
+            liveRadio = track.isLiveRadio()
+        )
+        queueEngine.replace(contextualQueue, index, keepPlaybackModes = true, radioEnabled = useDj)
+        if (useDj) beginRadioSession()
         queueIndex = index
         startResolve(contextualQueue.getOrElse(index) { track })
     }
@@ -9841,7 +9892,14 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         leaveLiveRadioQueue()
         loopCurrentQueueOnCompletion = loopOnCompletion
         val index = list.indexOfFirst { samePlayableTrack(it, track) }.coerceAtLeast(0)
-        queueEngine.replace(list, index, keepPlaybackModes = true, radioEnabled = queueEngine.state.value.radioEnabled)
+        val useDj = auriaDjForPlayback(
+            manuallyDisabled = auriaDjManuallyDisabled,
+            loopingPlaylist = loopOnCompletion,
+            videoMode = _state.value.isVideoMode,
+            liveRadio = track.isLiveRadio()
+        )
+        queueEngine.replace(list, index, keepPlaybackModes = true, radioEnabled = useDj)
+        if (useDj) beginRadioSession()
         queueIndex = index
         startResolve(list.getOrElse(index) { track })
     }
@@ -12176,7 +12234,11 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
     private fun prefetchNextTracks(playable: Track) {
         prefetchJob?.cancel()
         PlaybackService.clearPreparedQueueNextIfStale()
-        if (isLocalPlaybackTrack(playable) || !lyricsNetworkProfile().connected) return
+        if (isLocalPlaybackTrack(playable)) {
+            ensureRadioTail(force = false)
+            return
+        }
+        if (!lyricsNetworkProfile().connected) return
         if (!queuePrefetchAllowed(_state.value.audioSettings)) {
             ensureRadioTail(force = false)
             return
@@ -12419,6 +12481,26 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         val session: RadioSession?
     )
 
+    private fun continueAfterPendingRadio() {
+        if (radioEndContinuationJob?.isActive == true) return
+        val initial = queueEngine.state.value
+        val expected = initial.currentTrack ?: return
+        radioEndContinuationJob = viewModelScope.launch {
+            radioJob?.join()
+            val current = queueEngine.state.value
+            if (!current.radioEnabled ||
+                current.spaceId != initial.spaceId ||
+                current.currentTrack?.let(::playbackIdentity) != playbackIdentity(expected)
+            ) return@launch
+            val next = queueEngine.next(respectRepeatOne = false)
+            if (next != null) {
+                startResolve(next, autoRetryWhenOffline = true)
+            } else {
+                ensureRadioTail(force = true, playWhenReady = true)
+            }
+        }
+    }
+
     private fun ensureRadioTail(
         force: Boolean,
         playWhenReady: Boolean = false,
@@ -12438,7 +12520,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         val targetUpcoming = radioTailTargetUpcoming(_state.value.audioSettings.advancedQueuePrefetchTracks)
         if (!force && queueEngine.upcoming(targetUpcoming).size >= targetUpcoming) return null
         if (radioJob?.isActive == true) return null
-        if (isLocalPlaybackTrack(anchor) || !lyricsNetworkProfile().connected) return null
+        if (!lyricsNetworkProfile().connected) return null
         val session = radioSession.get()?.takeIf { it.isActiveFor(snapshot) }
         val seed = radioSeedFor(session, snapshot) ?: return null
         return RadioTailRequest(seed = seed, anchor = anchor, generation = snapshot.generation, session = session)
@@ -12463,13 +12545,28 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
 
     private suspend fun fetchRadioTracks(request: RadioTailRequest, fetchLimit: Int): List<Track> =
         try {
-            repository.radio(
-                seed = request.seed,
-                languageCode = _state.value.languageCode,
-                limit = fetchLimit,
-                excludeIds = request.session?.addedIds.orEmpty(),
-                diversify = true
-            )
+            val playableSeed = if (isLocalPlaybackTrack(request.seed)) {
+                withTimeoutOrNull(6_000L) {
+                    repository.searchSongMatch(
+                        request.seed.title,
+                        request.seed.artist,
+                        _state.value.languageCode
+                    )
+                }
+            } else {
+                request.seed
+            }
+            if (playableSeed == null) {
+                emptyList()
+            } else {
+                repository.radio(
+                    seed = playableSeed,
+                    languageCode = _state.value.languageCode,
+                    limit = fetchLimit,
+                    excludeIds = request.session?.addedIds.orEmpty(),
+                    diversify = true
+                )
+            }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {
@@ -12677,6 +12774,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         charts = current.charts,
         cachedOrbit = current.personalOrbitTracks,
         limit = LevyraPersonalOrbit.DISPLAY_LIMIT,
+        localSongs = current.localLibrary.catalog.songs,
         languageCode = current.languageCode,
         discoveries = smartOrbitDiscoveries,
         excluded = smartOrbitExclusion()
@@ -13011,7 +13109,10 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
             startResolve(nextTrack)
             return
         }
-        if (queueEngine.state.value.radioEnabled) ensureRadioTail(force = true, playWhenReady = true)
+        if (queueEngine.state.value.radioEnabled) {
+            if (radioJob?.isActive == true) continueAfterPendingRadio()
+            else ensureRadioTail(force = true, playWhenReady = true)
+        }
     }
 
     fun previous() {
@@ -13054,12 +13155,18 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         requestGeneration: Long,
         deferUntilHomeIdle: Boolean
     ) {
-        val tasteIds = preferences.tastes()
+        val personalState = _state.value
         val queries = withContext(Dispatchers.Default) {
-            (LevyraLocalizedDiscovery.homeBoostQueries(languageCode, tasteIds) +
-                moodEngine.queriesForTastes(tasteIds, languageCode))
-                .distinct()
-                .take(12)
+            HomeLocalMusicRecommendations.searchQueries(
+                localSongs = personalState.localLibrary.catalog.songs,
+                recent = personalState.recentListens + personalState.recentSearches,
+                favorites = personalState.favorites,
+                limit = 7
+            ).let { personal ->
+                (personal + LevyraLocalizedDiscovery.homeBoostQueries(languageCode, emptySet()))
+                    .distinct()
+                    .take(12)
+            }
         }
         val tracks = try {
             repository.home(queries, languageCode)

@@ -476,6 +476,10 @@ fun LevyraRoot(model: LevyraAppModel) {
                                 if (queueVisible) {
                                     QueuePanel(
                                         queue = playback.queue,
+                                        djEnabled = settings.autoplayRadio,
+                                        onToggleDj = {
+                                            model.updateSettings { it.copy(autoplayRadio = !it.autoplayRadio) }
+                                        },
                                         onJumpTo = model.playbackController::jumpTo,
                                         onRemove = model.playbackController::removeFromQueue,
                                         onClear = model.playbackController::clearQueue,

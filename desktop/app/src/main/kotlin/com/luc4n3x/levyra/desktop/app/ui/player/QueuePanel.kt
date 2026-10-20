@@ -36,6 +36,8 @@ import com.luc4n3x.levyra.desktop.player.PlayerQueue
 @Composable
 fun QueuePanel(
     queue: PlayerQueue,
+    djEnabled: Boolean,
+    onToggleDj: () -> Unit,
     onJumpTo: (Int) -> Unit,
     onRemove: (Int) -> Unit,
     onClear: () -> Unit,
@@ -57,6 +59,9 @@ fun QueuePanel(
         ) {
             Text(text = strings.queueTitle, style = MaterialTheme.typography.titleMedium)
             Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = onToggleDj) {
+                    Text(if (djEnabled) "DJ: ON" else "DJ: OFF")
+                }
                 TextButton(onClick = onClear, enabled = !queue.isEmpty) {
                     Text(strings.queueClear)
                 }

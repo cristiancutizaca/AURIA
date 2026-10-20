@@ -162,6 +162,7 @@ class PlaybackService : MediaLibraryService() {
     private var stickyRestoreJob: Job? = null
     private var playbackWatchdogJob: Job? = null
     private var queueTransitionJob: Job? = null
+    private var djTransitionHoldJob: Job? = null
     private var queueTransitionMonitorJob: Job? = null
     private var memoryGuardJob: Job? = null
     private var castHandoffJob: Job? = null
@@ -307,6 +308,9 @@ class PlaybackService : MediaLibraryService() {
         private const val AUDIO_ROUTE_FAILURE_FEEDBACK_MS = 4_000L
         private val ONLINE_RECOVERY_DELAYS_MS = longArrayOf(500L, 2_000L, 5_000L, 10_000L)
         private val LOCAL_RECOVERY_DELAYS_MS = longArrayOf(250L, 750L, 1_500L, 3_000L, 5_000L, 10_000L)
+
+        private val _djTransitionFlow = MutableStateFlow<AuriaDjTransition?>(null)
+        val djTransitionFlow: StateFlow<AuriaDjTransition?> = _djTransitionFlow.asStateFlow()
 
         private val _activePlayerFlow = MutableStateFlow<ExoPlayer?>(null)
         val activePlayerFlow: StateFlow<ExoPlayer?> = _activePlayerFlow.asStateFlow()
@@ -1591,9 +1595,18 @@ class PlaybackService : MediaLibraryService() {
         val initial = queueEngine.state.value
         if (!initial.radioEnabled) return null
         val seed = initial.currentTrack ?: return null
-        if (isLocalPlaybackTrack(seed) || !hasInternetCapableNetwork()) return null
+        if (!hasInternetCapableNetwork()) return null
         val additions = try {
-            musicRepository.radio(seed, LevyraPreferences(this).languageCode(), 5)
+            val languageCode = LevyraPreferences(this).languageCode()
+            val playableSeed = if (isLocalPlaybackTrack(seed)) {
+                withTimeoutOrNull(6_000L) {
+                    musicRepository.searchSongMatch(seed.title, seed.artist, languageCode)
+                }
+            } else {
+                seed
+            }
+            if (playableSeed == null) emptyList()
+            else musicRepository.radio(playableSeed, languageCode, 5)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
@@ -1895,7 +1908,9 @@ class PlaybackService : MediaLibraryService() {
         transitionPlayer?.setPlaybackParameters(
             PlaybackParameters(currentAudioSettings.playbackSpeed, currentAudioSettings.pitch)
         )
-        if (currentAudioSettings.crossfadeSeconds <= 0 || !currentAudioSettings.gaplessEnabled) {
+        if (!currentAudioSettings.gaplessEnabled ||
+            (currentAudioSettings.crossfadeSeconds <= 0 && !queueEngine.state.value.radioEnabled)
+        ) {
             cancelQueueTransition()
         }
     }
@@ -1929,7 +1944,8 @@ class PlaybackService : MediaLibraryService() {
             repeatMode = snapshot.repeatMode,
             videoMode = videoMode,
             lowRam = adaptivePlaybackPolicy.current(videoMode = false).lowRam,
-            shuffleEnabled = snapshot.shuffleEnabled
+            shuffleEnabled = snapshot.shuffleEnabled,
+            djEnabled = snapshot.radioEnabled
         ) ?: return
         if (remaining > plan.preloadLeadMs) return
         queueTransitionJob = serviceScope.launch {
@@ -1948,6 +1964,17 @@ class PlaybackService : MediaLibraryService() {
         val currentIdentity = playbackQueueIdentity(current)
         val targetIdentity = playbackQueueIdentity(target)
         var secondary: ExoPlayer? = null
+        var mixCompleted = false
+        val mixVisual = AuriaDjTransition(
+            sourceId = currentIdentity,
+            targetId = targetIdentity,
+            sourceArtwork = current.largeThumbnailUrl.ifBlank { current.thumbnailUrl },
+            targetArtwork = target.largeThumbnailUrl.ifBlank { target.thumbnailUrl },
+            sourceTitle = current.title,
+            targetTitle = target.title,
+            targetArtist = target.artist,
+            durationMs = plan.transitionMs
+        )
         try {
             val resolved = awaitPreparedQueueTrackForTransition(currentIdentity, targetIdentity)
                 ?: withContext(Dispatchers.IO) { resolveQueueTrack(target) }
@@ -1967,6 +1994,8 @@ class PlaybackService : MediaLibraryService() {
             if (!transitionStillValid(snapshot.generation, currentIdentity, targetIdentity, primary)) return
 
             isQueueTransitionInProgress = true
+            djTransitionHoldJob?.cancel()
+            if (snapshot.radioEnabled) _djTransitionFlow.value = mixVisual
             secondary.play()
             fadePlayers(primary, secondary, plan.transitionMs) {
                 transitionStillValid(snapshot.generation, currentIdentity, targetIdentity, primary) &&
@@ -2002,12 +2031,24 @@ class PlaybackService : MediaLibraryService() {
                 handoffStillValid(primary, secondary, targetIdentity)
             }
             queueEngine.updatePosition(primary.currentPosition)
+            mixCompleted = true
             if (!isLocalPlaybackTrack(resolved)) prefetchServiceQueueNext()
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {
             Timber.w(error, "Queue crossfade failed")
         } finally {
+            if (_djTransitionFlow.value == mixVisual) {
+                if (mixCompleted) {
+                    djTransitionHoldJob?.cancel()
+                    djTransitionHoldJob = serviceScope.launch {
+                        delay(9_000L)
+                        if (_djTransitionFlow.value == mixVisual) _djTransitionFlow.value = null
+                    }
+                } else {
+                    _djTransitionFlow.value = null
+                }
+            }
             isQueueTransitionInProgress = false
             primary.volume = 1f
             releaseTransitionPlayer(secondary)
@@ -2428,6 +2469,9 @@ class PlaybackService : MediaLibraryService() {
     }
 
     private fun cancelQueueTransition() {
+        djTransitionHoldJob?.cancel()
+        djTransitionHoldJob = null
+        _djTransitionFlow.value = null
         queueTransitionJob?.cancel()
         queueTransitionJob = null
         isQueueTransitionInProgress = false

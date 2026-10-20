@@ -34,6 +34,34 @@ class AutoMixPlannerTest {
     }
 
     @Test
+    fun djAutomaticallyMixesWithoutManualCrossfadeSetting() {
+        val plan = planAutoMix(
+            track("old").copy(energy = 0, vocal = 0),
+            track("new").copy(energy = 0, vocal = 0),
+            LevyraAudioSettings(crossfadeSeconds = 0),
+            RepeatMode.Off,
+            videoMode = false,
+            lowRam = false,
+            djEnabled = true
+        )
+        assertNotNull(plan)
+        assertEquals(4_000L, plan?.transitionMs)
+        assertNull(
+            planAutoMix(track(), track("next"), LevyraAudioSettings(),
+                RepeatMode.Off, videoMode = false, lowRam = false, djEnabled = false)
+        )
+    }
+
+    @Test
+    fun djDoesNotCreateSecondPlayerDuringNativeVideoOrLowMemory() {
+        val settings = LevyraAudioSettings()
+        assertNull(planAutoMix(track(), track("next"), settings,
+            RepeatMode.Off, videoMode = true, lowRam = false, djEnabled = true))
+        assertNull(planAutoMix(track(), track("next"), settings,
+            RepeatMode.Off, videoMode = false, lowRam = true, djEnabled = true))
+    }
+
+    @Test
     fun autoMixAdaptsDurationWithoutExceedingBounds() {
         val current = track().copy(energy = 70, vocal = 30)
         val next = track("next").copy(energy = 75, vocal = 30)

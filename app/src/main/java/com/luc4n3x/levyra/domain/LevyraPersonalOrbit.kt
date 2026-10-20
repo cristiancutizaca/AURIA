@@ -93,9 +93,18 @@ object LevyraPersonalOrbit {
         limit: Int = DISPLAY_LIMIT,
         languageCode: String = LevyraLanguageCatalog.deviceDefault(),
         discoveries: List<Track> = emptyList(),
+        localSongs: List<Track> = emptyList(),
         excluded: (Track) -> Boolean = { false }
     ): List<Track> {
         val max = limit.coerceAtLeast(1)
+        val personalized = HomeLocalMusicRecommendations.rank(
+            localSongs = localSongs,
+            recent = listOfNotNull(currentTrack) + recentSearches,
+            favorites = favorites,
+            online = discoveries + tracks + charts + homeSections.flatMap { it.tracks },
+            limit = max
+        )
+        if (personalized.isNotEmpty()) return personalized
         val normalizedLanguage = LevyraLanguageCatalog.normalize(languageCode)
         val donorPool = buildList {
             addAll(charts)

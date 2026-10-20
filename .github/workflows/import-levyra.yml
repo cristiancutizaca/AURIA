@@ -1,64 +1,24 @@
-name: Import Levyra source into AURIA
+name: AURIA legacy import (archived)
 
+# AURIA already includes the original Levyra source.
+# This workflow is intentionally read-only. In particular, it must never
+# rsync the upstream project over AURIA/main or push a destructive commit.
 on:
-  push:
-    paths:
-      - ".github/workflows/import-levyra.yml"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  import-source:
+  imported-source-notice:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout AURIA
-        uses: actions/checkout@v4
+      - name: Checkout existing AURIA sources
+        uses: actions/checkout@v7
         with:
-          fetch-depth: 1
-
-      - name: Checkout Levyra at pinned revision
-        uses: actions/checkout@v4
-        with:
-          repository: LUC4N3X/Levyra-deepsound
-          ref: 9436698b4718faf935ff28b9f20526abb31fc437
-          path: upstream
           persist-credentials: false
-
-      - name: Copy original source while preserving this import workflow
-        shell: bash
+      - name: Show archive notice
         run: |
-          set -euo pipefail
-          mv upstream "$RUNNER_TEMP/auria-upstream"
-          rsync -a --exclude='.git/' "$RUNNER_TEMP/auria-upstream/" "$GITHUB_WORKSPACE/"
-          cat > AURIA_PROJECT.md <<'EOF'
-          # AURIA
-
-          AURIA is a planned smart music player for Android and Windows, built
-          from the open-source Levyra project.
-
-          **Upstream:** https://github.com/LUC4N3X/Levyra-deepsound
-          **Imported revision:** `9436698b4718faf935ff28b9f20526abb31fc437`
-
-          ## Development goals
-
-          - Preserve working offline, local-library and online playback.
-          - Create a unified smart queue of local and online songs.
-          - Recommend music using playback history, favorites and skips.
-          - Build automatic DJ transitions, with optional BPM and key analysis.
-          - Support offline recommendations when no internet is available.
-
-          ## License and credits
-
-          Levyra source is under GPL-3.0. Retain its license and original
-          authorship notices. Existing source names and identifiers will be
-          changed carefully in later development commits.
-          EOF
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: import Levyra source as AURIA base"
-            git push origin HEAD:main
-          fi
+          echo "AURIA already contains the Levyra source and our improvements."
+          echo "To update upstream safely, use a reviewed source-level merge."
+          echo "Never overwrite the AURIA main branch with a fresh upstream copy."

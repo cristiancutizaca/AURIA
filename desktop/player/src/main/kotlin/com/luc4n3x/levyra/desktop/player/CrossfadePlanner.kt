@@ -28,6 +28,16 @@ object CrossfadePlanner {
         return currentAlbum.equals(nextAlbum, ignoreCase = true)
     }
 
+    fun requestedDjCrossfadeMs(
+        userCrossfadeMs: Int,
+        djMixMs: Int,
+        djEnabled: Boolean
+    ): Int = when {
+        userCrossfadeMs > 0 -> userCrossfadeMs
+        djEnabled -> djMixMs.coerceAtLeast(0)
+        else -> 0
+    }
+
     fun transitionDurationMs(
         requestedMs: Int,
         smartCrossfade: Boolean,

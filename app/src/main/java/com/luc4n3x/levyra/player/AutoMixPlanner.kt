@@ -18,19 +18,21 @@ internal fun planAutoMix(
     repeatMode: RepeatMode,
     videoMode: Boolean,
     lowRam: Boolean,
-    shuffleEnabled: Boolean = false
+    shuffleEnabled: Boolean = false,
+    djEnabled: Boolean = false
 ): AutoMixPlan? {
     val normalized = settings.normalized()
-    if (!normalized.gaplessEnabled || normalized.crossfadeSeconds <= 0 || next == null) return null
+    val effectiveSeconds = if (djEnabled && normalized.crossfadeSeconds == 0) 4 else normalized.crossfadeSeconds
+    if (!normalized.gaplessEnabled || effectiveSeconds <= 0 || next == null) return null
     if (repeatMode == RepeatMode.One || videoMode || lowRam || current.durationMs <= MIN_TRACK_MS) return null
     if (continuesSameRelease(current, next, shuffleEnabled)) return null
-    val base = normalized.crossfadeSeconds * 1_000L
-    val adaptive = if (normalized.djSoftMode) {
+    val base = effectiveSeconds * 1_000L
+    val adaptive = if (normalized.djSoftMode || djEnabled) {
         val energyDistance = abs(current.energy - next.energy)
         val vocalOverlap = (current.vocal + next.vocal) / 2
         when {
             vocalOverlap >= 70 -> base - 1_500L
-            energyDistance <= 15 -> base + 1_500L
+            energyDistance <= 15 && (current.energy > 0 || next.energy > 0) -> base + 1_500L
             energyDistance >= 45 -> base - 1_000L
             else -> base
         }

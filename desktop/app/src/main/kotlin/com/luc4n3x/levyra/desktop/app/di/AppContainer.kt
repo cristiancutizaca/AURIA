@@ -9,6 +9,7 @@ import com.luc4n3x.levyra.desktop.app.state.LyricsController
 import com.luc4n3x.levyra.desktop.app.state.OfflineDownloadController
 import com.luc4n3x.levyra.desktop.app.state.PlaybackController
 import com.luc4n3x.levyra.desktop.core.catalog.CatalogRepository
+import com.luc4n3x.levyra.desktop.core.dj.AuriaDjLearningStore
 import com.luc4n3x.levyra.desktop.core.charts.ChartsRepository
 import com.luc4n3x.levyra.desktop.core.extractor.ExtractorRuntime
 import com.luc4n3x.levyra.desktop.core.localmusic.LocalLibraryStore
@@ -37,6 +38,7 @@ class AppContainer {
 
     val settingsStore: SettingsStore = SettingsStore.create(paths)
     val libraryStore: LibraryStore = LibraryStore.create(paths)
+    val djLearningStore: AuriaDjLearningStore = AuriaDjLearningStore.create(paths)
     val sessionStore: SessionStore = SessionStore.create(paths)
     val downloadStore: DownloadStore = DownloadStore.create(paths)
     val windowPlacementStore: WindowPlacementStore = WindowPlacementStore.create(paths)
@@ -56,15 +58,37 @@ class AppContainer {
         paths = paths
     )
 
+    private val localMusicController = LocalMusicController(
+        scope = scope,
+        store = localLibraryStore,
+        paths = paths
+    )
+
     val playbackController: PlaybackController = PlaybackController(
         scope = scope,
         resolver = streamResolver,
         catalog = catalogRepository,
         settingsStore = settingsStore,
         libraryStore = libraryStore,
+        djLearningStore = djLearningStore,
         sessionStore = sessionStore,
         sponsorBlock = sponsorBlockRepository,
-        playerFactory = ::createAudioPlayer
+        playerFactory = ::createAudioPlayer,
+        localTracksProvider = { seed ->
+            val tracks = localMusicController.state.value.index.tracks
+            val sourceGenre = tracks.firstOrNull { "local:${it.id}" == seed.id }
+                ?.genre.orEmpty().trim()
+            val artist = seed.artist.trim()
+            tracks.asSequence()
+                .filter { it.available }
+                .filter {
+                    (artist.isNotEmpty() && it.artist.trim().equals(artist, ignoreCase = true)) ||
+                        (sourceGenre.isNotEmpty() && it.genre.trim().equals(sourceGenre, ignoreCase = true))
+                }
+                .take(200)
+                .map { it.toTrack() }
+                .toList()
+        }
     )
 
     val downloadController: OfflineDownloadController = OfflineDownloadController(
@@ -82,12 +106,6 @@ class AppContainer {
                 bundledDirectory = bundledVlcDirectory()
             )
         }
-    )
-
-    private val localMusicController = LocalMusicController(
-        scope = scope,
-        store = localLibraryStore,
-        paths = paths
     )
 
     private val catalogController = CatalogController(

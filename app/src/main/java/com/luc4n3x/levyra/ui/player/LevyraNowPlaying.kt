@@ -135,6 +135,7 @@ import com.luc4n3x.levyra.feature.radio.isLiveRadio
 import com.luc4n3x.levyra.feature.radio.LiveRadioViewModel
 import com.luc4n3x.levyra.feature.radio.RadioStation
 import com.luc4n3x.levyra.player.LevyraPipBridge
+import com.luc4n3x.levyra.player.PlaybackService
 import com.luc4n3x.levyra.ui.LevyraLayoutMode
 import com.luc4n3x.levyra.ui.LevyraPlayerPane
 import com.luc4n3x.levyra.ui.MotionBackdropPalette
@@ -203,6 +204,7 @@ fun LevyraNowPlaying(
 ) {
     val strings = LocalLevyraStrings.current
     val track = state.currentTrack
+    val djTransition by PlaybackService.djTransitionFlow.collectAsStateWithLifecycle()
     val liveRadio = track?.isLiveRadio() == true
     val liveRadioStrings = LevyraLiveRadioCatalog.forCode(strings.code)
     val playerContext = LocalContext.current
@@ -829,6 +831,7 @@ fun LevyraNowPlaying(
                         artScale = artScale,
                         artOffset = artOffset,
                         glowColor = if (deckLayout == PlayerDeckLayout.Levyra || deckLayout == PlayerDeckLayout.Sleeve || deckLayout == PlayerDeckLayout.Pulse || deckLayout == PlayerDeckLayout.Halo) primary else Color.Transparent,
+                         djTransition = if (state.isVideoMode || liveRadio) null else djTransition,
                         modifier = Modifier
                             .fillMaxSize()
                             .playerLyricsFlipFace(
