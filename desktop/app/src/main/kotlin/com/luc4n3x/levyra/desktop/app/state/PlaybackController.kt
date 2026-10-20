@@ -56,6 +56,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
+data class DjTransitionUiState(val outgoing: Track, val incoming: Track)
+
 data class PlaybackUiState(
     val queue: PlayerQueue = PlayerQueue(),
     val status: PlaybackStatus = PlaybackStatus.IDLE,
@@ -68,7 +70,8 @@ data class PlaybackUiState(
     val sleepRemainingMs: Long = 0L,
     val streamLabel: String = "",
     val preparingTrackId: String = "",
-    val unavailableReason: String = ""
+    val unavailableReason: String = "",
+    val djTransition: DjTransitionUiState? = null
 ) {
     val current: Track? get() = queue.current
     val isPlaying: Boolean get() = status == PlaybackStatus.PLAYING
@@ -942,6 +945,13 @@ class PlaybackController(
             return
         }
         if (transitionMs > 0L) {
+            val outgoingTrack = internalState.value.queue.current
+            val incomingTrack = PrefetchPlanner.handoffTrack(internalState.value.queue)
+            if (outgoingTrack != null && incomingTrack != null) {
+                internalState.update {
+                    it.copy(djTransition = DjTransitionUiState(outgoingTrack, incomingTrack))
+                }
+            }
             val steps = (transitionMs / CrossfadePlanner.STEP_MS).toInt().coerceAtLeast(1)
             for (step in 1..steps) {
                 val failureReason = incomingFailure.get()
@@ -983,6 +993,7 @@ class PlaybackController(
         }
         runCatching { companion?.stop() }
         player?.setVolume(internalState.value.volume)
+        internalState.update { it.copy(djTransition = null) }
     }
 
     private fun completeTransition(ownerJob: Job) {
@@ -1036,6 +1047,7 @@ class PlaybackController(
         internalState.update { state ->
             state.copy(
                 queue = advanced,
+                djTransition = null,
                 status = PlaybackStatus.PLAYING,
                 preparingTrackId = "",
                 positionMs = pendingResumeMs,
@@ -1079,6 +1091,7 @@ class PlaybackController(
         if (wasActive) {
             player?.setVolume(internalState.value.volume)
         }
+        internalState.update { if (it.djTransition != null) it.copy(djTransition = null) else it }
     }
 
     private fun clearTransitionOwnership(ownerJob: Job) {

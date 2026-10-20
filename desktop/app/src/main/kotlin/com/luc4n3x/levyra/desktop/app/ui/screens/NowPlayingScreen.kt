@@ -110,19 +110,57 @@ fun NowPlayingScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(18.dp)
                     ) {
-                        Artwork(
-                            url = track.artworkUrl,
-                            modifier = Modifier
-                                .size(340.dp)
-                                .clip(RoundedCornerShape(26.dp))
-                                .background(
-                                    Brush.linearGradient(
-                                        listOf(accent.copy(alpha = 0.5f), accent.copy(alpha = 0.1f))
+                        val djMix = state.djTransition
+                        if (djMix != null) {
+                            Column(
+                                modifier = Modifier.size(340.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = "AURIA · DJ MIX",
+                                    color = accent,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(top = 22.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                                ) {
+                                    Artwork(
+                                        url = djMix.outgoing.artworkUrl,
+                                        modifier = Modifier.size(160.dp),
+                                        cornerRadius = 16.dp
                                     )
-                                ),
-                            cornerRadius = 26.dp,
-                            iconSize = 56.dp
-                        )
+                                    Artwork(
+                                        url = djMix.incoming.artworkUrl,
+                                        modifier = Modifier.size(160.dp),
+                                        cornerRadius = 16.dp
+                                    )
+                                }
+                                Text(
+                                    text = djMix.incoming.title,
+                                    modifier = Modifier.padding(top = 18.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        } else {
+                            Artwork(
+                                url = track.artworkUrl,
+                                modifier = Modifier
+                                    .size(340.dp)
+                                    .clip(RoundedCornerShape(26.dp))
+                                    .background(
+                                        Brush.linearGradient(
+                                            listOf(accent.copy(alpha = 0.5f), accent.copy(alpha = 0.1f))
+                                        )
+                                    ),
+                                cornerRadius = 26.dp,
+                                iconSize = 56.dp
+                            )
+                        }
                         Text(
                             text = track.title,
                             style = MaterialTheme.typography.headlineMedium,
