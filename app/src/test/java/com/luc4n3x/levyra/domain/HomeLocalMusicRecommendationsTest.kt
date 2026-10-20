@@ -79,6 +79,21 @@ class HomeLocalMusicRecommendationsTest {
     }
 
     @Test
+    fun samplesAllPartsOfLargeAlphabeticallySortedLibraries() {
+        val local = (1..950).map { index ->
+            song("id$index", if (index > 900) "ZZZ Artist" else "AAA Artist", "Song $index")
+        }
+        val queries = HomeLocalMusicRecommendations.searchQueries(
+            localSongs = local,
+            recent = emptyList(),
+            favorites = emptyList(),
+            limit = 7
+        )
+        assertTrue("Artists near the end of a large library must be seen",
+            queries.any { it.contains("zzz artist") })
+    }
+
+    @Test
     fun neverExceedsDisplayLimit() {
         val songs = (1..40).map { song("id$it", "Band ${it % 5}", "Track $it") }
         val ranked = HomeLocalMusicRecommendations.rank(songs, emptyList(), emptyList(), emptyList(), limit = 7)
