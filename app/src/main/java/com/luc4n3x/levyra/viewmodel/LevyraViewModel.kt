@@ -6370,22 +6370,29 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
                     val catalog = withContext(Dispatchers.Default) {
                         buildLocalLibraryCatalog(rows, sort.first, sort.second)
                     }
-                    _state.update { current ->
-                        val localSongs = catalog.songs
-                        val orbit = HomeLocalMusicRecommendations.rank(
-                            localSongs = localSongs,
-                            recent = listOfNotNull(current.currentTrack) +
-                                current.recentListens + current.recentSearches,
-                            favorites = current.favorites,
-                            online = current.homeSections.flatMap { it.tracks } +
-                                current.charts + current.tracks + smartOrbitDiscoveries,
+                    // MediaStore can contain thousands of songs; never rank the
+                    // library inside StateFlow.update on the Compose main thread.
+                    val snapshot = _state.value
+                    val orbit = withContext(Dispatchers.Default) {
+                        HomeLocalMusicRecommendations.rank(
+                            localSongs = catalog.songs,
+                            recent = listOfNotNull(snapshot.currentTrack) +
+                                snapshot.recentListens + snapshot.recentSearches,
+                            favorites = snapshot.favorites,
+                            online = snapshot.homeSections.flatMap { it.tracks } +
+                                snapshot.charts + snapshot.tracks + smartOrbitDiscoveries,
                             limit = LevyraPersonalOrbit.DISPLAY_LIMIT
                         )
+                    }
+                    _state.update { current ->
+                        val visibleOrbit = orbit.ifEmpty {
+                            current.personalOrbitTracks.filterNot { it.id.startsWith(LOCAL_MEDIA_TRACK_ID_PREFIX) }
+                        }
                         current.copy(
                             localLibrary = current.localLibrary.copy(catalog = catalog),
-                            personalOrbitTracks = orbit.ifEmpty { current.personalOrbitTracks },
+                            personalOrbitTracks = visibleOrbit,
                             quickPickSeeds = if (orbit.isNotEmpty()) orbit.take(10)
-                                else current.quickPickSeeds
+                                else current.quickPickSeeds.filterNot { it.id.startsWith(LOCAL_MEDIA_TRACK_ID_PREFIX) }
                         )
                     }
                 }
