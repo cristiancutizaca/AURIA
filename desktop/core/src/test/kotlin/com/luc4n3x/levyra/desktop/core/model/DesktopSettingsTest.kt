@@ -20,6 +20,16 @@ class DesktopSettingsTest {
     }
 
     @Test
+    fun djMixDefaultsToLongOverlapButPreservesExplicitChoices() {
+        assertEquals(27_000, DesktopSettings().sanitized().auriaDjMixMs)
+        assertEquals(27_000, DesktopSettings.normalizeDjMix(26_000))
+        assertEquals(30_000, DesktopSettings.normalizeDjMix(100_000))
+        assertEquals(0, DesktopSettings(auriaDjMixMs = 0).sanitized().auriaDjMixMs)
+        assertEquals(4_000, DesktopSettings(auriaDjMixMs = 4_000).sanitized().auriaDjMixMs)
+        assertEquals(12_000, DesktopSettings(crossfadeMs = 30_000).sanitized().crossfadeMs)
+    }
+
+    @Test
     fun audioOutputDeviceIdIsTrimmedAndBounded() {
         val long = "x".repeat(DesktopSettings.MAX_OUTPUT_DEVICE_ID_LENGTH + 40)
         assertEquals(

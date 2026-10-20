@@ -131,7 +131,7 @@ data class DesktopSettings(
     val preloadNextTrack: Boolean = true,
     val sponsorBlock: Boolean = true,
     val crossfadeMs: Int = 0,
-    val auriaDjMixMs: Int = 4_000,
+    val auriaDjMixMs: Int = 27_000,
     val smartCrossfade: Boolean = true,
     val globalMediaKeys: Boolean = true,
     val playbackSpeed: Float = DEFAULT_SPEED,
@@ -148,7 +148,7 @@ data class DesktopSettings(
         volume = volume.coerceIn(0, 100),
         playbackSpeed = normalizeSpeed(playbackSpeed),
         crossfadeMs = normalizeCrossfade(crossfadeMs),
-        auriaDjMixMs = normalizeCrossfade(auriaDjMixMs),
+        auriaDjMixMs = normalizeDjMix(auriaDjMixMs),
         vlcDirectory = vlcDirectory.trim(),
         audioOutputDeviceId = audioOutputDeviceId.trim().take(MAX_OUTPUT_DEVICE_ID_LENGTH),
         equalizer = equalizer.sanitized()
@@ -165,10 +165,14 @@ data class DesktopSettings(
 
         val SPEED_STEPS = listOf(0.75f, 1f, 1.25f, 1.5f, 2f)
         val CROSSFADE_STEPS_MS = listOf(0, 2_000, 4_000, 6_000, 8_000, 12_000)
+        val DJ_MIX_STEPS_MS = listOf(0, 4_000, 8_000, 12_000, 20_000, 27_000, 30_000)
 
         fun normalizeCrossfade(value: Int): Int =
             CROSSFADE_STEPS_MS.minByOrNull { kotlin.math.abs(it - value.coerceIn(0, MAX_CROSSFADE_MS)) }
                 ?: 0
+
+        fun normalizeDjMix(value: Int): Int =
+            DJ_MIX_STEPS_MS.minByOrNull { kotlin.math.abs(it - value.coerceIn(0, 30_000)) } ?: 0
 
         fun normalizeSpeed(value: Float): Float =
             if (value.isNaN()) DEFAULT_SPEED else value.coerceIn(MIN_SPEED, MAX_SPEED)

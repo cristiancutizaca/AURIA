@@ -45,11 +45,46 @@ class AutoMixPlannerTest {
             djEnabled = true
         )
         assertNotNull(plan)
-        assertEquals(4_000L, plan?.transitionMs)
+        assertEquals(27_000L, plan?.transitionMs)
+        assertEquals(35_000L, plan?.preloadLeadMs)
         assertNull(
             planAutoMix(track(), track("next"), LevyraAudioSettings(),
                 RepeatMode.Off, videoMode = false, lowRam = false, djEnabled = false)
         )
+    }
+
+    @Test
+    fun djOverlapKeepsOutgoingMusicAudibleWhileIncomingBegins() {
+        val start = djOverlayCrossfade(0f)
+        val midpoint = djOverlayCrossfade(0.5f)
+        val late = djOverlayCrossfade(0.8f)
+        val end = djOverlayCrossfade(1f)
+        assertEquals(1f, start.outgoing, 0.001f)
+        assertEquals(0f, start.incoming, 0.001f)
+        assertTrue(midpoint.outgoing > 0.75f)
+        assertTrue(midpoint.incoming > 0f)
+        assertTrue(late.incoming > midpoint.incoming)
+        assertTrue(late.outgoing < midpoint.outgoing)
+        assertEquals(0f, end.outgoing, 0.001f)
+        assertEquals(1f, end.incoming, 0.001f)
+    }
+
+    @Test
+    fun djShortensOverlapForClashingSongsOrShortTracks() {
+        val energetic = planAutoMix(
+            track().copy(energy = 0),
+            track("next").copy(energy = 95),
+            LevyraAudioSettings(),
+            RepeatMode.Off, videoMode = false, lowRam = false, djEnabled = true
+        )
+        assertEquals(21_000L, energetic?.transitionMs)
+        val short = planAutoMix(
+            track().copy(durationMs = 64_000L),
+            track("next"),
+            LevyraAudioSettings(),
+            RepeatMode.Off, videoMode = false, lowRam = false, djEnabled = true
+        )
+        assertEquals(16_000L, short?.transitionMs)
     }
 
     @Test

@@ -87,6 +87,23 @@ class CrossfadePlannerTest {
     }
 
     @Test
+    fun djOverlapAllowsOutgoingVoiceToContinueUnderIncomingMusic() {
+        assertEquals(1f, CrossfadePlanner.djOutgoingGain(0f), 0.001f)
+        assertEquals(0f, CrossfadePlanner.djIncomingGain(0f), 0.001f)
+        assertTrue(CrossfadePlanner.djOutgoingGain(0.5f) > 0.75f)
+        assertTrue(CrossfadePlanner.djIncomingGain(0.5f) > 0f)
+        assertTrue(CrossfadePlanner.djIncomingGain(0.8f) > CrossfadePlanner.djIncomingGain(0.5f))
+        assertEquals(0f, CrossfadePlanner.djOutgoingGain(1f), 0.001f)
+        assertEquals(1f, CrossfadePlanner.djIncomingGain(1f), 0.001f)
+    }
+
+    @Test
+    fun longDjOverlapClampsToShorterTrack() {
+        assertEquals(27_000L, CrossfadePlanner.effectiveDurationMs(27_000, 207_000L, 161_000L))
+        assertEquals(12_000L, CrossfadePlanner.effectiveDurationMs(27_000, 24_000L, 161_000L))
+    }
+
+    @Test
     fun prepareThresholdLeavesRoomForTheTransition() {
         assertEquals(
             240_000L - 6_000L - CrossfadePlanner.PREPARE_LEAD_MS,

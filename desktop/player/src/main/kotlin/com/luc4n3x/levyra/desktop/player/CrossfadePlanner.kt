@@ -59,6 +59,20 @@ object CrossfadePlanner {
 
     fun incomingGain(fraction: Float): Float = sin(fraction.coerceIn(0f, 1f) * HALF_PI)
 
+    fun djOutgoingGain(fraction: Float): Float {
+        val t = fraction.coerceIn(0f, 1f)
+        val phase = if (t <= 0.65f) t / 0.65f else (t - 0.65f) / 0.35f
+        val eased = phase * phase * (3f - 2f * phase)
+        return if (t <= 0.65f) 1f - 0.25f * eased else 0.75f * (1f - eased)
+    }
+
+    fun djIncomingGain(fraction: Float): Float {
+        val t = fraction.coerceIn(0f, 1f)
+        val phase = if (t <= 0.65f) t / 0.65f else (t - 0.65f) / 0.35f
+        val eased = phase * phase * (3f - 2f * phase)
+        return if (t <= 0.65f) 0.30f * eased else 0.30f + 0.70f * eased
+    }
+
     fun volumeFor(baseVolume: Int, gain: Float): Int =
         (baseVolume * gain).toInt().coerceIn(0, 100)
 }

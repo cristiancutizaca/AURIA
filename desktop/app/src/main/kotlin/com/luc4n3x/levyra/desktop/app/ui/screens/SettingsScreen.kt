@@ -364,8 +364,8 @@ fun SettingsScreen(
                 ChoiceRow(
                     title = "AURIA DJ · ${strings.crossfade}",
                     body = strings.crossfadeBody,
-                    selected = DesktopSettings.normalizeCrossfade(settings.auriaDjMixMs),
-                    options = DesktopSettings.CROSSFADE_STEPS_MS.map { step ->
+                    selected = DesktopSettings.normalizeDjMix(settings.auriaDjMixMs),
+                    options = DesktopSettings.DJ_MIX_STEPS_MS.map { step ->
                         step to if (step == 0) strings.sleepTimerOff else "${step / 1_000}s"
                     },
                     onSelect = { value -> onUpdate { it.copy(auriaDjMixMs = value) } }

@@ -17,7 +17,7 @@ It shares the Android project's YouTube extractor (`third_party/LevyraExtractor`
 - Synced lyrics from LRCLIB, with the current line highlighted during playback
 - Queue with shuffle and repeat, plus AURIA DJ automatic continuation: refill the queue with similar online/local tracks before the last song ends; favor saved music and avoid duplicate songs. Toggle DJ in the queue panel.
 - On-device DJ learning: track completed songs and early skips, persist a bounded private preference history in `dj-learning.json`, and adjust future recommendations without a cloud account.
-- DJ AutoMix: apply a configurable, equal-power crossfade (4 seconds by default) when the continuous DJ is on and no manual crossfade is selected. Use 0 seconds in DJ AutoMix settings to disable automatic mixing; same-album gapless remains protected by Smart Crossfade. This is not beat or key matching.
+- DJ AutoMix: overlap the full original recordings for up to 27 seconds by default, easing in the next track while keeping the outgoing audio audible through much of the transition. Configure 0, 4, 8, 12, 20, 27, or 30 seconds independently of the manual crossfade; same-album gapless remains protected by Smart Crossfade. Previously saved settings are preserved. This is not stem separation, beat matching, or automatic cue-point detection.
 - Next-track preloading that resolves the upcoming stream before the current track ends
 - Playback speed between 0.75x and 2x, applied to the current track and kept across sessions
 - Sleep timer with presets or end-of-track mode, with the remaining time shown in the player

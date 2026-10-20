@@ -945,6 +945,7 @@ class PlaybackController(
             return
         }
         if (transitionMs > 0L) {
+            val djOverlay = settingsStore.current.autoplayRadio && transitionMs >= 20_000L
             val outgoingTrack = internalState.value.queue.current
             val incomingTrack = PrefetchPlanner.handoffTrack(internalState.value.queue)
             if (outgoingTrack != null && incomingTrack != null) {
@@ -963,10 +964,18 @@ class PlaybackController(
                 val fraction = step.toFloat() / steps.toFloat()
                 val base = internalState.value.volume
                 outgoing?.setVolume(
-                    CrossfadePlanner.volumeFor(base, CrossfadePlanner.outgoingGain(fraction))
+                    CrossfadePlanner.volumeFor(
+                        base,
+                        if (djOverlay) CrossfadePlanner.djOutgoingGain(fraction)
+                        else CrossfadePlanner.outgoingGain(fraction)
+                    )
                 )
                 companion.setVolume(
-                    CrossfadePlanner.volumeFor(base, CrossfadePlanner.incomingGain(fraction))
+                    CrossfadePlanner.volumeFor(
+                        base,
+                        if (djOverlay) CrossfadePlanner.djIncomingGain(fraction)
+                        else CrossfadePlanner.incomingGain(fraction)
+                    )
                 )
                 delay(CrossfadePlanner.STEP_MS)
             }

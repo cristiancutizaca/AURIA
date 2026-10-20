@@ -290,7 +290,7 @@ class PlaybackService : MediaLibraryService() {
         private const val WATCHDOG_INTERVAL_MS = 5_000L
         private const val LIVE_RADIO_STALE_PAUSE_MS = 20_000L
         private const val WATCHDOG_STALL_TIMEOUT_MS = 15_000L
-        private const val MAX_TRANSITION_LOOKAHEAD_MS = 20_000L
+        private const val MAX_TRANSITION_LOOKAHEAD_MS = 40_000L
         private const val TRANSITION_PREPARE_TIMEOUT_MS = 8_000L
         private const val PREPARED_QUEUE_WAIT_MS = 2_000L
         private const val PREPARED_QUEUE_MAX_AGE_MS = 15L * 60L * 1_000L
@@ -1996,10 +1996,13 @@ class PlaybackService : MediaLibraryService() {
             isQueueTransitionInProgress = true
             djTransitionHoldJob?.cancel()
             if (snapshot.radioEnabled) _djTransitionFlow.value = mixVisual
+            val remainingMs = (primary.duration - primary.currentPosition).coerceAtLeast(0L)
+            val actualTransitionMs = minOf(plan.transitionMs, remainingMs)
+            if (actualTransitionMs < 800L) return
             secondary.play()
-            fadePlayers(primary, secondary, plan.transitionMs) {
+            fadePlayers(primary, secondary, actualTransitionMs, djOverlay = snapshot.radioEnabled) {
                 transitionStillValid(snapshot.generation, currentIdentity, targetIdentity, primary) &&
-                    primary.duration - primary.currentPosition <= plan.transitionMs + SEEK_TOLERANCE_MS
+                    primary.duration - primary.currentPosition <= actualTransitionMs + SEEK_TOLERANCE_MS
             }
 
             val handedOff = queueEngine.handoffNext(
@@ -2327,6 +2330,7 @@ class PlaybackService : MediaLibraryService() {
         outgoing: ExoPlayer,
         incoming: ExoPlayer,
         durationMs: Long,
+        djOverlay: Boolean = false,
         isValid: () -> Boolean = { true }
     ) {
         val steps = (durationMs / TRANSITION_STEP_MS).toInt().coerceIn(8, 120)
@@ -2335,7 +2339,8 @@ class PlaybackService : MediaLibraryService() {
             if ((!outgoing.playWhenReady || !incoming.playWhenReady || !isValid()) && step < steps) {
                 throw CancellationException("Playback paused during crossfade")
             }
-            val gains = equalPowerCrossfade(step.toFloat() / steps.toFloat())
+            val fraction = step.toFloat() / steps.toFloat()
+            val gains = if (djOverlay) djOverlayCrossfade(fraction) else equalPowerCrossfade(fraction)
             outgoing.volume = gains.outgoing
             incoming.volume = gains.incoming
             if (step < steps) {

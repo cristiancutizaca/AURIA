@@ -22,12 +22,21 @@ internal fun planAutoMix(
     djEnabled: Boolean = false
 ): AutoMixPlan? {
     val normalized = settings.normalized()
-    val effectiveSeconds = if (djEnabled && normalized.crossfadeSeconds == 0) 4 else normalized.crossfadeSeconds
+    val automaticDjMix = djEnabled && normalized.crossfadeSeconds == 0
+    val effectiveSeconds = if (automaticDjMix) 27 else normalized.crossfadeSeconds
     if (!normalized.gaplessEnabled || effectiveSeconds <= 0 || next == null) return null
     if (repeatMode == RepeatMode.One || videoMode || lowRam || current.durationMs <= MIN_TRACK_MS) return null
     if (continuesSameRelease(current, next, shuffleEnabled)) return null
     val base = effectiveSeconds * 1_000L
-    val adaptive = if (normalized.djSoftMode || djEnabled) {
+    val adaptive = if (automaticDjMix) {
+        val energyDistance = abs(current.energy - next.energy)
+        val vocalOverlap = (current.vocal + next.vocal) / 2
+        when {
+            energyDistance >= 45 -> base - 6_000L
+            vocalOverlap >= 75 -> base - 3_000L
+            else -> base
+        }
+    } else if (normalized.djSoftMode || djEnabled) {
         val energyDistance = abs(current.energy - next.energy)
         val vocalOverlap = (current.vocal + next.vocal) / 2
         when {
@@ -37,11 +46,15 @@ internal fun planAutoMix(
             else -> base
         }
     } else base
-    val transition = adaptive.coerceIn(MIN_TRANSITION_MS, MAX_TRANSITION_MS)
+    val transition = adaptive
+        .coerceIn(MIN_TRANSITION_MS, if (automaticDjMix) MAX_DJ_TRANSITION_MS else MAX_TRANSITION_MS)
         .coerceAtMost(current.durationMs / 4L)
+        .let { if (next.durationMs > 0L) it.coerceAtMost(next.durationMs / 2L) else it }
     return AutoMixPlan(
         transitionMs = transition,
-        preloadLeadMs = (transition + PRELOAD_MARGIN_MS).coerceAtMost(MAX_PRELOAD_LEAD_MS)
+        preloadLeadMs = (transition + PRELOAD_MARGIN_MS).coerceAtMost(
+            if (automaticDjMix) MAX_DJ_PRELOAD_LEAD_MS else MAX_PRELOAD_LEAD_MS
+        )
     )
 }
 
@@ -79,6 +92,18 @@ internal fun equalPowerCrossfade(progress: Float): CrossfadeGains {
     return CrossfadeGains(outgoing = cos(angle), incoming = sin(angle))
 }
 
+internal fun djOverlayCrossfade(progress: Float): CrossfadeGains {
+    val t = progress.coerceIn(0f, 1f)
+    val split = 0.65f
+    val phase = if (t <= split) t / split else (t - split) / (1f - split)
+    val eased = phase * phase * (3f - 2f * phase)
+    return if (t <= split) {
+        CrossfadeGains(outgoing = 1f - 0.25f * eased, incoming = 0.30f * eased)
+    } else {
+        CrossfadeGains(outgoing = 0.75f * (1f - eased), incoming = 0.30f + 0.70f * eased)
+    }
+}
+
 internal fun crossfadeHandoffNeedsResync(
     primaryPositionMs: Long,
     secondaryPositionMs: Long,
@@ -107,5 +132,7 @@ internal fun crossfadeStepWallClockMs(
 private const val MIN_TRACK_MS = 30_000L
 private const val MIN_TRANSITION_MS = 800L
 private const val MAX_TRANSITION_MS = 12_000L
+private const val MAX_DJ_TRANSITION_MS = 30_000L
 private const val PRELOAD_MARGIN_MS = 8_000L
 private const val MAX_PRELOAD_LEAD_MS = 20_000L
+private const val MAX_DJ_PRELOAD_LEAD_MS = 40_000L
