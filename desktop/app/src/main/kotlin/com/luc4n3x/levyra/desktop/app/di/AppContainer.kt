@@ -56,6 +56,12 @@ class AppContainer {
         paths = paths
     )
 
+    private val localMusicController = LocalMusicController(
+        scope = scope,
+        store = localLibraryStore,
+        paths = paths
+    )
+
     val playbackController: PlaybackController = PlaybackController(
         scope = scope,
         resolver = streamResolver,
@@ -64,7 +70,22 @@ class AppContainer {
         libraryStore = libraryStore,
         sessionStore = sessionStore,
         sponsorBlock = sponsorBlockRepository,
-        playerFactory = ::createAudioPlayer
+        playerFactory = ::createAudioPlayer,
+        localTracksProvider = { seed ->
+            val tracks = localMusicController.state.value.index.tracks
+            val sourceGenre = tracks.firstOrNull { "local:${it.id}" == seed.id }
+                ?.genre.orEmpty().trim()
+            val artist = seed.artist.trim()
+            tracks.asSequence()
+                .filter { it.available }
+                .filter {
+                    (artist.isNotEmpty() && it.artist.trim().equals(artist, ignoreCase = true)) ||
+                        (sourceGenre.isNotEmpty() && it.genre.trim().equals(sourceGenre, ignoreCase = true))
+                }
+                .take(200)
+                .map { it.toTrack() }
+                .toList()
+        }
     )
 
     val downloadController: OfflineDownloadController = OfflineDownloadController(
@@ -82,12 +103,6 @@ class AppContainer {
                 bundledDirectory = bundledVlcDirectory()
             )
         }
-    )
-
-    private val localMusicController = LocalMusicController(
-        scope = scope,
-        store = localLibraryStore,
-        paths = paths
     )
 
     private val catalogController = CatalogController(

@@ -2,6 +2,8 @@ package com.luc4n3x.levyra.desktop.app.state
 
 import com.luc4n3x.levyra.desktop.app.DesktopDiagnostics
 import com.luc4n3x.levyra.desktop.core.catalog.CatalogRepository
+import com.luc4n3x.levyra.desktop.core.dj.AuriaDjPlanner
+import com.luc4n3x.levyra.desktop.core.model.SearchFilter
 import com.luc4n3x.levyra.desktop.core.extractor.ExtractorRateLimitException
 import com.luc4n3x.levyra.desktop.core.localmusic.LocalMediaSource
 import com.luc4n3x.levyra.desktop.core.localmusic.resolveLocalFile
@@ -28,6 +30,7 @@ import com.luc4n3x.levyra.desktop.player.PlayerQueue
 import com.luc4n3x.levyra.desktop.player.PrefetchPlanner
 import com.luc4n3x.levyra.desktop.player.RepeatMode
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -77,7 +80,8 @@ class PlaybackController(
     private val libraryStore: LibraryStore,
     private val sessionStore: SessionStore,
     private val sponsorBlock: SponsorBlockRepository,
-    private val playerFactory: () -> AudioPlayer
+    private val playerFactory: () -> AudioPlayer,
+    private val localTracksProvider: (Track) -> List<Track> = { emptyList() }
 ) {
     private val internalState = MutableStateFlow(
         PlaybackUiState(
@@ -109,6 +113,9 @@ class PlaybackController(
     private var eventJob: Job? = null
     private var sponsorJob: Job? = null
     private var persistJob: Job? = null
+    private var djJob: Job? = null
+    private var djJobTrackId: String = ""
+    private val djGeneration = AtomicLong()
     private var prefetchJob: Job? = null
     private var sleepJob: Job? = null
     private var outputDeviceJob: Job? = null
@@ -151,6 +158,19 @@ class PlaybackController(
                     outputDeviceMissingState.value = false
                     player?.applyOutputDevice(deviceId)
                     companionPlayer?.applyOutputDevice(deviceId)
+                }
+        }
+        playerScope.launch {
+            settingsStore.settings
+                .map { it.autoplayRadio }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    if (enabled) {
+                        scheduleDjQueueFill()
+                    } else {
+                        djGeneration.incrementAndGet()
+                        djJob?.cancel()
+                    }
                 }
         }
         playerScope.launch {
@@ -205,6 +225,8 @@ class PlaybackController(
 
     fun playTracks(tracks: List<Track>, startIndex: Int = 0) {
         if (tracks.isEmpty()) return
+        djGeneration.incrementAndGet()
+        djJob?.cancel()
         val queue = internalState.value.queue.replace(tracks, startIndex)
         internalState.update { state -> state.copy(queue = queue) }
         startCurrent(0L)
@@ -214,6 +236,8 @@ class PlaybackController(
 
     fun playShuffled(tracks: List<Track>) {
         if (tracks.isEmpty()) return
+        djGeneration.incrementAndGet()
+        djJob?.cancel()
         val shuffled = internalState.value.queue.copy(shuffle = true).replace(tracks, 0)
         internalState.update { state -> state.copy(queue = shuffled) }
         startCurrent(0L)
@@ -256,6 +280,8 @@ class PlaybackController(
     }
 
     fun clearQueue() {
+        djGeneration.incrementAndGet()
+        djJob?.cancel()
         cancelTransition()
         internalState.update { state -> state.copy(queue = state.queue.clear()) }
         stop()
@@ -398,6 +424,8 @@ class PlaybackController(
     }
 
     fun stop() {
+        djGeneration.incrementAndGet()
+        djJob?.cancel()
         cancelTransition()
         clearSponsorBlockWatch()
         playbackJob?.cancel()
@@ -414,6 +442,8 @@ class PlaybackController(
     }
 
     fun shutdown() {
+        djGeneration.incrementAndGet()
+        djJob?.cancel()
         clearSponsorBlockWatch()
         transitionJob?.cancel()
         transitionEventJob?.cancel()
@@ -454,6 +484,7 @@ class PlaybackController(
             )
         }
         playbackJob = playerScope.launch { runPlayback(track, startAtMs, forceRestart) }
+        scheduleDjQueueFill()
     }
 
     private suspend fun runPlayback(track: Track, startAtMs: Long, forceRestart: Boolean) {
@@ -989,6 +1020,7 @@ class PlaybackController(
             libraryStore.recordPlayback(track)
         }
         persistSession()
+        scheduleDjQueueFill()
     }
 
     private fun cancelTransition() {
@@ -1104,25 +1136,114 @@ class PlaybackController(
         saveSessionNow()
     }
 
-    private fun extendWithRadio() {
-        val seed = internalState.value.queue.items.lastOrNull() ?: return
-        playerScope.launch {
-            val tracks = try {
-                catalog.radio(seed)
+    private fun scheduleDjQueueFill() {
+        if (!settingsStore.current.autoplayRadio) return
+        val queue = internalState.value.queue
+        val seed = queue.current ?: return
+        if (queue.repeat != RepeatMode.OFF || queue.upcoming.size >= DJ_REFILL_AT) return
+        if (djJob?.isActive == true) {
+            if (djJobTrackId == seed.id) return
+            djJob?.cancel()
+        }
+        val generation = djGeneration.get()
+        djJobTrackId = seed.id
+        djJob = playerScope.launch {
+            fillDjQueue(seed, generation)
+        }
+    }
+
+    private suspend fun fillDjQueue(seed: Track, generation: Long) {
+        val startingQueue = internalState.value.queue
+        if (!settingsStore.current.autoplayRadio ||
+            startingQueue.current?.id != seed.id ||
+            startingQueue.repeat != RepeatMode.OFF ||
+            startingQueue.upcoming.size >= DJ_REFILL_AT
+        ) return
+
+        val related = if (seed.videoUrl.isNotBlank()) {
+            try {
+                catalog.radio(seed, DJ_RELATED_LIMIT)
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (error: Exception) {
+                DesktopDiagnostics.background("AURIA DJ related music", error)
                 emptyList()
             }
-            if (tracks.isEmpty()) {
-                stop()
+        } else {
+            emptyList()
+        }
+        val searched = if (related.size < DJ_REFILL_AT + 2) {
+            val query = seed.artist.substringBefore(',').trim().ifBlank { seed.title.trim() }
+            try {
+                catalog.search(query, SearchFilter.SONGS).tracks
+            } catch (cancellation: CancellationException) {
+                throw cancellation
+            } catch (error: Exception) {
+                DesktopDiagnostics.background("AURIA DJ discovery", error)
+                emptyList()
+            }
+        } else {
+            emptyList()
+        }
+        val locals = try {
+            localTracksProvider(seed)
+        } catch (error: Exception) {
+            DesktopDiagnostics.background("AURIA DJ local music", error)
+            emptyList()
+        }
+        val library = libraryStore.current
+        if (generation != djGeneration.get()) return
+        var updated = false
+        internalState.update { state ->
+            val queue = state.queue
+            if (!settingsStore.current.autoplayRadio ||
+                generation != djGeneration.get() ||
+                queue.current?.id != seed.id ||
+                queue.repeat != RepeatMode.OFF ||
+                queue.upcoming.size >= DJ_REFILL_AT
+            ) {
+                state
+            } else {
+                val recommendations = AuriaDjPlanner.recommend(
+                    seed = seed,
+                    queued = queue.items,
+                    related = related,
+                    searched = searched,
+                    local = locals,
+                    favorites = library.favorites,
+                    history = library.history.map { it.track },
+                    limit = DJ_ADD_AT_ONCE
+                )
+                if (recommendations.isEmpty()) {
+                    state
+                } else {
+                    val newQueue = queue.trimPlayed(MAX_QUEUE_SIZE - DJ_ADD_AT_ONCE)
+                        .enqueueLast(recommendations)
+                    updated = true
+                    state.copy(queue = newQueue)
+                }
+            }
+        }
+        if (updated && generation == djGeneration.get()) persistSession()
+    }
+
+    private fun extendWithRadio() {
+        val seed = internalState.value.queue.current ?: return
+        val generation = djGeneration.get()
+        playerScope.launch {
+            djJob?.join()
+            if (generation != djGeneration.get() || internalState.value.queue.current?.id != seed.id ||
+                !settingsStore.current.autoplayRadio
+            ) return@launch
+            if (internalState.value.queue.upcoming.isEmpty()) {
+                fillDjQueue(seed, generation)
+            }
+            if (generation != djGeneration.get() || internalState.value.queue.current?.id != seed.id) {
                 return@launch
             }
-            val queue = internalState.value.queue
-                .trimPlayed(MAX_QUEUE_SIZE)
-                .enqueueLast(tracks)
-            val advanced = queue.advance(automatic = false)
+            val advanced = internalState.value.queue.advance(automatic = false)
             if (advanced == null) {
+                messageFlow.tryEmit("AURIA DJ: no se encontraron canciones similares disponibles")
                 stop()
                 return@launch
             }
@@ -1306,6 +1427,9 @@ class PlaybackController(
         const val SLEEP_TICK_MS = 1_000L
         val SETTLED_STATUSES = setOf(PlaybackStatus.PLAYING, PlaybackStatus.PAUSED)
         const val MAX_QUEUE_SIZE = 200
+        const val DJ_REFILL_AT = 3
+        const val DJ_ADD_AT_ONCE = 8
+        const val DJ_RELATED_LIMIT = 35
         const val MAX_CAUSE_DEPTH = 8
         const val DEFAULT_VOLUME = 60
     }
