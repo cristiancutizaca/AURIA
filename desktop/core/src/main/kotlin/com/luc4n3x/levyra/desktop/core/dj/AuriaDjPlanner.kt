@@ -79,10 +79,10 @@ object AuriaDjPlanner {
     }
 
     private fun artistIdentity(artist: String): String =
-        artist.substringBefore(" feat", ignoreCase = true)
+        artist.trim().lowercase(Locale.ROOT)
+            .substringBefore(" feat")
             .substringBefore(" & ")
             .trim()
-            .lowercase(Locale.ROOT)
 
     private fun songIdentity(track: Track): String {
         val artist = artistIdentity(track.artist)

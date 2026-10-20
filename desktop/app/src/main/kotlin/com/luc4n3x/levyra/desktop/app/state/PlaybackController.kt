@@ -113,6 +113,7 @@ class PlaybackController(
     private var eventJob: Job? = null
     private var sponsorJob: Job? = null
     private var persistJob: Job? = null
+    private var djContinuationJob: Job? = null
     private var djJob: Job? = null
     private var djJobTrackId: String = ""
     private val djGeneration = AtomicLong()
@@ -226,6 +227,7 @@ class PlaybackController(
     fun playTracks(tracks: List<Track>, startIndex: Int = 0) {
         if (tracks.isEmpty()) return
         djGeneration.incrementAndGet()
+        djContinuationJob?.cancel()
         djJob?.cancel()
         val queue = internalState.value.queue.replace(tracks, startIndex)
         internalState.update { state -> state.copy(queue = queue) }
@@ -237,6 +239,7 @@ class PlaybackController(
     fun playShuffled(tracks: List<Track>) {
         if (tracks.isEmpty()) return
         djGeneration.incrementAndGet()
+        djContinuationJob?.cancel()
         djJob?.cancel()
         val shuffled = internalState.value.queue.copy(shuffle = true).replace(tracks, 0)
         internalState.update { state -> state.copy(queue = shuffled) }
@@ -281,6 +284,7 @@ class PlaybackController(
 
     fun clearQueue() {
         djGeneration.incrementAndGet()
+        djContinuationJob?.cancel()
         djJob?.cancel()
         cancelTransition()
         internalState.update { state -> state.copy(queue = state.queue.clear()) }
@@ -314,7 +318,7 @@ class PlaybackController(
         if (current.queue.isEmpty) return
         val advanced = current.queue.advance(automatic)
         if (advanced == null) {
-            if (automatic && settingsStore.current.autoplayRadio) {
+            if (settingsStore.current.autoplayRadio && current.queue.repeat == RepeatMode.OFF) {
                 extendWithRadio()
             } else {
                 stop()
@@ -425,6 +429,7 @@ class PlaybackController(
 
     fun stop() {
         djGeneration.incrementAndGet()
+        djContinuationJob?.cancel()
         djJob?.cancel()
         cancelTransition()
         clearSponsorBlockWatch()
@@ -443,6 +448,7 @@ class PlaybackController(
 
     fun shutdown() {
         djGeneration.incrementAndGet()
+        djContinuationJob?.cancel()
         djJob?.cancel()
         clearSponsorBlockWatch()
         transitionJob?.cancel()
@@ -1187,6 +1193,8 @@ class PlaybackController(
         }
         val locals = try {
             localTracksProvider(seed)
+        } catch (cancellation: CancellationException) {
+            throw cancellation
         } catch (error: Exception) {
             DesktopDiagnostics.background("AURIA DJ local music", error)
             emptyList()
@@ -1228,9 +1236,10 @@ class PlaybackController(
     }
 
     private fun extendWithRadio() {
+        if (djContinuationJob?.isActive == true) return
         val seed = internalState.value.queue.current ?: return
         val generation = djGeneration.get()
-        playerScope.launch {
+        djContinuationJob = playerScope.launch {
             djJob?.join()
             if (generation != djGeneration.get() || internalState.value.queue.current?.id != seed.id ||
                 !settingsStore.current.autoplayRadio
