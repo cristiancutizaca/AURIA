@@ -1,5 +1,0 @@
-{
-  "name": "AURIA source setup",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
-  "postCreateCommand": "bash scripts/import-if-missing.sh"
-}
