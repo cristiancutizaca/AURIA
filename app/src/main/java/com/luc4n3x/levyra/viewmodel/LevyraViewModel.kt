@@ -4964,7 +4964,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         val normalizedLanguage = LevyraLanguageCatalog.normalize(languageCode)
         preferences.setLanguageCode(normalizedLanguage)
         preferences.setUserName(name.trim())
-        preferences.setOnboarded(tasteIds)
+        preferences.setOnboarded(emptySet())
         preferences.setYoutubeMusicIntroSeen()
         _state.update { it.copy(showOnboarding = false, youtubeMusicIntroPending = false, userName = name.trim()) }
         applyLanguageContent(normalizedLanguage, refreshRemote = true)
@@ -13125,12 +13125,18 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         requestGeneration: Long,
         deferUntilHomeIdle: Boolean
     ) {
-        val tasteIds = preferences.tastes()
+        val personalState = _state.value
         val queries = withContext(Dispatchers.Default) {
-            (LevyraLocalizedDiscovery.homeBoostQueries(languageCode, tasteIds) +
-                moodEngine.queriesForTastes(tasteIds, languageCode))
-                .distinct()
-                .take(12)
+            HomeLocalMusicRecommendations.searchQueries(
+                localSongs = personalState.localLibrary.catalog.songs,
+                recent = personalState.recentListens + personalState.recentSearches,
+                favorites = personalState.favorites,
+                limit = 7
+            ).let { personal ->
+                (personal + LevyraLocalizedDiscovery.homeBoostQueries(languageCode, emptySet()))
+                    .distinct()
+                    .take(12)
+            }
         }
         val tracks = try {
             repository.home(queries, languageCode)

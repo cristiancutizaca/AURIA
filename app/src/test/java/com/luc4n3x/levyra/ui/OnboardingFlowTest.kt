@@ -13,7 +13,7 @@ import java.nio.file.Path
 class OnboardingFlowTest {
 
     @Test
-    fun `flow advances through intro language appearance profile and youtube music without requiring taste selection`() {
+    fun `setup does not require selecting musical tastes`() {
         assertEquals(OnboardingStep.Language, OnboardingStep.Intro.next())
         assertEquals(OnboardingStep.Appearance, OnboardingStep.Language.next())
         assertEquals(OnboardingStep.Profile, OnboardingStep.Appearance.next())
@@ -38,6 +38,7 @@ class OnboardingFlowTest {
         assertTrue(onboardingShowsChrome(OnboardingStep.Language))
         assertTrue(onboardingShowsChrome(OnboardingStep.Appearance))
         assertTrue(onboardingShowsChrome(OnboardingStep.Profile))
+        assertFalse(onboardingShowsChrome(OnboardingStep.Taste))
         assertTrue(onboardingShowsChrome(OnboardingStep.YoutubeMusic))
         assertEquals(
             listOf(OnboardingStep.Language, OnboardingStep.Appearance, OnboardingStep.Profile, OnboardingStep.YoutubeMusic),
@@ -45,11 +46,12 @@ class OnboardingFlowTest {
         )
         assertEquals(0, onboardingProgressIndex(OnboardingStep.Intro))
         assertEquals(0, onboardingProgressIndex(OnboardingStep.Language))
+        assertEquals(0, onboardingProgressIndex(OnboardingStep.Taste))
         assertEquals(3, onboardingProgressIndex(OnboardingStep.YoutubeMusic))
     }
 
     @Test
-    fun `first run has no mandatory genre picks`() {
+    fun `taste is optional even with zero selections`() {
         assertTrue(onboardingPrimaryEnabled(OnboardingStep.Intro, selectedTasteCount = 0))
         assertTrue(onboardingPrimaryEnabled(OnboardingStep.Language, selectedTasteCount = 0))
         assertTrue(onboardingPrimaryEnabled(OnboardingStep.Profile, selectedTasteCount = 0))
@@ -67,8 +69,8 @@ class OnboardingFlowTest {
         ).firstOrNull(Files::exists) ?: error("OnboardingSetup.kt not found")
         val content = Files.readString(source)
 
-        assertTrue(content.contains("onDone(name, emptySet(), languageCode)"))
-        assertFalse(content.contains("LaunchedEffect(languageCode) { onTasteLanguage(languageCode) }"))
+        assertTrue(content.contains("val tastes = remember(languageCode)"))
+        assertTrue(content.contains("moodEngine.tastesForLanguage(languageCode)"))
         assertFalse(content.contains("OnboardingOverlay(tastes = state.tastes"))
     }
 

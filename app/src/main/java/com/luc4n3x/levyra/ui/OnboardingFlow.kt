@@ -32,10 +32,11 @@ internal fun onboardingPrimaryEnabled(
     selectedTasteCount: Int
 ): Boolean = true
 
-internal fun onboardingShowsChrome(step: OnboardingStep): Boolean = step != OnboardingStep.Intro
+internal fun onboardingShowsChrome(step: OnboardingStep): Boolean =
+    step != OnboardingStep.Intro && step != OnboardingStep.Taste
 
 internal fun onboardingProgressSteps(): List<OnboardingStep> =
-    OnboardingStep.entries.filter { onboardingShowsChrome(it) && it != OnboardingStep.Taste }
+    OnboardingStep.entries.filter(::onboardingShowsChrome)
 
 internal fun onboardingProgressIndex(step: OnboardingStep): Int =
     onboardingProgressSteps().indexOf(step).coerceAtLeast(0)
