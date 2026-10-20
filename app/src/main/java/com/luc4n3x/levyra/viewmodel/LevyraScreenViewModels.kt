@@ -9,6 +9,7 @@ import com.luc4n3x.levyra.data.HomeContentAvailability
 import com.luc4n3x.levyra.data.HomeOfflineContent
 import com.luc4n3x.levyra.data.HomeOfflineContentBuilder
 import com.luc4n3x.levyra.data.HomeEditorialEngine
+import com.luc4n3x.levyra.data.locallibrary.LOCAL_MEDIA_TRACK_ID_PREFIX
 import com.luc4n3x.levyra.data.LevyraStartupCatalog
 import com.luc4n3x.levyra.data.deduplicateHomeAlbums
 import com.luc4n3x.levyra.data.isChartArtworkPlaceholder
@@ -822,6 +823,38 @@ private fun LevyraUiState.toHomeDerivedInput(): HomeDerivedInput {
     )
 }
 
+/**
+ * Real listening signals win over editorial chart rankings for the personal
+ * soundtrack hero. New-release and chart shelves keep their independent order.
+ * Do not treat cached editorials or setup genre defaults as user preferences.
+ */
+internal fun personalizedHomeSpotlight(
+    candidates: List<HomeSpotlightCandidate>,
+    local: List<Track>,
+    recent: List<Track>,
+    favorites: List<Track>
+): List<HomeSpotlightCandidate> {
+    if (candidates.isEmpty()) return candidates
+    val seeds = (recent.take(18) + favorites.take(18) + local.take(18))
+        .filter { it.artist.isNotBlank() && it.title.isNotBlank() }
+    if (seeds.isEmpty()) return candidates
+
+    fun artistKey(artist: String) = artist.trim().lowercase(Locale.ROOT)
+        .substringBefore(" feat")
+        .substringBefore(" & ")
+        .substringBefore(",")
+        .trim()
+
+    val tracks = seeds.mapTo(HashSet(), LevyraPersonalOrbit::identityKey)
+    val artists = seeds.mapTo(HashSet(), { artistKey(it.artist) })
+    val personal = candidates.filter { candidate ->
+        LevyraPersonalOrbit.identityKey(candidate.track) in tracks ||
+            artistKey(candidate.track.artist) in artists
+    }
+    // Still allow editorial fallback on a new device with no artist match.
+    return personal.ifEmpty { candidates }
+}
+
 private fun buildHomeDerivedState(input: HomeDerivedInput): HomeDerivedState {
     val mood = input.selectedMood
     fun moodPreferenceScore(track: Track): Int {
@@ -891,7 +924,7 @@ private fun buildHomeDerivedState(input: HomeDerivedInput): HomeDerivedState {
         hasCurrentTrack = input.currentTrack != null
     )
     val resonanceTracks = input.cachedResonanceTracks.ifEmpty { buildHomeResonanceTracks(input) }
-    val spotlightCandidates = HomeEditorialEngine.buildSpotlightCandidates(
+    val editorialSpotlightCandidates = HomeEditorialEngine.buildSpotlightCandidates(
         showNewReleases = input.showNewReleases,
         newReleaseTracks = moodRank(newReleases?.tracks.orEmpty()),
         showPersonalOrbit = input.showPersonalOrbit,
@@ -902,6 +935,14 @@ private fun buildHomeDerivedState(input: HomeDerivedInput): HomeDerivedState {
         fallbackSections = otherSections.map { moodRank(it.tracks) },
         chartTracks = if (input.showCharts) moodRank(input.charts) else emptyList(),
         preferenceScore = ::moodPreferenceScore
+    )
+    // "Mi banda sonora" must show what this listener actually likes,
+    // not unrelated chart artists that happened to score highly today.
+    val spotlightCandidates = personalizedHomeSpotlight(
+        candidates = editorialSpotlightCandidates,
+        local = input.personalOrbitTracks.filter { it.id.startsWith(LOCAL_MEDIA_TRACK_ID_PREFIX) },
+        recent = input.recentListens,
+        favorites = input.favorites
     )
     val visibleCollectionSections = otherSections.filter { section ->
         isHomeSectionVisible(section.title, input)
