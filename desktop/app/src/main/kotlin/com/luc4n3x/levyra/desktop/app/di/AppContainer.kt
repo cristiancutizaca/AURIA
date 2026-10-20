@@ -9,6 +9,7 @@ import com.luc4n3x.levyra.desktop.app.state.LyricsController
 import com.luc4n3x.levyra.desktop.app.state.OfflineDownloadController
 import com.luc4n3x.levyra.desktop.app.state.PlaybackController
 import com.luc4n3x.levyra.desktop.core.catalog.CatalogRepository
+import com.luc4n3x.levyra.desktop.core.dj.AuriaDjLearningStore
 import com.luc4n3x.levyra.desktop.core.charts.ChartsRepository
 import com.luc4n3x.levyra.desktop.core.extractor.ExtractorRuntime
 import com.luc4n3x.levyra.desktop.core.localmusic.LocalLibraryStore
@@ -37,6 +38,7 @@ class AppContainer {
 
     val settingsStore: SettingsStore = SettingsStore.create(paths)
     val libraryStore: LibraryStore = LibraryStore.create(paths)
+    val djLearningStore: AuriaDjLearningStore = AuriaDjLearningStore.create(paths)
     val sessionStore: SessionStore = SessionStore.create(paths)
     val downloadStore: DownloadStore = DownloadStore.create(paths)
     val windowPlacementStore: WindowPlacementStore = WindowPlacementStore.create(paths)
@@ -68,6 +70,7 @@ class AppContainer {
         catalog = catalogRepository,
         settingsStore = settingsStore,
         libraryStore = libraryStore,
+        djLearningStore = djLearningStore,
         sessionStore = sessionStore,
         sponsorBlock = sponsorBlockRepository,
         playerFactory = ::createAudioPlayer,

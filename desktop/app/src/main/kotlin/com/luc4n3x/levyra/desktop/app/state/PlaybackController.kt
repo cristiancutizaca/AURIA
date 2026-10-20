@@ -3,6 +3,7 @@ package com.luc4n3x.levyra.desktop.app.state
 import com.luc4n3x.levyra.desktop.app.DesktopDiagnostics
 import com.luc4n3x.levyra.desktop.core.catalog.CatalogRepository
 import com.luc4n3x.levyra.desktop.core.dj.AuriaDjPlanner
+import com.luc4n3x.levyra.desktop.core.dj.AuriaDjLearningStore
 import com.luc4n3x.levyra.desktop.core.model.SearchFilter
 import com.luc4n3x.levyra.desktop.core.extractor.ExtractorRateLimitException
 import com.luc4n3x.levyra.desktop.core.localmusic.LocalMediaSource
@@ -35,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -78,6 +80,7 @@ class PlaybackController(
     private val catalog: CatalogRepository,
     private val settingsStore: SettingsStore,
     private val libraryStore: LibraryStore,
+    private val djLearningStore: AuriaDjLearningStore,
     private val sessionStore: SessionStore,
     private val sponsorBlock: SponsorBlockRepository,
     private val playerFactory: () -> AudioPlayer,
@@ -96,6 +99,9 @@ class PlaybackController(
 
     private val playerScope = CoroutineScope(scope.coroutineContext + SupervisorJob())
     private val transitionLock = Any()
+    private val feedbackLock = Any()
+    private var feedbackSession = 0L
+    private var recordedFeedbackSession = -1L
     private val sponsorSkipTracker = SponsorSkipTracker()
     private val sponsorSegments = AtomicReference<List<SponsorSegment>>(emptyList())
 
@@ -226,6 +232,7 @@ class PlaybackController(
 
     fun playTracks(tracks: List<Track>, startIndex: Int = 0) {
         if (tracks.isEmpty()) return
+        recordDjEarlySkip(internalState.value)
         djGeneration.incrementAndGet()
         djContinuationJob?.cancel()
         djJob?.cancel()
@@ -238,6 +245,7 @@ class PlaybackController(
 
     fun playShuffled(tracks: List<Track>) {
         if (tracks.isEmpty()) return
+        recordDjEarlySkip(internalState.value)
         djGeneration.incrementAndGet()
         djContinuationJob?.cancel()
         djJob?.cancel()
@@ -263,8 +271,10 @@ class PlaybackController(
     }
 
     fun jumpTo(position: Int) {
-        val queue = internalState.value.queue.jumpTo(position)
-        if (queue == internalState.value.queue && internalState.value.status != PlaybackStatus.IDLE) return
+        val before = internalState.value
+        val queue = before.queue.jumpTo(position)
+        if (queue == before.queue && before.status != PlaybackStatus.IDLE) return
+        if (queue.current?.id != before.current?.id) recordDjEarlySkip(before)
         internalState.update { state -> state.copy(queue = queue) }
         startCurrent(0L)
     }
@@ -273,6 +283,7 @@ class PlaybackController(
         cancelTransition()
         val previous = internalState.value.queue
         val playingRemoved = position == previous.index
+        if (playingRemoved) recordDjEarlySkip(internalState.value)
         val queue = previous.removeAt(position)
         internalState.update { state -> state.copy(queue = queue) }
         when {
@@ -316,6 +327,7 @@ class PlaybackController(
     fun next(automatic: Boolean = false) {
         val current = internalState.value
         if (current.queue.isEmpty) return
+        if (!automatic) recordDjEarlySkip(current)
         val advanced = current.queue.advance(automatic)
         if (advanced == null) {
             if (settingsStore.current.autoplayRadio && current.queue.repeat == RepeatMode.OFF) {
@@ -472,6 +484,9 @@ class PlaybackController(
 
     private fun startCurrent(startAtMs: Long, forceRestart: Boolean = false) {
         val track = internalState.value.queue.current ?: return
+        synchronized(feedbackLock) {
+            feedbackSession += 1L
+        }
         cancelTransition()
         clearSponsorBlockWatch()
         playbackJob?.cancel()
@@ -1001,6 +1016,8 @@ class PlaybackController(
             handoffAttemptedTrackId = ""
             transitionActive = false
         }
+        recordDjCompletion(internalState.value, crossfade = true)
+        synchronized(feedbackLock) { feedbackSession += 1L }
         runCatching { outgoing?.stop() }
         outgoing?.setVolume(internalState.value.volume)
         observeEvents(incoming)
@@ -1220,7 +1237,8 @@ class PlaybackController(
                     local = locals,
                     favorites = library.favorites,
                     history = library.history.map { it.track },
-                    limit = DJ_ADD_AT_ONCE
+                    limit = DJ_ADD_AT_ONCE,
+                    learning = djLearningStore.current
                 )
                 if (recommendations.isEmpty()) {
                     state
@@ -1294,6 +1312,43 @@ class PlaybackController(
         }
     }
 
+    private fun recordDjEarlySkip(state: PlaybackUiState) {
+        if (state.status != PlaybackStatus.PLAYING && state.status != PlaybackStatus.PAUSED) return
+        val duration = state.durationMs
+        if (duration <= 0L || state.positionMs < DJ_MIN_SKIP_LISTEN_MS ||
+            state.positionMs >= duration * DJ_EARLY_SKIP_PERCENT / 100L
+        ) return
+        recordDjFeedback(state, completed = false)
+    }
+
+    private fun recordDjCompletion(state: PlaybackUiState, crossfade: Boolean = false) {
+        if (crossfade && (state.durationMs <= 0L ||
+                state.positionMs < state.durationMs * DJ_COMPLETION_PERCENT / 100L)
+        ) return
+        recordDjFeedback(state, completed = true)
+    }
+
+    private fun recordDjFeedback(state: PlaybackUiState, completed: Boolean) {
+        val track = state.current ?: return
+        val accepted = synchronized(feedbackLock) {
+            if (feedbackSession == recordedFeedbackSession) {
+                false
+            } else {
+                recordedFeedbackSession = feedbackSession
+                true
+            }
+        }
+        if (!accepted) return
+        playerScope.launch(Dispatchers.IO) {
+            try {
+                if (completed) djLearningStore.recordCompletion(track)
+                else djLearningStore.recordSkip(track)
+            } catch (error: Exception) {
+                DesktopDiagnostics.background("AURIA DJ learning", error)
+            }
+        }
+    }
+
     private fun handleEvent(event: PlayerEvent) {
         when (event) {
             is PlayerEvent.Opening ->
@@ -1315,7 +1370,9 @@ class PlaybackController(
 
             is PlayerEvent.Stopped -> Unit
 
-            is PlayerEvent.Finished -> when {
+            is PlayerEvent.Finished -> {
+                if (!transitionActive) recordDjCompletion(internalState.value)
+                when {
                 transitionActive -> Unit
 
                 internalState.value.sleepTimer.mode == SleepTimerMode.END_OF_TRACK -> {
@@ -1326,6 +1383,7 @@ class PlaybackController(
                 startPreparedHandoff() -> Unit
 
                 else -> next(automatic = true)
+                }
             }
 
             is PlayerEvent.Failed -> handleFailure(event.reason)
@@ -1439,6 +1497,9 @@ class PlaybackController(
         const val DJ_REFILL_AT = 3
         const val DJ_ADD_AT_ONCE = 8
         const val DJ_RELATED_LIMIT = 35
+        const val DJ_MIN_SKIP_LISTEN_MS = 5_000L
+        const val DJ_EARLY_SKIP_PERCENT = 65L
+        const val DJ_COMPLETION_PERCENT = 75L
         const val MAX_CAUSE_DEPTH = 8
         const val DEFAULT_VOLUME = 60
     }
