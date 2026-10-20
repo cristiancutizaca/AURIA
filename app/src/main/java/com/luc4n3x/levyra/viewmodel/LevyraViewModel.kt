@@ -97,6 +97,7 @@ import com.luc4n3x.levyra.data.local.toTrack
 import com.luc4n3x.levyra.domain.ArtistBiography
 import com.luc4n3x.levyra.domain.HighQualityAudioMode
 import com.luc4n3x.levyra.domain.HomeSection
+import com.luc4n3x.levyra.domain.HomeLocalMusicRecommendations
 import com.luc4n3x.levyra.domain.LevyraAudioQuality
 import com.luc4n3x.levyra.domain.ArtistProfile
 import com.luc4n3x.levyra.domain.ArtistRelease
@@ -1910,6 +1911,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         startTicker()
         observeQueueSpaces()
         observeLocalLibrary()
+        refreshLocalLibraryAccess()
         observeDownloads()
         observeSmartOfflineSettings()
         observeDownloadTasks()
@@ -6201,6 +6203,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
             charts = chartTracks,
             cachedOrbit = cachedOrbit,
             limit = LevyraPersonalOrbit.DISPLAY_LIMIT,
+            localSongs = _state.value.localLibrary.catalog.songs,
             languageCode = languageCode,
             discoveries = smartOrbitDiscoveries,
             excluded = smartOrbitExclusion()
@@ -6367,7 +6370,24 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
                     val catalog = withContext(Dispatchers.Default) {
                         buildLocalLibraryCatalog(rows, sort.first, sort.second)
                     }
-                    _state.update { it.copy(localLibrary = it.localLibrary.copy(catalog = catalog)) }
+                    _state.update { current ->
+                        val localSongs = catalog.songs
+                        val orbit = HomeLocalMusicRecommendations.rank(
+                            localSongs = localSongs,
+                            recent = listOfNotNull(current.currentTrack) +
+                                current.recentListens + current.recentSearches,
+                            favorites = current.favorites,
+                            online = current.homeSections.flatMap { it.tracks } +
+                                current.charts + current.tracks + smartOrbitDiscoveries,
+                            limit = LevyraPersonalOrbit.DISPLAY_LIMIT
+                        )
+                        current.copy(
+                            localLibrary = current.localLibrary.copy(catalog = catalog),
+                            personalOrbitTracks = orbit.ifEmpty { current.personalOrbitTracks },
+                            quickPickSeeds = if (orbit.isNotEmpty()) orbit.take(10)
+                                else current.quickPickSeeds
+                        )
+                    }
                 }
         }
         viewModelScope.launch {
@@ -9100,6 +9120,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
             charts = snapshot.charts,
             cachedOrbit = snapshot.personalOrbitTracks,
             limit = LevyraPersonalOrbit.DISPLAY_LIMIT,
+            localSongs = snapshot.localLibrary.catalog.songs,
             languageCode = snapshot.languageCode,
             discoveries = smartOrbitDiscoveries,
             excluded = smartOrbitExclusion()
@@ -9460,6 +9481,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
                 charts = charts,
                 cachedOrbit = cachedOrbit,
                 limit = LevyraPersonalOrbit.DISPLAY_LIMIT,
+                localSongs = current.localLibrary.catalog.songs,
                 languageCode = current.languageCode,
                 discoveries = smartOrbitDiscoveries,
                 excluded = orbitExclusion
@@ -12745,6 +12767,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         charts = current.charts,
         cachedOrbit = current.personalOrbitTracks,
         limit = LevyraPersonalOrbit.DISPLAY_LIMIT,
+        localSongs = current.localLibrary.catalog.songs,
         languageCode = current.languageCode,
         discoveries = smartOrbitDiscoveries,
         excluded = smartOrbitExclusion()
