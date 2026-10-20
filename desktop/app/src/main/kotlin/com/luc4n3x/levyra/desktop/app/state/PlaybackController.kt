@@ -750,7 +750,11 @@ class PlaybackController(
             return
         }
         val transitionMs = CrossfadePlanner.transitionDurationMs(
-            requestedMs = settingsStore.current.crossfadeMs,
+            requestedMs = CrossfadePlanner.requestedDjCrossfadeMs(
+                userCrossfadeMs = settingsStore.current.crossfadeMs,
+                djMixMs = settingsStore.current.auriaDjMixMs,
+                djEnabled = settingsStore.current.autoplayRadio
+            ),
             smartCrossfade = settingsStore.current.smartCrossfade,
             current = playing,
             next = next,

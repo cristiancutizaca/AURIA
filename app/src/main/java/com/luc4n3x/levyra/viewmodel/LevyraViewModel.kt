@@ -1200,7 +1200,9 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
     private var followedArtistsGeneration = 0L
     private var radioJob: Job? = null
     private var radioEndContinuationJob: Job? = null
-    private var auriaDjManuallyDisabled = false
+    private val auriaDjPreferences = getApplication<Application>()
+        .getSharedPreferences("auria_dj", Context.MODE_PRIVATE)
+    private var auriaDjManuallyDisabled = auriaDjPreferences.getBoolean("explicitly_disabled", false)
     private val radioSession = AtomicReference<RadioSession?>(null)
     private var sponsorSegments: List<SponsorSegment> = emptyList()
     private val sponsorSkipTracker = SponsorBlockSkipOnceTracker()
@@ -6907,6 +6909,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         if (_state.value.currentTrack?.isLiveRadio() == true) return
         val enabled = !queueEngine.state.value.radioEnabled
         auriaDjManuallyDisabled = !enabled
+        auriaDjPreferences.edit().putBoolean("explicitly_disabled", !enabled).apply()
         queueEngine.setRadioEnabled(enabled)
         if (enabled) {
             radioJob?.cancel()
@@ -6922,6 +6925,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         if (_state.value.currentTrack?.isLiveRadio() == true) return
         if (jamController.rejectGuestLocalMutation()) return
         auriaDjManuallyDisabled = false
+        auriaDjPreferences.edit().putBoolean("explicitly_disabled", false).apply()
         if (!queueEngine.state.value.radioEnabled) queueEngine.setRadioEnabled(true)
         radioJob?.cancel()
         beginRadioSession()

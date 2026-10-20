@@ -131,6 +131,7 @@ data class DesktopSettings(
     val preloadNextTrack: Boolean = true,
     val sponsorBlock: Boolean = true,
     val crossfadeMs: Int = 0,
+    val auriaDjMixMs: Int = 4_000,
     val smartCrossfade: Boolean = true,
     val globalMediaKeys: Boolean = true,
     val playbackSpeed: Float = DEFAULT_SPEED,
@@ -147,6 +148,7 @@ data class DesktopSettings(
         volume = volume.coerceIn(0, 100),
         playbackSpeed = normalizeSpeed(playbackSpeed),
         crossfadeMs = normalizeCrossfade(crossfadeMs),
+        auriaDjMixMs = normalizeCrossfade(auriaDjMixMs),
         vlcDirectory = vlcDirectory.trim(),
         audioOutputDeviceId = audioOutputDeviceId.trim().take(MAX_OUTPUT_DEVICE_ID_LENGTH),
         equalizer = equalizer.sanitized()
