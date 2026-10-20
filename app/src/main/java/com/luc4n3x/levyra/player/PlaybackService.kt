@@ -308,6 +308,9 @@ class PlaybackService : MediaLibraryService() {
         private val ONLINE_RECOVERY_DELAYS_MS = longArrayOf(500L, 2_000L, 5_000L, 10_000L)
         private val LOCAL_RECOVERY_DELAYS_MS = longArrayOf(250L, 750L, 1_500L, 3_000L, 5_000L, 10_000L)
 
+        private val _djTransitionFlow = MutableStateFlow<AuriaDjTransition?>(null)
+        val djTransitionFlow: StateFlow<AuriaDjTransition?> = _djTransitionFlow.asStateFlow()
+
         private val _activePlayerFlow = MutableStateFlow<ExoPlayer?>(null)
         val activePlayerFlow: StateFlow<ExoPlayer?> = _activePlayerFlow.asStateFlow()
 
@@ -1904,7 +1907,9 @@ class PlaybackService : MediaLibraryService() {
         transitionPlayer?.setPlaybackParameters(
             PlaybackParameters(currentAudioSettings.playbackSpeed, currentAudioSettings.pitch)
         )
-        if (currentAudioSettings.crossfadeSeconds <= 0 || !currentAudioSettings.gaplessEnabled) {
+        if (!currentAudioSettings.gaplessEnabled ||
+            (currentAudioSettings.crossfadeSeconds <= 0 && !queueEngine.state.value.radioEnabled)
+        ) {
             cancelQueueTransition()
         }
     }
@@ -1938,7 +1943,8 @@ class PlaybackService : MediaLibraryService() {
             repeatMode = snapshot.repeatMode,
             videoMode = videoMode,
             lowRam = adaptivePlaybackPolicy.current(videoMode = false).lowRam,
-            shuffleEnabled = snapshot.shuffleEnabled
+            shuffleEnabled = snapshot.shuffleEnabled,
+            djEnabled = snapshot.radioEnabled
         ) ?: return
         if (remaining > plan.preloadLeadMs) return
         queueTransitionJob = serviceScope.launch {
@@ -1957,6 +1963,16 @@ class PlaybackService : MediaLibraryService() {
         val currentIdentity = playbackQueueIdentity(current)
         val targetIdentity = playbackQueueIdentity(target)
         var secondary: ExoPlayer? = null
+        val mixVisual = AuriaDjTransition(
+            sourceId = currentIdentity,
+            targetId = targetIdentity,
+            sourceArtwork = current.largeThumbnailUrl.ifBlank { current.thumbnailUrl },
+            targetArtwork = target.largeThumbnailUrl.ifBlank { target.thumbnailUrl },
+            sourceTitle = current.title,
+            targetTitle = target.title,
+            targetArtist = target.artist,
+            durationMs = plan.transitionMs
+        )
         try {
             val resolved = awaitPreparedQueueTrackForTransition(currentIdentity, targetIdentity)
                 ?: withContext(Dispatchers.IO) { resolveQueueTrack(target) }
@@ -1976,6 +1992,7 @@ class PlaybackService : MediaLibraryService() {
             if (!transitionStillValid(snapshot.generation, currentIdentity, targetIdentity, primary)) return
 
             isQueueTransitionInProgress = true
+            if (snapshot.radioEnabled) _djTransitionFlow.value = mixVisual
             secondary.play()
             fadePlayers(primary, secondary, plan.transitionMs) {
                 transitionStillValid(snapshot.generation, currentIdentity, targetIdentity, primary) &&
@@ -2017,6 +2034,7 @@ class PlaybackService : MediaLibraryService() {
         } catch (error: Exception) {
             Timber.w(error, "Queue crossfade failed")
         } finally {
+            if (_djTransitionFlow.value == mixVisual) _djTransitionFlow.value = null
             isQueueTransitionInProgress = false
             primary.volume = 1f
             releaseTransitionPlayer(secondary)
@@ -2437,6 +2455,7 @@ class PlaybackService : MediaLibraryService() {
     }
 
     private fun cancelQueueTransition() {
+        _djTransitionFlow.value = null
         queueTransitionJob?.cancel()
         queueTransitionJob = null
         isQueueTransitionInProgress = false

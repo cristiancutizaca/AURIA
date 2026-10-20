@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.lerp
 import coil3.compose.AsyncImage
 import com.luc4n3x.levyra.domain.LevyraCanvasQuality
 import com.luc4n3x.levyra.domain.Track
+import com.luc4n3x.levyra.player.AuriaDjTransition
 import com.luc4n3x.levyra.feature.radio.isLiveRadio
 import com.luc4n3x.levyra.feature.motion.MotionArtwork
 import com.luc4n3x.levyra.ui.InstantArtworkPlaceholder
@@ -69,6 +70,7 @@ internal fun PlayerArtworkHero(
     artOffset: Dp,
     glowColor: Color,
     modifier: Modifier = Modifier,
+    djTransition: AuriaDjTransition? = null,
     dynamicBackdropEnabled: Boolean = false,
     onDynamicBackdropPalette: (MotionBackdropPalette?) -> Unit = {}
 ) {
@@ -164,6 +166,11 @@ internal fun PlayerArtworkHero(
                     }
                 }
             }
+            AuriaDjArtworkTransition(
+                transition = djTransition,
+                animated = animationsEnabled,
+                modifier = Modifier.fillMaxSize()
+            )
             Box(
                 modifier = Modifier
                     .fillMaxSize()
