@@ -9843,7 +9843,6 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         loopCurrentQueueOnCompletion = contextualQueue.size > 1
         val index = contextualQueue.indexOfFirst { samePlayableTrack(it, track) }.coerceAtLeast(0)
         val useDj = auriaDjForPlayback(
-            existing = queueEngine.state.value.radioEnabled,
             manuallyDisabled = auriaDjManuallyDisabled,
             loopingPlaylist = false,
             videoMode = _state.value.isVideoMode,
@@ -9865,7 +9864,6 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         loopCurrentQueueOnCompletion = loopOnCompletion
         val index = list.indexOfFirst { samePlayableTrack(it, track) }.coerceAtLeast(0)
         val useDj = auriaDjForPlayback(
-            existing = queueEngine.state.value.radioEnabled,
             manuallyDisabled = auriaDjManuallyDisabled,
             loopingPlaylist = loopOnCompletion,
             videoMode = _state.value.isVideoMode,

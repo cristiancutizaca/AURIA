@@ -6,9 +6,8 @@ import org.junit.Test
 
 class AuriaDjPolicyTest {
     @Test
-    fun startsRadioForAnOrdinaryOnlineSong() {
+    fun continuousDjIsEnabledForOrdinaryPlayback() {
         assertTrue(auriaDjForPlayback(
-            existing = false,
             manuallyDisabled = false,
             loopingPlaylist = false,
             videoMode = false,
@@ -17,20 +16,8 @@ class AuriaDjPolicyTest {
     }
 
     @Test
-    fun startsContinuousDjFromALocalTrackWhenEnabled() {
-        assertTrue(auriaDjForPlayback(
-            existing = false,
-            manuallyDisabled = false,
-            loopingPlaylist = false,
-            videoMode = false,
-            liveRadio = false
-        ))
-    }
-
-    @Test
-    fun respectsExplicitDisable() {
+    fun explicitDisableAlwaysWins() {
         assertFalse(auriaDjForPlayback(
-            existing = false,
             manuallyDisabled = true,
             loopingPlaylist = false,
             videoMode = false,
@@ -39,10 +26,9 @@ class AuriaDjPolicyTest {
     }
 
     @Test
-    fun preservesPlaylistLoopAndNonMusicModes() {
+    fun albumLoopVideoAndLiveRadioDoNotTriggerSongDj() {
         fun decide(loop: Boolean = false, video: Boolean = false, live: Boolean = false) =
             auriaDjForPlayback(
-                existing = true,
                 manuallyDisabled = false,
                 loopingPlaylist = loop,
                 videoMode = video,
@@ -50,7 +36,6 @@ class AuriaDjPolicyTest {
             )
         assertFalse(decide(loop = true))
         assertFalse(decide(video = true))
-        assertTrue(decide())
         assertFalse(decide(live = true))
         assertTrue(decide())
     }
