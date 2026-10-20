@@ -73,7 +73,7 @@ class RemoteAnnouncementRepositoryTest {
         val hebrew = RemoteAnnouncementRules.select(catalog, "he-IL", 2_031_800, emptySet(), now)
         val unknown = RemoteAnnouncementRules.select(catalog, "xx-YY", 2_031_800, emptySet(), now)
 
-        assertEquals("Ti piace Levyra?", italian?.copy?.title)
+        assertEquals("Ti piace AURIA?", italian?.copy?.title)
         assertEquals("Più tardi", italian?.copy?.laterAction)
         assertTrue(arabic?.copy?.body.orEmpty().contains("GitHub"))
         assertTrue(hebrew?.copy?.body.orEmpty().contains("GitHub"))
@@ -290,9 +290,9 @@ class RemoteAnnouncementRepositoryTest {
     @Test
     fun actionLinksAreRestrictedToOfficialGithubPaths() {
         assertTrue(RemoteAnnouncementRules.isSafeActionUrl(LEVYRA_REPOSITORY_URL))
-        assertTrue(RemoteAnnouncementRules.isSafeActionUrl("https://github.com/LUC4N3X/Levyra-deepsound/releases"))
-        assertFalse(RemoteAnnouncementRules.isSafeActionUrl("http://github.com/LUC4N3X/Levyra-deepsound"))
-        assertFalse(RemoteAnnouncementRules.isSafeActionUrl("https://example.com/LUC4N3X/Levyra-deepsound"))
+        assertTrue(RemoteAnnouncementRules.isSafeActionUrl("https://github.com/cristiancutizaca/AURIA/releases"))
+        assertFalse(RemoteAnnouncementRules.isSafeActionUrl("http://github.com/cristiancutizaca/AURIA"))
+        assertFalse(RemoteAnnouncementRules.isSafeActionUrl("https://example.com/cristiancutizaca/AURIA"))
         assertFalse(RemoteAnnouncementRules.isSafeActionUrl("https://github.com/another-owner/project"))
     }
 

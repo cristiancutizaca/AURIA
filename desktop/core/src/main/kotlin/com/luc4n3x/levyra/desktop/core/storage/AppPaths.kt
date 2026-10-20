@@ -25,7 +25,7 @@ class AppPaths(val root: Path) {
     }
 
     companion object {
-        private const val APP_DIRECTORY = "Levyra"
+        private const val APP_DIRECTORY = "AURIA"
 
         fun default(): AppPaths = AppPaths(defaultRoot()).prepare()
 

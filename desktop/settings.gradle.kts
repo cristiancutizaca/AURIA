@@ -21,7 +21,7 @@ includeBuild("../third_party/LevyraExtractor") {
     }
 }
 
-rootProject.name = "levyra-desktop"
+rootProject.name = "auria-desktop"
 
 include(":core")
 include(":player")

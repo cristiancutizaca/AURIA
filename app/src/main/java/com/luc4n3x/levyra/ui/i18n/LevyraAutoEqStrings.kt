@@ -32,7 +32,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Preset name",
         "Profile not valid",
         "File too large",
-        "Gains interpolated and limited to the Levyra range"
+        "Gains interpolated and limited to the AURIA range"
     ),
     "it" to autoEqStrings(
         "Importa profilo AutoEQ",
@@ -43,7 +43,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Nome preset",
         "Profilo non valido",
         "File troppo grande",
-        "Guadagni interpolati e limitati all'intervallo Levyra"
+        "Guadagni interpolati e limitati all'intervallo AURIA"
     ),
     "es" to autoEqStrings(
         "Importar perfil AutoEQ",
@@ -54,7 +54,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Nombre del preajuste",
         "Perfil no válido",
         "Archivo demasiado grande",
-        "Ganancias interpoladas y limitadas al rango de Levyra"
+        "Ganancias interpoladas y limitadas al rango de AURIA"
     ),
     "fr" to autoEqStrings(
         "Importer un profil AutoEQ",
@@ -65,7 +65,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Nom du préréglage",
         "Profil non valide",
         "Fichier trop volumineux",
-        "Gains interpolés et limités à la plage Levyra"
+        "Gains interpolés et limités à la plage AURIA"
     ),
     "de" to autoEqStrings(
         "AutoEQ-Profil importieren",
@@ -76,7 +76,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Preset-Name",
         "Profil ungültig",
         "Datei zu groß",
-        "Verstärkungen interpoliert und auf den Levyra-Bereich begrenzt"
+        "Verstärkungen interpoliert und auf den AURIA-Bereich begrenzt"
     ),
     "pt" to autoEqStrings(
         "Importar perfil AutoEQ",
@@ -87,7 +87,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Nome da predefinição",
         "Perfil inválido",
         "Ficheiro demasiado grande",
-        "Ganhos interpolados e limitados ao intervalo Levyra"
+        "Ganhos interpolados e limitados ao intervalo AURIA"
     ),
     "nl" to autoEqStrings(
         "AutoEQ-profiel importeren",
@@ -98,7 +98,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Presetnaam",
         "Profiel ongeldig",
         "Bestand te groot",
-        "Versterkingen geïnterpoleerd en beperkt tot het Levyra-bereik"
+        "Versterkingen geïnterpoleerd en beperkt tot het AURIA-bereik"
     ),
     "pl" to autoEqStrings(
         "Importuj profil AutoEQ",
@@ -109,7 +109,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Nazwa ustawienia",
         "Profil nieprawidłowy",
         "Plik zbyt duży",
-        "Wzmocnienia interpolowane i ograniczone do zakresu Levyra"
+        "Wzmocnienia interpolowane i ograniczone do zakresu AURIA"
     ),
     "ro" to autoEqStrings(
         "Importă profil AutoEQ",
@@ -120,7 +120,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Nume presetare",
         "Profil nevalid",
         "Fișier prea mare",
-        "Câștiguri interpolate și limitate la intervalul Levyra"
+        "Câștiguri interpolate și limitate la intervalul AURIA"
     ),
     "el" to autoEqStrings(
         "Εισαγωγή προφίλ AutoEQ",
@@ -131,7 +131,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Όνομα προεπιλογής",
         "Μη έγκυρο προφίλ",
         "Πολύ μεγάλο αρχείο",
-        "Οι ενισχύσεις παρεμβλήθηκαν και περιορίστηκαν στο εύρος Levyra"
+        "Οι ενισχύσεις παρεμβλήθηκαν και περιορίστηκαν στο εύρος AURIA"
     ),
     "sv" to autoEqStrings(
         "Importera AutoEQ-profil",
@@ -164,7 +164,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Název předvolby",
         "Neplatný profil",
         "Soubor je příliš velký",
-        "Zisky interpolovány a omezeny na rozsah Levyra"
+        "Zisky interpolovány a omezeny na rozsah AURIA"
     ),
     "uk" to autoEqStrings(
         "Імпортувати профіль AutoEQ",
@@ -175,7 +175,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Назва пресета",
         "Недійсний профіль",
         "Файл завеликий",
-        "Підсилення інтерпольовані та обмежені діапазоном Levyra"
+        "Підсилення інтерпольовані та обмежені діапазоном AURIA"
     ),
     "ru" to autoEqStrings(
         "Импорт профиля AutoEQ",
@@ -186,7 +186,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Название пресета",
         "Недопустимый профиль",
         "Файл слишком большой",
-        "Усиления интерполированы и ограничены диапазоном Levyra"
+        "Усиления интерполированы и ограничены диапазоном AURIA"
     ),
     "tr" to autoEqStrings(
         "AutoEQ profili içe aktar",
@@ -197,7 +197,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Ön ayar adı",
         "Profil geçersiz",
         "Dosya çok büyük",
-        "Kazançlar ara değerlendi ve Levyra aralığına sınırlandı"
+        "Kazançlar ara değerlendi ve AURIA aralığına sınırlandı"
     ),
     "ar" to autoEqStrings(
         "استيراد ملف AutoEQ",
@@ -208,7 +208,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "اسم الإعداد المسبق",
         "الملف غير صالح",
         "الملف كبير جدًا",
-        "تم استيفاء المكاسب وتقييدها ضمن نطاق Levyra"
+        "تم استيفاء المكاسب وتقييدها ضمن نطاق AURIA"
     ),
     "zh" to autoEqStrings(
         "导入 AutoEQ 配置",
@@ -219,7 +219,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "预设名称",
         "配置无效",
         "文件过大",
-        "增益已插值并限制在 Levyra 范围内"
+        "增益已插值并限制在 AURIA 范围内"
     ),
     "ja" to autoEqStrings(
         "AutoEQ プロファイルを読み込む",
@@ -230,7 +230,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "プリセット名",
         "プロファイルが無効です",
         "ファイルが大きすぎます",
-        "ゲインを補間し Levyra の範囲に制限しました"
+        "ゲインを補間し AURIA の範囲に制限しました"
     ),
     "ko" to autoEqStrings(
         "AutoEQ 프로필 가져오기",
@@ -241,7 +241,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "프리셋 이름",
         "프로필이 유효하지 않습니다",
         "파일이 너무 큽니다",
-        "게인을 보간하고 Levyra 범위로 제한했습니다"
+        "게인을 보간하고 AURIA 범위로 제한했습니다"
     ),
     "hi" to autoEqStrings(
         "AutoEQ प्रोफ़ाइल आयात करें",
@@ -252,7 +252,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "प्रीसेट नाम",
         "प्रोफ़ाइल मान्य नहीं",
         "फ़ाइल बहुत बड़ी है",
-        "गेन इंटरपोलेट किए और Levyra सीमा तक सीमित किए गए"
+        "गेन इंटरपोलेट किए और AURIA सीमा तक सीमित किए गए"
     ),
     "id" to autoEqStrings(
         "Impor profil AutoEQ",
@@ -263,7 +263,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Nama preset",
         "Profil tidak valid",
         "Berkas terlalu besar",
-        "Penguatan diinterpolasi dan dibatasi ke rentang Levyra"
+        "Penguatan diinterpolasi dan dibatasi ke rentang AURIA"
     ),
     "vi" to autoEqStrings(
         "Nhập hồ sơ AutoEQ",
@@ -274,7 +274,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Tên cấu hình",
         "Hồ sơ không hợp lệ",
         "Tệp quá lớn",
-        "Độ lợi đã nội suy và giới hạn theo dải Levyra"
+        "Độ lợi đã nội suy và giới hạn theo dải AURIA"
     ),
     "th" to autoEqStrings(
         "นำเข้าโปรไฟล์ AutoEQ",
@@ -285,7 +285,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "ชื่อพรีเซ็ต",
         "โปรไฟล์ไม่ถูกต้อง",
         "ไฟล์ใหญ่เกินไป",
-        "ค่าเกนถูกประมาณค่าและจำกัดในช่วงของ Levyra"
+        "ค่าเกนถูกประมาณค่าและจำกัดในช่วงของ AURIA"
     ),
     "fil" to autoEqStrings(
         "Mag-import ng AutoEQ profile",
@@ -296,7 +296,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Pangalan ng preset",
         "Hindi wasto ang profile",
         "Masyadong malaki ang file",
-        "Na-interpolate ang gains at nilimitahan sa saklaw ng Levyra"
+        "Na-interpolate ang gains at nilimitahan sa saklaw ng AURIA"
     ),
     "he" to autoEqStrings(
         "ייבוא פרופיל AutoEQ",
@@ -307,7 +307,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "שם ההגדרה",
         "הפרופיל אינו תקין",
         "הקובץ גדול מדי",
-        "העצמות חושבו באינטרפולציה והוגבלו לטווח של Levyra"
+        "העצמות חושבו באינטרפולציה והוגבלו לטווח של AURIA"
     ),
     "fi" to autoEqStrings(
         "Tuo AutoEQ-profiili",
@@ -329,7 +329,7 @@ private val autoEqBundles: Map<String, Map<String, String>> = mapOf(
         "Eelseadistuse nimi",
         "Vigane profiil",
         "Fail on liiga suur",
-        "Võimendused interpoleeritud ja piiratud Levyra vahemikku"
+        "Võimendused interpoleeritud ja piiratud AURIA vahemikku"
     )
 )
 

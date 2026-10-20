@@ -158,17 +158,17 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.luc4n3x.levyra"
+        applicationId = "com.cristiancutizaca.auria"
         minSdk = 26
         targetSdk = 37
         versionCode = levyraVersionCode
         versionName = levyraVersionName
         vectorDrawables.useSupportLibrary = true
-        manifestPlaceholders["upstreamUpdatesEnabled"] = (!isFdroidBuild).toString()
-        buildConfigField("String", "UPDATE_REPOSITORY", "\"LUC4N3X/Levyra-deepsound\"")
-        buildConfigField("String", "UPDATE_LATEST_URL", "\"https://api.github.com/repos/LUC4N3X/Levyra-deepsound/releases/latest\"")
-        buildConfigField("boolean", "UPSTREAM_UPDATES_ENABLED", (!isFdroidBuild).toString())
-        buildConfigField("boolean", "REMOTE_ANNOUNCEMENTS_ENABLED", (!isFdroidBuild).toString())
+        manifestPlaceholders["upstreamUpdatesEnabled"] = "false"
+        buildConfigField("String", "UPDATE_REPOSITORY", "\"cristiancutizaca/AURIA\"")
+        buildConfigField("String", "UPDATE_LATEST_URL", "\"https://api.github.com/repos/cristiancutizaca/AURIA/releases/latest\"")
+        buildConfigField("boolean", "UPSTREAM_UPDATES_ENABLED", "false")
+        buildConfigField("boolean", "REMOTE_ANNOUNCEMENTS_ENABLED", "false")
         buildConfigField("String", "YOUTUBE_INNERTUBE_API_KEY", buildConfigString(youtubeInnertubeApiKey))
         buildConfigField("String", "CANVAS_RESOLVER_URL", buildConfigString(canvasResolverUrl))
         buildConfigField("String", "CANVAS_CLIENT_KEY", buildConfigString(canvasClientKey))

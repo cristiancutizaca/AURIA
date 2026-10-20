@@ -131,8 +131,8 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="levyra" android:host="playlist" />
-                <data android:scheme="levyra" android:host="jam" />
+                <data android:scheme="auria" android:host="playlist" />
+                <data android:scheme="auria" android:host="jam" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />

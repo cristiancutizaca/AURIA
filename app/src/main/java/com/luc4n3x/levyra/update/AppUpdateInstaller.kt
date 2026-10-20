@@ -34,7 +34,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 
 internal object AppUpdateContract {
-    const val INSTALL_URI = "levyra-internal://updates/install"
+    const val INSTALL_URI = "auria-internal://updates/install"
 
     fun matches(action: String?, uri: String?): Boolean =
         action == Intent.ACTION_VIEW && uri == INSTALL_URI
@@ -49,9 +49,9 @@ internal data class PreparedAppUpdate(
 
 internal const val MAX_UPDATE_APK_BYTES = 250L * 1024L * 1024L
 private const val MAX_UPDATE_REDIRECTS = 5
-private const val UPDATE_APK_FILE = "levyra-update.apk"
-private const val UPDATE_APK_PART_FILE = "levyra-update.apk.part"
-private const val LEVYRA_RELEASE_PATH_PREFIX = "/LUC4N3X/Levyra-deepsound/releases/download/"
+private const val UPDATE_APK_FILE = "auria-update.apk"
+private const val UPDATE_APK_PART_FILE = "auria-update.apk.part"
+private const val LEVYRA_RELEASE_PATH_PREFIX = "/cristiancutizaca/AURIA/releases/download/"
 private val UPDATE_REDIRECT_CODES = setOf(301, 302, 303, 307, 308)
 
 internal fun validateLevyraUpdateUrl(value: String, initial: Boolean): HttpUrl? {
@@ -186,7 +186,7 @@ internal class AppUpdateInstaller(
         }
 
         val initialUrl = validateLevyraUpdateUrl(update.assetDownloadUrl, initial = true)
-            ?: throw IOException("Invalid Levyra update URL")
+            ?: throw IOException("Invalid AURIA update URL")
         downloadToFile(initialUrl, update, partFile) { downloaded, total ->
             onProgress(versionName, downloaded, total)
         }
@@ -221,7 +221,7 @@ internal class AppUpdateInstaller(
             val request = Request.Builder()
                 .url(currentUrl)
                 .header("Accept", "application/vnd.android.package-archive, application/octet-stream;q=0.9")
-                .header("User-Agent", "LEVYRA/${BuildConfig.VERSION_NAME}")
+                .header("User-Agent", "AURIA/${BuildConfig.VERSION_NAME}")
                 .header("Cache-Control", "no-cache")
                 .build()
             val call = downloadClient.newCall(request)

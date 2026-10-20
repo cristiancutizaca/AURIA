@@ -19,25 +19,25 @@ import org.junit.Test
 class AppUpdateInstallerTest {
     @Test
     fun `official release asset URL is accepted`() {
-        val url = "https://github.com/LUC4N3X/Levyra-deepsound/releases/download/v2.3.20/levyra-release.apk"
+        val url = "https://github.com/cristiancutizaca/AURIA/releases/download/v2.3.20/auria-release.apk"
 
         assertNotNull(validateLevyraUpdateUrl(url, initial = true))
     }
 
     @Test
     fun `initial update URL rejects unsafe or unrelated sources`() {
-        assertNull(validateLevyraUpdateUrl("http://github.com/LUC4N3X/Levyra-deepsound/releases/download/v2.3.20/app.apk", true))
-        assertNull(validateLevyraUpdateUrl("https://user:pass@github.com/LUC4N3X/Levyra-deepsound/releases/download/v2.3.20/app.apk", true))
-        assertNull(validateLevyraUpdateUrl("https://github.com:8443/LUC4N3X/Levyra-deepsound/releases/download/v2.3.20/app.apk", true))
+        assertNull(validateLevyraUpdateUrl("http://github.com/cristiancutizaca/AURIA/releases/download/v2.3.20/app.apk", true))
+        assertNull(validateLevyraUpdateUrl("https://user:pass@github.com/cristiancutizaca/AURIA/releases/download/v2.3.20/app.apk", true))
+        assertNull(validateLevyraUpdateUrl("https://github.com:8443/cristiancutizaca/AURIA/releases/download/v2.3.20/app.apk", true))
         assertNull(validateLevyraUpdateUrl("https://github.com/other/project/releases/download/v1/app.apk", true))
-        assertNull(validateLevyraUpdateUrl("https://example.com/LUC4N3X/Levyra-deepsound/releases/download/v2.3.20/app.apk", true))
-        assertNull(validateLevyraUpdateUrl("https://github.com/LUC4N3X/Levyra-deepsound/releases/download/../../../other/app.apk", true))
+        assertNull(validateLevyraUpdateUrl("https://example.com/cristiancutizaca/AURIA/releases/download/v2.3.20/app.apk", true))
+        assertNull(validateLevyraUpdateUrl("https://github.com/cristiancutizaca/AURIA/releases/download/../../../other/app.apk", true))
     }
 
     @Test
     fun `redirects stay on GitHub managed hosts`() {
         assertNotNull(validateLevyraUpdateUrl("https://release-assets.githubusercontent.com/github-production-release-asset/file.apk", false))
-        assertNotNull(validateLevyraUpdateUrl("https://github.com/LUC4N3X/Levyra-deepsound/releases/download/v2.3.20/app.apk", false))
+        assertNotNull(validateLevyraUpdateUrl("https://github.com/cristiancutizaca/AURIA/releases/download/v2.3.20/app.apk", false))
         assertNull(validateLevyraUpdateUrl("https://example.com/app.apk", false))
         assertNull(validateLevyraUpdateUrl("https://release-assets.githubusercontent.com:8443/file.apk", false))
         assertNull(validateLevyraUpdateUrl("https://user:pass@release-assets.githubusercontent.com/file.apk", false))
@@ -59,8 +59,8 @@ class AppUpdateInstallerTest {
     fun `internal install handoff only matches the private update URI`() {
         assertTrue(AppUpdateContract.matches("android.intent.action.VIEW", AppUpdateContract.INSTALL_URI))
         assertFalse(AppUpdateContract.matches("android.intent.action.SEND", AppUpdateContract.INSTALL_URI))
-        assertFalse(AppUpdateContract.matches("android.intent.action.VIEW", "levyra://updates/install"))
-        assertFalse(AppUpdateContract.matches("android.intent.action.VIEW", "https://github.com/LUC4N3X/Levyra-deepsound"))
+        assertFalse(AppUpdateContract.matches("android.intent.action.VIEW", "auria://updates/install"))
+        assertFalse(AppUpdateContract.matches("android.intent.action.VIEW", "https://github.com/cristiancutizaca/AURIA"))
     }
 
     @Test

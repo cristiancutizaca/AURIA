@@ -98,16 +98,16 @@ class DesktopUpdateChecksumTest {
 
     private fun release(): DesktopRelease = DesktopRelease(
         version = "1.0.1",
-        name = "Levyra Desktop 1.0.1",
+        name = "AURIA Desktop 1.0.1",
         notes = "",
         installer = DesktopReleaseAsset(
-            name = "LEVYRA-Windows-1.0.1-x64.msi",
-            url = "https://github.com/LUC4N3X/Levyra-deepsound/releases/download/desktop-v1.0.1/LEVYRA-Windows-1.0.1-x64.msi",
+            name = "AURIA-Windows-1.0.1-x64.msi",
+            url = "https://github.com/cristiancutizaca/AURIA/releases/download/desktop-v1.0.1/AURIA-Windows-1.0.1-x64.msi",
             size = 0L
         ),
         checksum = DesktopReleaseAsset(
-            name = "LEVYRA-Windows-1.0.1-x64.msi.sha256",
-            url = "https://github.com/LUC4N3X/Levyra-deepsound/releases/download/desktop-v1.0.1/LEVYRA-Windows-1.0.1-x64.msi.sha256",
+            name = "AURIA-Windows-1.0.1-x64.msi.sha256",
+            url = "https://github.com/cristiancutizaca/AURIA/releases/download/desktop-v1.0.1/AURIA-Windows-1.0.1-x64.msi.sha256",
             size = 0L
         )
     )

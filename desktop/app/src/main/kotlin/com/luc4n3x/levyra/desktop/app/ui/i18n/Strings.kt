@@ -262,7 +262,7 @@ fun stringsFor(
     val extras = DesktopExtras.forTag(language.tag)
     return LevyraStrings(
         languageCode = language.tag,
-        appName = "Levyra",
+        appName = "AURIA",
         navHome = shared.home,
         navDiscover = shared.explore,
         navSearch = shared.search,
@@ -427,8 +427,8 @@ fun stringsFor(
         settingsStorageBody = shared.createDataBackupSubtitle,
         settingsOpenFolder = shared.open,
         settingsAbout = shared.app,
-        settingsAboutBody = "Levyra Desktop · Windows",
-        trayShow = "Levyra · ${shared.open}",
+        settingsAboutBody = "AURIA Desktop · Windows",
+        trayShow = "AURIA · ${shared.open}",
         trayPlayPause = "${shared.play} / ${shared.pause}",
         trayNext = shared.next,
         trayQuit = shared.close,

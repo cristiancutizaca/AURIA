@@ -67,7 +67,7 @@ kotlin {
 
 val generatedComposeResources = layout.buildDirectory.dir("generated/composeResources/main")
 val prepareComposeResources = tasks.register<Sync>("prepareComposeResources") {
-    from(layout.projectDirectory.file("src/main/resources/icons/levyra.png"))
+    from(layout.projectDirectory.file("src/main/resources/icons/auria.png"))
     into(generatedComposeResources.map { it.dir("drawable") })
 }
 
@@ -115,23 +115,23 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Exe)
-            packageName = "Levyra"
+            packageName = "AURIA"
             packageVersion = levyraDesktopVersion
-            description = "Levyra Desktop"
-            copyright = "Copyright (c) LUC4N3X"
-            vendor = "LUC4N3X"
+            description = "AURIA Desktop"
+            copyright = "Copyright (c) AURIA contributors"
+            vendor = "cristiancutizaca"
             licenseFile.set(rootProject.file("../LICENSE"))
             includeAllModules = true
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
 
             windows {
-                iconFile.set(rootProject.file("packaging/windows/levyra.ico"))
+                iconFile.set(rootProject.file("packaging/windows/auria.ico"))
                 menu = true
-                menuGroup = "Levyra"
+                menuGroup = "AURIA"
                 shortcut = true
                 dirChooser = false
                 perUserInstall = true
-                upgradeUuid = "0f3f2d8c-2f1e-4a7b-9a51-6d9c2a1f5b74"
+                upgradeUuid = "c8503e56-98cb-481e-b0e8-a650eb0e94ac"
             }
         }
     }
