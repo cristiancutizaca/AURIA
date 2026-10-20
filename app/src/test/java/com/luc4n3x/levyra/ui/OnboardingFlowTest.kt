@@ -13,11 +13,11 @@ import java.nio.file.Path
 class OnboardingFlowTest {
 
     @Test
-    fun `flow advances through intro language appearance profile taste and youtube music`() {
+    fun `flow advances through intro language appearance profile and youtube music without requiring taste selection`() {
         assertEquals(OnboardingStep.Language, OnboardingStep.Intro.next())
         assertEquals(OnboardingStep.Appearance, OnboardingStep.Language.next())
         assertEquals(OnboardingStep.Profile, OnboardingStep.Appearance.next())
-        assertEquals(OnboardingStep.Taste, OnboardingStep.Profile.next())
+        assertEquals(OnboardingStep.YoutubeMusic, OnboardingStep.Profile.next())
         assertEquals(OnboardingStep.YoutubeMusic, OnboardingStep.Taste.next())
         assertEquals(OnboardingStep.YoutubeMusic, OnboardingStep.YoutubeMusic.next())
     }
@@ -29,7 +29,7 @@ class OnboardingFlowTest {
         assertEquals(OnboardingStep.Language, OnboardingStep.Appearance.previous())
         assertEquals(OnboardingStep.Appearance, OnboardingStep.Profile.previous())
         assertEquals(OnboardingStep.Profile, OnboardingStep.Taste.previous())
-        assertEquals(OnboardingStep.Taste, OnboardingStep.YoutubeMusic.previous())
+        assertEquals(OnboardingStep.Profile, OnboardingStep.YoutubeMusic.previous())
     }
 
     @Test
@@ -38,25 +38,23 @@ class OnboardingFlowTest {
         assertTrue(onboardingShowsChrome(OnboardingStep.Language))
         assertTrue(onboardingShowsChrome(OnboardingStep.Appearance))
         assertTrue(onboardingShowsChrome(OnboardingStep.Profile))
-        assertTrue(onboardingShowsChrome(OnboardingStep.Taste))
         assertTrue(onboardingShowsChrome(OnboardingStep.YoutubeMusic))
         assertEquals(
-            listOf(OnboardingStep.Language, OnboardingStep.Appearance, OnboardingStep.Profile, OnboardingStep.Taste, OnboardingStep.YoutubeMusic),
+            listOf(OnboardingStep.Language, OnboardingStep.Appearance, OnboardingStep.Profile, OnboardingStep.YoutubeMusic),
             onboardingProgressSteps()
         )
         assertEquals(0, onboardingProgressIndex(OnboardingStep.Intro))
         assertEquals(0, onboardingProgressIndex(OnboardingStep.Language))
-        assertEquals(3, onboardingProgressIndex(OnboardingStep.Taste))
-        assertEquals(4, onboardingProgressIndex(OnboardingStep.YoutubeMusic))
+        assertEquals(3, onboardingProgressIndex(OnboardingStep.YoutubeMusic))
     }
 
     @Test
-    fun `taste step requires at least three selections for primary action`() {
+    fun `first run has no mandatory genre picks`() {
         assertTrue(onboardingPrimaryEnabled(OnboardingStep.Intro, selectedTasteCount = 0))
         assertTrue(onboardingPrimaryEnabled(OnboardingStep.Language, selectedTasteCount = 0))
         assertTrue(onboardingPrimaryEnabled(OnboardingStep.Profile, selectedTasteCount = 0))
-        assertFalse(onboardingPrimaryEnabled(OnboardingStep.Taste, selectedTasteCount = 0))
-        assertFalse(onboardingPrimaryEnabled(OnboardingStep.Taste, selectedTasteCount = 2))
+        assertTrue(onboardingPrimaryEnabled(OnboardingStep.Taste, selectedTasteCount = 0))
+        assertTrue(onboardingPrimaryEnabled(OnboardingStep.Taste, selectedTasteCount = 2))
         assertTrue(onboardingPrimaryEnabled(OnboardingStep.Taste, selectedTasteCount = 3))
         assertTrue(onboardingPrimaryEnabled(OnboardingStep.YoutubeMusic, selectedTasteCount = 0))
     }
@@ -69,8 +67,8 @@ class OnboardingFlowTest {
         ).firstOrNull(Files::exists) ?: error("OnboardingSetup.kt not found")
         val content = Files.readString(source)
 
-        assertTrue(content.contains("val tastes = remember(languageCode)"))
-        assertTrue(content.contains("moodEngine.tastesForLanguage(languageCode)"))
+        assertTrue(content.contains("onDone(name, emptySet(), languageCode)"))
+        assertFalse(content.contains("LaunchedEffect(languageCode) { onTasteLanguage(languageCode) }"))
         assertFalse(content.contains("OnboardingOverlay(tastes = state.tastes"))
     }
 

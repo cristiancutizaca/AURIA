@@ -235,17 +235,16 @@ internal fun OnboardingOverlay(
     var name by remember { mutableStateOf("") }
     var step by remember { mutableStateOf(OnboardingStep.Intro) }
     var languageCode by remember(deviceLanguageCode) { mutableStateOf(deviceLanguageCode) }
-    val moodEngine = remember { MoodEngine() }
-    val tastes = remember(languageCode) { moodEngine.tastesForLanguage(languageCode) }
+    val tastes = emptyList<Taste>()
     val strings = LevyraStrings.forCode(languageCode)
     val youtubeMusicCopy = LevyraOnboardingYoutubeMusicStrings.forCode(languageCode)
     val youtubeMusicAccount = youtubeMusic.active
     val youtubeMusicError = youtubeMusic.error?.takeIf { youtubeMusicAccount == null && !youtubeMusic.restoring }
     val animated = LocalAnimationsEnabled.current
-    LaunchedEffect(languageCode) { onTasteLanguage(languageCode) }
+    // AURIA learns from real library/playback signals, not preset genres on setup.
     val accent by animateColorAsState(onboardingAccent(step), setupMotion(animated, tween(520)), label = "setup-accent")
     val introLevel = rememberSetupIntroLevel(step, animated)
-    val finish: () -> Unit = { onDone(name, selected, languageCode) }
+    val finish: () -> Unit = { onDone(name, emptySet(), languageCode) }
     val advance: () -> Unit = {
         when {
             step != OnboardingStep.YoutubeMusic -> step = step.next()
@@ -435,7 +434,7 @@ private fun setupSkipLabel(
     copy: OnboardingYoutubeMusicCopy,
     connected: Boolean
 ): String? = when {
-    step == OnboardingStep.Taste && selectedTasteCount < 3 -> strings.skipAndContinue
+    step == OnboardingStep.Taste -> strings.skipAndContinue
     step == OnboardingStep.YoutubeMusic && !connected -> copy.skip
     else -> null
 }
