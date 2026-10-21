@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Shuffle
@@ -37,6 +38,8 @@ import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -45,6 +48,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,6 +62,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.luc4n3x.levyra.data.locallibrary.LocalAlbumGroup
+import com.luc4n3x.levyra.data.locallibrary.LocalLibraryCatalog
 import com.luc4n3x.levyra.data.locallibrary.LocalArtistGroup
 import com.luc4n3x.levyra.data.local.LocalMediaEntity
 import com.luc4n3x.levyra.data.locallibrary.LocalFolderGroup
@@ -142,6 +150,7 @@ internal fun LazyListScope.localLibrarySection(
     }
     item(key = "local-tabs", contentType = "local-tabs") {
         LocalLibraryTabs(
+            catalog = library.catalog,
             selected = tab,
             onSelect = { entry ->
                 onExpandGroup(null)
@@ -344,10 +353,12 @@ private fun LazyListScope.localTrackItems(
 
 @Composable
 private fun LocalLibraryTabs(
+    catalog: LocalLibraryCatalog,
     selected: LocalLibraryTab,
     onSelect: (LocalLibraryTab) -> Unit
 ) {
     val strings = LocalLevyraStrings.current
+    val colors = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -356,21 +367,39 @@ private fun LocalLibraryTabs(
         verticalAlignment = Alignment.CenterVertically
     ) {
         LocalLibraryTab.entries.forEach { entry ->
-            val icon = when (entry) {
-                LocalLibraryTab.Songs -> Icons.Rounded.MusicNote
-                LocalLibraryTab.Albums -> Icons.Rounded.Album
-                LocalLibraryTab.Artists -> Icons.Rounded.Person
-                LocalLibraryTab.Genres -> Icons.Rounded.Category
-                LocalLibraryTab.Folders -> Icons.Rounded.Folder
+            val (icon, count) = when (entry) {
+                LocalLibraryTab.Songs -> Icons.Rounded.MusicNote to catalog.totalCount
+                LocalLibraryTab.Albums -> Icons.Rounded.Album to catalog.albums.size
+                LocalLibraryTab.Artists -> Icons.Rounded.Person to catalog.artists.size
+                LocalLibraryTab.Genres -> Icons.Rounded.Category to catalog.genres.size
+                LocalLibraryTab.Folders -> Icons.Rounded.Folder to catalog.folders.size
             }
-            FilterChip(
-                selected = selected == entry,
+            val active = selected == entry
+            Surface(
                 onClick = { onSelect(entry) },
-                label = { Text(entry.label(strings), fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
-                leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp)) },
-                colors = FilterChipDefaults.tonalFilterChipColors(),
-                modifier = Modifier.heightIn(min = 48.dp)
-            )
+                shape = RoundedCornerShape(18.dp),
+                color = if (active) colors.secondaryContainer else colors.surfaceContainerLow,
+                contentColor = if (active) colors.onSecondaryContainer else colors.onSurface,
+                modifier = Modifier.width(106.dp).heightIn(min = 94.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+                    Text(
+                        text = count.toString(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = entry.label(strings),
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
         }
     }
 }
@@ -422,11 +451,23 @@ private fun LocalLibraryQualityFilters(
 internal fun localLibraryQualityFilters(
     media: Collection<LocalMediaEntity>,
     nowMs: Long
-): List<LocalLibraryQualityFilter> = buildList {
-    add(LocalLibraryQualityFilter.All)
-    if (media.any { it.isLosslessLocalMedia() }) add(LocalLibraryQualityFilter.Lossless)
-    if (media.any { it.bitrate >= LOCAL_HIGH_BITRATE_BPS }) add(LocalLibraryQualityFilter.HighBitrate)
-    if (media.any { it.dateAddedMs >= nowMs - LOCAL_RECENT_WINDOW_MS }) add(LocalLibraryQualityFilter.Recent)
+): List<LocalLibraryQualityFilter> {
+    var hasLossless = false
+    var hasHighBitrate = false
+    var hasRecent = false
+    val recentThreshold = nowMs - LOCAL_RECENT_WINDOW_MS
+    for (track in media) {
+        if (!hasLossless && track.isLosslessLocalMedia()) hasLossless = true
+        if (!hasHighBitrate && track.bitrate >= LOCAL_HIGH_BITRATE_BPS) hasHighBitrate = true
+        if (!hasRecent && track.dateAddedMs >= recentThreshold) hasRecent = true
+        if (hasLossless && hasHighBitrate && hasRecent) break
+    }
+    return buildList {
+        add(LocalLibraryQualityFilter.All)
+        if (hasLossless) add(LocalLibraryQualityFilter.Lossless)
+        if (hasHighBitrate) add(LocalLibraryQualityFilter.HighBitrate)
+        if (hasRecent) add(LocalLibraryQualityFilter.Recent)
+    }
 }
 
 internal fun LocalMediaEntity.matchesLocalQualityFilter(
@@ -658,53 +699,81 @@ private const val LOCAL_ALPHABET_MIN_ITEMS = 50
 private const val LOCAL_ALPHABET_MIN_LETTERS = 5
 
 @Composable
-private fun LocalLibraryActions(library: LocalLibraryUiState, callbacks: LocalLibraryCallbacks, djEnabled: Boolean) {
+private fun LocalLibraryActions(
+    library: LocalLibraryUiState,
+    callbacks: LocalLibraryCallbacks,
+    djEnabled: Boolean
+) {
     val strings = LocalLevyraStrings.current
+    val colors = MaterialTheme.colorScheme
+    var scanMenuExpanded by remember { mutableStateOf(false) }
     Surface(
-        color = LevyraGlass,
-        shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)),
+        color = colors.surfaceContainer,
+        shape = RoundedCornerShape(24.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier.size(48.dp)
+                        .background(colors.primaryContainer, RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Rounded.LibraryMusic,
+                        contentDescription = null,
+                        tint = colors.onPrimaryContainer,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(strings.localOnDevice, color = LevyraText, fontSize = 15.sp, fontWeight = FontWeight.Black)
                     Text(
-                        text = library.message.ifBlank { strings.localOnDeviceSubtitle },
-                        color = LevyraMuted,
-                        fontSize = 12.sp,
+                        strings.localOnDevice,
+                        color = colors.onSurface,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = library.message.ifBlank {
+                            if (library.catalog.totalCount > 0) {
+                                strings.formatTrackCount(library.catalog.totalCount)
+                            } else {
+                                strings.localOnDeviceSubtitle
+                            }
+                        },
+                        color = colors.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
                 if (library.scanning) {
-                    CircularProgressIndicator(color = LevyraCyan, strokeWidth = 2.dp, modifier = Modifier.size(20.dp))
+                    CircularProgressIndicator(
+                        color = colors.primary,
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(24.dp)
+                    )
                 } else {
                     IconButton(onClick = callbacks.onQuickScan) {
-                        Icon(Icons.Rounded.Refresh, strings.localScanQuick, tint = LevyraCyan)
+                        Icon(
+                            Icons.Rounded.Refresh,
+                            contentDescription = strings.localScanQuick,
+                            tint = colors.primary
+                        )
                     }
                 }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                FilterChip(
-                    selected = djEnabled,
-                    onClick = { callbacks.onToggleDj(!djEnabled) },
-                    label = { Text("DJ AutoMix", fontWeight = FontWeight.SemiBold) },
-                    leadingIcon = {
-                        Icon(Icons.Rounded.GraphicEq, contentDescription = null, modifier = Modifier.size(18.dp))
-                    },
-                    modifier = Modifier.heightIn(min = 48.dp)
-                )
-                if (djEnabled) {
-                    Text(" · 27s", color = LevyraMuted, fontSize = 12.sp)
-                }
-            }
             if (library.catalog.songs.isNotEmpty()) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Button(
                         onClick = { callbacks.onPlayAll(library.catalog.songs) },
                         modifier = Modifier.weight(1f)
@@ -721,9 +790,60 @@ private fun LocalLibraryActions(library: LocalLibraryUiState, callbacks: LocalLi
                     }
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                LibraryCategoryChip(strings.localScanFull, selected = false, onClick = callbacks.onFullScan)
-                LibraryCategoryChip(strings.localRebuildLevyra, selected = false, onClick = callbacks.onRebuildLevyra)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = djEnabled,
+                    onClick = { callbacks.onToggleDj(!djEnabled) },
+                    label = { Text("DJ AutoMix", fontWeight = FontWeight.SemiBold) },
+                    leadingIcon = {
+                        Icon(Icons.Rounded.GraphicEq, contentDescription = null, modifier = Modifier.size(18.dp))
+                    },
+                    modifier = Modifier.heightIn(min = 48.dp)
+                )
+                if (djEnabled) {
+                    Text(
+                        "27s",
+                        color = colors.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                    IconButton(onClick = { scanMenuExpanded = true }) {
+                        Icon(
+                            Icons.Rounded.MoreVert,
+                            contentDescription = "${strings.localScanFull}, ${strings.localRebuildLevyra}",
+                            tint = colors.onSurfaceVariant
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = scanMenuExpanded,
+                        onDismissRequest = { scanMenuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(strings.localScanFull) },
+                            onClick = {
+                                scanMenuExpanded = false
+                                callbacks.onFullScan()
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Rounded.Refresh, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(strings.localRebuildLevyra) },
+                            onClick = {
+                                scanMenuExpanded = false
+                                callbacks.onRebuildLevyra()
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Rounded.LibraryMusic, contentDescription = null)
+                            }
+                        )
+                    }
+                }
             }
         }
     }
