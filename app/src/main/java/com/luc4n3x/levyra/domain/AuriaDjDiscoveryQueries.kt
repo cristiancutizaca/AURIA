@@ -44,10 +44,10 @@ object AuriaDjDiscoveryQueries {
             .let { candidates ->
                 if (anchor in names) listOf(anchor) + candidates.filterNot { it == anchor } else candidates
             }
-        val queries = ordered.distinct().take(limit).mapNotNull { names[it]?.let { name -> "$"+"{name} music" } }
+        val queries = ordered.distinct().take(limit).mapNotNull { names[it]?.let { name -> "${name} music" } }
         if (queries.isNotEmpty()) return queries
         return seed.title.trim().takeIf { it.length >= 3 }
-            ?.let { listOf("$"+"{it} music") }
+            ?.let { listOf("${it} music") }
             .orEmpty()
     }
 
