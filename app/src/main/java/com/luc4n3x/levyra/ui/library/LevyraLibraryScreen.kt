@@ -420,9 +420,17 @@ internal fun LevyraLibraryScreen(
                 direction == LibrarySortDirection.Ascending
         )
     }
-    val localContentStartIndex = remember(state.localLibrary, localFilterNowMs) {
+    val localContentStartIndex = remember(
+        state.localLibrary, localFilterNowMs, localTab, deviceQuery, localQualityFilter
+    ) {
         DEVICE_LIBRARY_PARENT_LEADING_ITEMS +
-            localLibraryLeadingItemCount(state.localLibrary, localFilterNowMs)
+            localLibraryLeadingItemCount(
+                library = state.localLibrary,
+                nowMs = localFilterNowMs,
+                tab = localTab,
+                query = deviceQuery,
+                qualityFilter = localQualityFilter
+            )
     }
     val localActiveAlphabetLetter by remember(localAlphabetIndex, localContentStartIndex) {
         derivedStateOf {
