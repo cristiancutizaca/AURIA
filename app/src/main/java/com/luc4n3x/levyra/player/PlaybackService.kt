@@ -1969,7 +1969,7 @@ class PlaybackService : MediaLibraryService() {
         val targetIdentity = playbackQueueIdentity(target)
         var secondary: ExoPlayer? = null
         var mixCompleted = false
-        val mixVisual = AuriaDjTransition(
+        var mixVisual = AuriaDjTransition(
             sourceId = currentIdentity,
             targetId = targetIdentity,
             sourceArtwork = current.largeThumbnailUrl.ifBlank { current.thumbnailUrl },
@@ -1999,10 +1999,11 @@ class PlaybackService : MediaLibraryService() {
 
             isQueueTransitionInProgress = true
             djTransitionHoldJob?.cancel()
-            if (djEnabled) _djTransitionFlow.value = mixVisual
             val remainingMs = (primary.duration - primary.currentPosition).coerceAtLeast(0L)
             val actualTransitionMs = minOf(plan.transitionMs, remainingMs)
             if (actualTransitionMs < 800L) return
+            mixVisual = mixVisual.copy(durationMs = actualTransitionMs)
+            if (djEnabled) _djTransitionFlow.value = mixVisual
             secondary.play()
             fadePlayers(
                 primary, secondary, actualTransitionMs,
