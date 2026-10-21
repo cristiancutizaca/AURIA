@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.Category
+import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Shuffle
@@ -103,6 +104,7 @@ internal data class LocalLibraryCallbacks(
     val onPlayAll: (List<Track>) -> Unit,
     val onShuffleAll: (List<Track>) -> Unit,
     val onAddToPlaylist: (Track) -> Unit,
+    val onToggleDj: (Boolean) -> Unit,
     val onToggleFavorite: (Track) -> Unit,
     val onQuickScan: () -> Unit,
     val onFullScan: () -> Unit,
@@ -116,6 +118,7 @@ internal fun LazyListScope.localLibrarySection(
     library: LocalLibraryUiState,
     tab: LocalLibraryTab,
     onTab: (LocalLibraryTab) -> Unit,
+    djEnabled: Boolean,
     qualityFilter: LocalLibraryQualityFilter,
     onQualityFilter: (LocalLibraryQualityFilter) -> Unit,
     nowMs: Long,
@@ -129,7 +132,7 @@ internal fun LazyListScope.localLibrarySection(
     callbacks: LocalLibraryCallbacks
 ) {
     item(key = "local-actions", contentType = "local-actions") {
-        LocalLibraryActions(library, callbacks)
+        LocalLibraryActions(library, callbacks, djEnabled)
     }
     if (!library.permissionGranted) {
         item(key = "local-permission", contentType = "local-permission") {
@@ -655,7 +658,7 @@ private const val LOCAL_ALPHABET_MIN_ITEMS = 50
 private const val LOCAL_ALPHABET_MIN_LETTERS = 5
 
 @Composable
-private fun LocalLibraryActions(library: LocalLibraryUiState, callbacks: LocalLibraryCallbacks) {
+private fun LocalLibraryActions(library: LocalLibraryUiState, callbacks: LocalLibraryCallbacks, djEnabled: Boolean) {
     val strings = LocalLevyraStrings.current
     Surface(
         color = LevyraGlass,
@@ -684,6 +687,20 @@ private fun LocalLibraryActions(library: LocalLibraryUiState, callbacks: LocalLi
                     IconButton(onClick = callbacks.onQuickScan) {
                         Icon(Icons.Rounded.Refresh, strings.localScanQuick, tint = LevyraCyan)
                     }
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                FilterChip(
+                    selected = djEnabled,
+                    onClick = { callbacks.onToggleDj(!djEnabled) },
+                    label = { Text("DJ AutoMix", fontWeight = FontWeight.SemiBold) },
+                    leadingIcon = {
+                        Icon(Icons.Rounded.GraphicEq, contentDescription = null, modifier = Modifier.size(18.dp))
+                    },
+                    modifier = Modifier.heightIn(min = 48.dp)
+                )
+                if (djEnabled) {
+                    Text(" · 27s", color = LevyraMuted, fontSize = 12.sp)
                 }
             }
             if (library.catalog.songs.isNotEmpty()) {

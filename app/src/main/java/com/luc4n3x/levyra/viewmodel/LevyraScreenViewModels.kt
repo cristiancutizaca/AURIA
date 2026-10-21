@@ -386,6 +386,7 @@ class LibraryViewModel(root: LevyraViewModel) : LevyraScreenViewModel(root, ::li
     fun addToQueue(track: Track) = root.addToQueue(track)
     fun addTracksToQueue(tracks: List<Track>) = root.addTracksToQueue(tracks)
     fun playLocalTracks(tracks: List<Track>, track: Track) = root.playLocalTracks(tracks, track)
+    fun setDjSoftMode(enabled: Boolean) = root.setDjSoftMode(enabled)
     fun requestLocalLibraryScan(mode: com.luc4n3x.levyra.data.locallibrary.LocalScanMode) =
         root.requestLocalLibraryScan(mode, force = mode != com.luc4n3x.levyra.data.locallibrary.LocalScanMode.Quick)
     fun refreshLocalLibraryAccess() = root.refreshLocalLibraryAccess()

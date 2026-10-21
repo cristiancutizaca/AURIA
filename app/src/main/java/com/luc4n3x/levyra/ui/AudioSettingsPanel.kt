@@ -131,6 +131,7 @@ import com.luc4n3x.levyra.domain.ReplayGainMode
 import com.luc4n3x.levyra.domain.Track
 import com.luc4n3x.levyra.feature.audio.rememberLevyraAudioOutputState
 import com.luc4n3x.levyra.player.equalPowerCrossfade
+import com.luc4n3x.levyra.player.djOverlayCrossfade
 import com.luc4n3x.levyra.ui.i18n.LocalLevyraStrings
 import com.luc4n3x.levyra.ui.i18n.CrossfadeLabCopy
 import com.luc4n3x.levyra.ui.i18n.crossfadeLabCopy
@@ -525,7 +526,11 @@ internal fun AudioSettingsPanel(
                 item {
                     AudioToggleRow(
                         title = strings.djSoft,
-                        subtitle = "${strings.crossfade} ${audioSettings.crossfadeSeconds}s",
+                        subtitle = if (audioSettings.crossfadeSeconds == 0) {
+                            "${strings.crossfade} · DJ AutoMix 27s"
+                        } else {
+                            "${strings.crossfade} ${audioSettings.crossfadeSeconds}s"
+                        },
                         checked = audioSettings.djSoftMode,
                         onCheckedChange = onDjSoft
                     )
@@ -1525,12 +1530,15 @@ private fun CrossfadeCurveLab(
 ) {
     val outgoingColor = LevyraOrange
     val incomingColor = LevyraCyan
-    val enabled = gaplessEnabled && seconds > 0
-    val samples = remember {
+    val enabled = gaplessEnabled && (seconds > 0 || autoMixEnabled)
+    val displayedSeconds = if (autoMixEnabled && seconds == 0) 27 else seconds
+    val curveDescription = if (autoMixEnabled) "DJ AutoMix" else copy.equalPower
+    val samples = remember(autoMixEnabled) {
         val outgoing = FloatArray(CROSSFADE_CURVE_SAMPLE_COUNT)
         val incoming = FloatArray(CROSSFADE_CURVE_SAMPLE_COUNT)
         for (index in 0 until CROSSFADE_CURVE_SAMPLE_COUNT) {
-            val gains = equalPowerCrossfade(index.toFloat() / (CROSSFADE_CURVE_SAMPLE_COUNT - 1).toFloat())
+            val fraction = index.toFloat() / (CROSSFADE_CURVE_SAMPLE_COUNT - 1).toFloat()
+            val gains = if (autoMixEnabled) djOverlayCrossfade(fraction) else equalPowerCrossfade(fraction)
             outgoing[index] = gains.outgoing
             incoming[index] = gains.incoming
         }
@@ -1538,8 +1546,8 @@ private fun CrossfadeCurveLab(
     }
     val status = when {
         !gaplessEnabled -> copy.gaplessRequired
-        seconds <= 0 -> copy.off
         autoMixEnabled -> copy.adaptiveDuration
+        seconds <= 0 -> copy.off
         else -> copy.fixedDuration
     }
 
@@ -1556,7 +1564,7 @@ private fun CrossfadeCurveLab(
                 ) {
                     Text(copy.title, color = LevyraText, fontSize = 15.sp, fontWeight = FontWeight.Black)
                     Text(
-                        "$seconds s · $status",
+                        "$displayedSeconds s · $status",
                         color = LevyraMuted,
                         fontSize = 11.5.sp,
                         fontWeight = FontWeight.Medium,
@@ -1569,7 +1577,7 @@ private fun CrossfadeCurveLab(
                     shape = ChipShape
                 ) {
                     Text(
-                        copy.equalPower,
+                        curveDescription,
                         color = LevyraCyan,
                         fontSize = 10.5.sp,
                         fontWeight = FontWeight.Black,
@@ -1588,7 +1596,7 @@ private fun CrossfadeCurveLab(
                     .fillMaxWidth()
                     .height(116.dp)
                     .semantics {
-                        contentDescription = "${copy.title}: ${copy.equalPower}, $seconds s. $status"
+                        contentDescription = "${copy.title}: $curveDescription, $displayedSeconds s. $status"
                     }
             ) {
                 val horizontalInset = 5.dp.toPx()

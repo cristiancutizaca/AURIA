@@ -538,6 +538,7 @@ internal fun LevyraLibraryScreen(
                 shuffled.firstOrNull()?.let { viewModel.playLocalTracks(shuffled, it) }
             },
             onAddToPlaylist = { track -> addToPlaylistTracks = listOf(track) },
+            onToggleDj = viewModel::setDjSoftMode,
             onToggleFavorite = viewModel::toggleFavorite,
             onQuickScan = { viewModel.requestLocalLibraryScan(LocalScanMode.Quick) },
             onFullScan = { viewModel.requestLocalLibraryScan(LocalScanMode.Full) },
@@ -1080,6 +1081,7 @@ internal fun LevyraLibraryScreen(
                     library = state.localLibrary,
                     tab = localTab,
                     onTab = { localTabName = it.name },
+                    djEnabled = state.audioSettings.djSoftMode,
                     qualityFilter = localQualityFilter,
                     onQualityFilter = { localQualityFilterName = it.name },
                     nowMs = localFilterNowMs,

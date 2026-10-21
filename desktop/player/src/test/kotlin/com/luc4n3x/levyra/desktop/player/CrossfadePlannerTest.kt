@@ -104,6 +104,24 @@ class CrossfadePlannerTest {
     }
 
     @Test
+    fun djOverlapAvoidsAdditiveGainClipping() {
+        for (i in 0..100) {
+            val t = i / 100f
+            assertEquals(
+                1f, CrossfadePlanner.djOutgoingGain(t) + CrossfadePlanner.djIncomingGain(t), 0.001f
+            )
+        }
+    }
+
+    @Test
+    fun djOverlapUsesMediaTimeWhenPlaybackSpeedChanges() {
+        assertEquals(27_000L, CrossfadePlanner.mixWallClockDurationMs(27_000L, 1f))
+        assertEquals(13_500L, CrossfadePlanner.mixWallClockDurationMs(27_000L, 2f))
+        assertEquals(54_000L, CrossfadePlanner.mixWallClockDurationMs(27_000L, 0.5f))
+        assertEquals(27_000L, CrossfadePlanner.mixWallClockDurationMs(27_000L, Float.NaN))
+    }
+
+    @Test
     fun prepareThresholdLeavesRoomForTheTransition() {
         assertEquals(
             240_000L - 6_000L - CrossfadePlanner.PREPARE_LEAD_MS,

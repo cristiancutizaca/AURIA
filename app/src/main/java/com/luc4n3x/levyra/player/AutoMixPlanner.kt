@@ -22,7 +22,7 @@ internal fun planAutoMix(
     djEnabled: Boolean = false
 ): AutoMixPlan? {
     val normalized = settings.normalized()
-    val automaticDjMix = djEnabled && normalized.crossfadeSeconds == 0
+    val automaticDjMix = (djEnabled || normalized.djSoftMode) && normalized.crossfadeSeconds == 0
     val effectiveSeconds = if (automaticDjMix) 27 else normalized.crossfadeSeconds
     if (!normalized.gaplessEnabled || effectiveSeconds <= 0 || next == null) return null
     if (repeatMode == RepeatMode.One || videoMode || lowRam || current.durationMs <= MIN_TRACK_MS) return null
@@ -30,10 +30,10 @@ internal fun planAutoMix(
     val base = effectiveSeconds * 1_000L
     val adaptive = if (automaticDjMix) {
         val energyDistance = abs(current.energy - next.energy)
-        val vocalOverlap = (current.vocal + next.vocal) / 2
+        val dualVocals = current.vocal >= 70 && next.vocal >= 70
         when {
+            dualVocals -> base - 7_000L
             energyDistance >= 45 -> base - 6_000L
-            vocalOverlap >= 75 -> base - 3_000L
             else -> base
         }
     } else if (normalized.djSoftMode || djEnabled) {
@@ -92,15 +92,19 @@ internal fun equalPowerCrossfade(progress: Float): CrossfadeGains {
     return CrossfadeGains(outgoing = cos(angle), incoming = sin(angle))
 }
 
-internal fun djOverlayCrossfade(progress: Float): CrossfadeGains {
+internal fun djOverlayCrossfade(progress: Float, overlappingVocals: Boolean = false): CrossfadeGains {
     val t = progress.coerceIn(0f, 1f)
     val split = 0.65f
     val phase = if (t <= split) t / split else (t - split) / (1f - split)
     val eased = phase * phase * (3f - 2f * phase)
+    val incomingLead = if (overlappingVocals) 0.14f else 0.25f
     return if (t <= split) {
-        CrossfadeGains(outgoing = 1f - 0.25f * eased, incoming = 0.30f * eased)
+        CrossfadeGains(outgoing = 1f - incomingLead * eased, incoming = incomingLead * eased)
     } else {
-        CrossfadeGains(outgoing = 0.75f * (1f - eased), incoming = 0.30f + 0.70f * eased)
+        CrossfadeGains(
+            outgoing = (1f - incomingLead) * (1f - eased),
+            incoming = incomingLead + (1f - incomingLead) * eased
+        )
     }
 }
 

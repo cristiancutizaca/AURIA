@@ -55,6 +55,11 @@ object CrossfadePlanner {
         return (durationMs - lead).coerceAtLeast(0L)
     }
 
+    fun mixWallClockDurationMs(mediaDurationMs: Long, playbackSpeed: Float): Long {
+        val speed = playbackSpeed.takeIf { it.isFinite() && it > 0f } ?: 1f
+        return (mediaDurationMs.toDouble() / speed).toLong().coerceAtLeast(STEP_MS)
+    }
+
     fun outgoingGain(fraction: Float): Float = cos(fraction.coerceIn(0f, 1f) * HALF_PI)
 
     fun incomingGain(fraction: Float): Float = sin(fraction.coerceIn(0f, 1f) * HALF_PI)
@@ -70,7 +75,7 @@ object CrossfadePlanner {
         val t = fraction.coerceIn(0f, 1f)
         val phase = if (t <= 0.65f) t / 0.65f else (t - 0.65f) / 0.35f
         val eased = phase * phase * (3f - 2f * phase)
-        return if (t <= 0.65f) 0.30f * eased else 0.30f + 0.70f * eased
+        return if (t <= 0.65f) 0.25f * eased else 0.25f + 0.75f * eased
     }
 
     fun volumeFor(baseVolume: Int, gain: Float): Int =

@@ -4750,7 +4750,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun setDjSoftMode(value: Boolean) {
-        updateAudioSettings(_state.value.audioSettings.copy(djSoftMode = value, crossfadeSeconds = if (value && _state.value.audioSettings.crossfadeSeconds == 0) 6 else _state.value.audioSettings.crossfadeSeconds))
+        updateAudioSettings(_state.value.audioSettings.copy(djSoftMode = value))
     }
 
     fun setReplayGainEnabled(value: Boolean) {

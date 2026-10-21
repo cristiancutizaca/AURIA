@@ -1909,7 +1909,7 @@ class PlaybackService : MediaLibraryService() {
             PlaybackParameters(currentAudioSettings.playbackSpeed, currentAudioSettings.pitch)
         )
         if (!currentAudioSettings.gaplessEnabled ||
-            (currentAudioSettings.crossfadeSeconds <= 0 && !queueEngine.state.value.radioEnabled)
+            (currentAudioSettings.crossfadeSeconds <= 0 && !currentAudioSettings.djSoftMode && !queueEngine.state.value.radioEnabled)
         ) {
             cancelQueueTransition()
         }
@@ -1945,11 +1945,14 @@ class PlaybackService : MediaLibraryService() {
             videoMode = videoMode,
             lowRam = adaptivePlaybackPolicy.current(videoMode = false).lowRam,
             shuffleEnabled = snapshot.shuffleEnabled,
-            djEnabled = snapshot.radioEnabled
+            djEnabled = snapshot.radioEnabled || currentAudioSettings.djSoftMode
         ) ?: return
         if (remaining > plan.preloadLeadMs) return
         queueTransitionJob = serviceScope.launch {
-            runQueueTransition(player, snapshot, current, next, nextIndex, plan)
+            runQueueTransition(
+                player, snapshot, current, next, nextIndex, plan,
+                djEnabled = snapshot.radioEnabled || currentAudioSettings.djSoftMode
+            )
         }
     }
 
@@ -1959,7 +1962,8 @@ class PlaybackService : MediaLibraryService() {
         current: Track,
         target: Track,
         targetQueueIndex: Int,
-        plan: AutoMixPlan
+        plan: AutoMixPlan,
+        djEnabled: Boolean
     ) {
         val currentIdentity = playbackQueueIdentity(current)
         val targetIdentity = playbackQueueIdentity(target)
@@ -1995,12 +1999,16 @@ class PlaybackService : MediaLibraryService() {
 
             isQueueTransitionInProgress = true
             djTransitionHoldJob?.cancel()
-            if (snapshot.radioEnabled) _djTransitionFlow.value = mixVisual
+            if (djEnabled) _djTransitionFlow.value = mixVisual
             val remainingMs = (primary.duration - primary.currentPosition).coerceAtLeast(0L)
             val actualTransitionMs = minOf(plan.transitionMs, remainingMs)
             if (actualTransitionMs < 800L) return
             secondary.play()
-            fadePlayers(primary, secondary, actualTransitionMs, djOverlay = snapshot.radioEnabled) {
+            fadePlayers(
+                primary, secondary, actualTransitionMs,
+                djOverlay = djEnabled && actualTransitionMs >= 15_000L,
+                overlappingVocals = current.vocal >= 70 && next.vocal >= 70
+            ) {
                 transitionStillValid(snapshot.generation, currentIdentity, targetIdentity, primary) &&
                     primary.duration - primary.currentPosition <= actualTransitionMs + SEEK_TOLERANCE_MS
             }
@@ -2045,7 +2053,7 @@ class PlaybackService : MediaLibraryService() {
                 if (mixCompleted) {
                     djTransitionHoldJob?.cancel()
                     djTransitionHoldJob = serviceScope.launch {
-                        delay(9_000L)
+                        delay(1_200L)
                         if (_djTransitionFlow.value == mixVisual) _djTransitionFlow.value = null
                     }
                 } else {
@@ -2331,6 +2339,7 @@ class PlaybackService : MediaLibraryService() {
         incoming: ExoPlayer,
         durationMs: Long,
         djOverlay: Boolean = false,
+        overlappingVocals: Boolean = false,
         isValid: () -> Boolean = { true }
     ) {
         val steps = (durationMs / TRANSITION_STEP_MS).toInt().coerceIn(8, 120)
@@ -2340,7 +2349,7 @@ class PlaybackService : MediaLibraryService() {
                 throw CancellationException("Playback paused during crossfade")
             }
             val fraction = step.toFloat() / steps.toFloat()
-            val gains = if (djOverlay) djOverlayCrossfade(fraction) else equalPowerCrossfade(fraction)
+            val gains = if (djOverlay) djOverlayCrossfade(fraction, overlappingVocals) else equalPowerCrossfade(fraction)
             outgoing.volume = gains.outgoing
             incoming.volume = gains.incoming
             if (step < steps) {

@@ -882,7 +882,8 @@ class PlaybackController(
         val transitionMs = preparedTransitionMs
         if (transitionMs <= 0L || durationMs <= 0L) return
         if (positionMs < durationMs - transitionMs) return
-        startTransition(transitionMs)
+        val remainingMs = (durationMs - positionMs).coerceAtLeast(0L)
+        startTransition(minOf(transitionMs, remainingMs))
     }
 
     private fun startPreparedHandoff(): Boolean = startTransition(0L)
@@ -953,7 +954,10 @@ class PlaybackController(
                     it.copy(djTransition = DjTransitionUiState(outgoingTrack, incomingTrack))
                 }
             }
-            val steps = (transitionMs / CrossfadePlanner.STEP_MS).toInt().coerceAtLeast(1)
+            val wallClockMs = CrossfadePlanner.mixWallClockDurationMs(
+                transitionMs, settingsStore.current.playbackSpeed
+            )
+            val steps = (wallClockMs / CrossfadePlanner.STEP_MS).toInt().coerceAtLeast(1)
             for (step in 1..steps) {
                 val failureReason = incomingFailure.get()
                 if (failureReason != null || incomingFinished.get()) {

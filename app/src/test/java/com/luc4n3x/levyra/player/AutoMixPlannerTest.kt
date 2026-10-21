@@ -88,6 +88,49 @@ class AutoMixPlannerTest {
     }
 
     @Test
+    fun localDjSoftModeStartsLongMixWithoutRadioOrManualCrossfade() {
+        val plan = planAutoMix(
+            track("local-a"), track("local-b"),
+            LevyraAudioSettings(crossfadeSeconds = 0, djSoftMode = true),
+            RepeatMode.Off, videoMode = false, lowRam = false
+        )
+        assertEquals(27_000L, plan?.transitionMs)
+        assertEquals(35_000L, plan?.preloadLeadMs)
+        assertNull(planAutoMix(
+            track(), track("next"),
+            LevyraAudioSettings(crossfadeSeconds = 0, djSoftMode = true, gaplessEnabled = false),
+            RepeatMode.Off, videoMode = false, lowRam = false
+        ))
+    }
+
+    @Test
+    fun overlappingStrongVocalsShortenTheDjAndDelayTheIncomingVoice() {
+        val plan = planAutoMix(
+            track().copy(vocal = 85), track("next").copy(vocal = 90),
+            LevyraAudioSettings(djSoftMode = true),
+            RepeatMode.Off, videoMode = false, lowRam = false
+        )
+        assertEquals(20_000L, plan?.transitionMs)
+
+        val normal = djOverlayCrossfade(0.5f)
+        val voices = djOverlayCrossfade(0.5f, overlappingVocals = true)
+        assertTrue(voices.incoming < normal.incoming)
+        assertTrue(voices.outgoing > normal.outgoing)
+    }
+
+    @Test
+    fun djOverlayGainsDoNotIncreaseCombinedOutputAboveUnity() {
+        for (step in 0..100) {
+            for (vocals in listOf(false, true)) {
+                val gain = djOverlayCrossfade(step / 100f, overlappingVocals = vocals)
+                assertTrue(gain.outgoing in 0f..1f)
+                assertTrue(gain.incoming in 0f..1f)
+                assertEquals(1f, gain.outgoing + gain.incoming, 0.001f)
+            }
+        }
+    }
+
+    @Test
     fun djDoesNotCreateSecondPlayerDuringNativeVideoOrLowMemory() {
         val settings = LevyraAudioSettings()
         assertNull(planAutoMix(track(), track("next"), settings,
