@@ -1216,7 +1216,9 @@ internal fun LevyraLibraryScreen(
             }
         }
 
-        if (category == LibraryCategory.Device && localAlphabetIndex.visible) {
+        if (category == LibraryCategory.Device && localAlphabetIndex.visible &&
+            (localTab == LocalLibraryTab.Songs || expandedLocalGroupKey == null)
+        ) {
             LocalLibraryAlphabetRail(
                 index = localAlphabetIndex,
                 activeLetter = localActiveAlphabetLetter,
