@@ -1015,14 +1015,15 @@ private fun LocalGroupBlock(
     onHide: (() -> Unit)? = null
 ) {
     val strings = LocalLevyraStrings.current
+    val colors = MaterialTheme.colorScheme
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Surface(
-            color = if (expanded) LevyraCyan.copy(alpha = 0.08f) else Color.Transparent,
-            shape = RoundedCornerShape(16.dp),
+            color = if (expanded) colors.secondaryContainer else colors.surfaceContainerLow,
+            shape = RoundedCornerShape(18.dp),
             modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle)
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -1030,39 +1031,39 @@ private fun LocalGroupBlock(
                     LibraryArtwork(
                         url = artworkModel,
                         title = title,
-                        modifier = Modifier.size(52.dp),
+                        modifier = Modifier.size(56.dp),
                         shape = RoundedCornerShape(14.dp),
                         selected = false
                     )
                 } else {
                     Box(
                         modifier = Modifier
-                            .size(52.dp)
-                            .background(LevyraPanelSoft, RoundedCornerShape(14.dp)),
+                            .size(56.dp)
+                            .background(colors.surfaceContainerHigh, RoundedCornerShape(14.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(icon, contentDescription = null, tint = LevyraMuted, modifier = Modifier.size(24.dp))
+                        Icon(icon, contentDescription = null, tint = colors.onSurfaceVariant, modifier = Modifier.size(24.dp))
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = title,
-                        color = LevyraText,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
+                        color = colors.onSurface,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = subtitle,
-                        color = LevyraMuted,
-                        fontSize = 12.sp,
+                        color = colors.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
                 if (onHide != null) {
-                    IconButton(onClick = onHide, modifier = Modifier.size(34.dp)) {
+                    IconButton(onClick = onHide, modifier = Modifier.size(48.dp)) {
                         Icon(
                             Icons.Rounded.VisibilityOff,
                             strings.localHideFolder,
@@ -1071,7 +1072,13 @@ private fun LocalGroupBlock(
                         )
                     }
                 }
-                LevyraPlayAllIconButton(onClick = onPlay, size = 30.dp)
+                LevyraPlayAllIconButton(onClick = onPlay, size = 48.dp)
+                Icon(
+                    imageVector = if (expanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = colors.onSurfaceVariant,
+                    modifier = Modifier.size(22.dp)
+                )
             }
         }
         if (expanded) {
