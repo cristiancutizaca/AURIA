@@ -15,6 +15,8 @@ class JamSessionCodeTest {
 
         assertEquals(code, JamSessionCode.parse(code.formatted()))
         assertEquals(code, JamSessionCode.parse(code.deepLink()))
+        assertTrue(code.deepLink().startsWith("auria://jam/"))
+        assertEquals(code, JamSessionCode.parse("levyra://jam/" + code.encoded()))
         assertEquals(JamSessionCode.ENCODED_LENGTH, code.encoded().length)
     }
 

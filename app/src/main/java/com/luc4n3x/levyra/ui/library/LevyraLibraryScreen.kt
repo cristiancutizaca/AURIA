@@ -113,6 +113,7 @@ import com.luc4n3x.levyra.viewmodel.LibraryViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import com.luc4n3x.levyra.viewmodel.PersonalCollectionEvent
 import com.luc4n3x.levyra.ui.i18n.LevyraPersonalCollectionCatalog
@@ -306,6 +307,11 @@ internal fun LevyraLibraryScreen(
     val sort = state.interfaceSettings.librarySort
     val direction = state.interfaceSettings.librarySortDirection
     var query by rememberSaveable { mutableStateOf("") }
+    var deviceQuery by rememberSaveable { mutableStateOf("") }
+    LaunchedEffect(query) {
+        if (query.isNotEmpty()) delay(160L)
+        deviceQuery = query
+    }
     var selectedKeys by remember { mutableStateOf(emptySet<String>()) }
     var sortExpanded by remember { mutableStateOf(false) }
     var addToPlaylistTracks by remember { mutableStateOf<List<Track>>(emptyList()) }
@@ -399,7 +405,7 @@ internal fun LevyraLibraryScreen(
         state.localLibrary,
         localTab,
         localQualityFilter,
-        query,
+        deviceQuery,
         localFilterNowMs,
         sort,
         direction
@@ -408,7 +414,7 @@ internal fun LevyraLibraryScreen(
             library = state.localLibrary,
             tab = localTab,
             qualityFilter = localQualityFilter,
-            query = query,
+            query = deviceQuery,
             nowMs = localFilterNowMs,
             songsAlphabetical = sort == LibrarySort.Title &&
                 direction == LibrarySortDirection.Ascending
@@ -524,6 +530,14 @@ internal fun LevyraLibraryScreen(
         LocalLibraryCallbacks(
             onPlay = viewModel::playLocalTracks,
             onAddToQueue = viewModel::addTracksToQueue,
+            onPlayAll = { tracks ->
+                tracks.firstOrNull()?.let { viewModel.playLocalTracks(tracks, it) }
+            },
+            onShuffleAll = { tracks ->
+                val shuffled = tracks.shuffled()
+                shuffled.firstOrNull()?.let { viewModel.playLocalTracks(shuffled, it) }
+            },
+            onAddToPlaylist = { track -> addToPlaylistTracks = listOf(track) },
             onToggleFavorite = viewModel::toggleFavorite,
             onQuickScan = { viewModel.requestLocalLibraryScan(LocalScanMode.Quick) },
             onFullScan = { viewModel.requestLocalLibraryScan(LocalScanMode.Full) },
@@ -786,6 +800,17 @@ internal fun LevyraLibraryScreen(
                         actions = overviewSearchActions
                     )
                 } else {
+                    item(key = "overview-device-shortcut") {
+                        LocalMusicQuickAccessCard(
+                            songCount = state.localLibrary.catalog.totalCount,
+                            hasPermission = state.localLibrary.permissionGranted,
+                            onOpen = { switchCategory(LibraryCategory.Device) },
+                            onPlayAll = {
+                                val songs = state.localLibrary.catalog.songs
+                                songs.firstOrNull()?.let { viewModel.playLocalTracks(songs, it) }
+                            }
+                        )
+                    }
                     item(key = "overview-sections") {
                         LibrarySectionGrid(
                             entries = librarySections,
@@ -1060,7 +1085,7 @@ internal fun LevyraLibraryScreen(
                     nowMs = localFilterNowMs,
                     expandedGroupKey = expandedLocalGroupKey,
                     onExpandGroup = { expandedLocalGroupKey = it },
-                    query = query,
+                    query = deviceQuery,
                     currentTrack = state.currentTrack,
                     isPlaying = state.isPlaying,
                     favoriteIds = state.favoriteIds,

@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.toArgb
+import kotlinx.coroutines.delay
 
 /**
  * Animated "aurora" mesh-gradient layer for the player backdrop.
@@ -44,6 +45,7 @@ fun AuroraBackdrop(
             withFrameNanos { frame ->
                 time = (frame - start) / 1_000_000_000f
             }
+            delay(32L)
         }
     }
 

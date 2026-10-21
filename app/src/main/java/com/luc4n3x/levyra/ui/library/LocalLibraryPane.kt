@@ -16,18 +16,25 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Album
+import androidx.compose.material.icons.rounded.Category
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -50,6 +57,7 @@ import com.luc4n3x.levyra.data.locallibrary.LocalAlbumGroup
 import com.luc4n3x.levyra.data.locallibrary.LocalArtistGroup
 import com.luc4n3x.levyra.data.local.LocalMediaEntity
 import com.luc4n3x.levyra.data.locallibrary.LocalFolderGroup
+import com.luc4n3x.levyra.data.locallibrary.LocalGenreGroup
 import com.luc4n3x.levyra.data.locallibrary.isSafeTagEditorFormat
 import com.luc4n3x.levyra.data.locallibrary.matchesFullTagQuery
 import com.luc4n3x.levyra.domain.Track
@@ -64,7 +72,7 @@ import com.luc4n3x.levyra.ui.theme.LevyraText
 import com.luc4n3x.levyra.viewmodel.LocalLibraryUiState
 import java.util.Locale
 
-internal enum class LocalLibraryTab { Songs, Albums, Artists, Folders }
+internal enum class LocalLibraryTab { Songs, Albums, Artists, Genres, Folders }
 
 internal enum class LocalLibraryQualityFilter { All, Lossless, HighBitrate, Recent }
 
@@ -85,12 +93,16 @@ internal fun LocalLibraryTab.label(strings: LevyraStrings): String = when (this)
     LocalLibraryTab.Songs -> strings.songsPlain
     LocalLibraryTab.Albums -> strings.albumsPlain
     LocalLibraryTab.Artists -> strings.artists
+    LocalLibraryTab.Genres -> strings.genres
     LocalLibraryTab.Folders -> strings.localFolders
 }
 
 internal data class LocalLibraryCallbacks(
     val onPlay: (List<Track>, Track) -> Unit,
     val onAddToQueue: (List<Track>) -> Unit,
+    val onPlayAll: (List<Track>) -> Unit,
+    val onShuffleAll: (List<Track>) -> Unit,
+    val onAddToPlaylist: (Track) -> Unit,
     val onToggleFavorite: (Track) -> Unit,
     val onQuickScan: () -> Unit,
     val onFullScan: () -> Unit,
@@ -225,6 +237,30 @@ internal fun LazyListScope.localLibrarySection(
                 callbacks = callbacks
             )
         }
+        LocalLibraryTab.Genres -> items(
+            library.catalog.genres
+                .filterLocalGenres(query, library.catalog.mediaByUri)
+                .mapNotNull { it.filteredByLocalQuality(effectiveQualityFilter, library.catalog.mediaByUri, nowMs) },
+            key = { "local-genre-${it.key}" },
+            contentType = { "local-group" }
+        ) { genre ->
+            LocalGroupBlock(
+                title = genre.name,
+                subtitle = LocalLevyraStrings.current.formatTrackCount(genre.tracks.size),
+                artworkModel = genre.artworkModel,
+                icon = Icons.Rounded.Category,
+                expanded = expandedGroupKey == genre.key,
+                onToggle = { onExpandGroup(if (expandedGroupKey == genre.key) null else genre.key) },
+                onPlay = { genre.tracks.firstOrNull()?.let { callbacks.onPlay(genre.tracks, it) } },
+                tracks = genre.tracks,
+                currentTrack = currentTrack,
+                isPlaying = isPlaying,
+                favoriteIds = favoriteIds,
+                unavailableUris = unavailableUris,
+                mediaByUri = library.catalog.mediaByUri,
+                callbacks = callbacks
+            )
+        }
         LocalLibraryTab.Folders -> items(
             library.catalog.folders
                 .filterLocalFolders(query, library.catalog.mediaByUri)
@@ -295,6 +331,7 @@ private fun LazyListScope.localTrackItems(
             onFavorite = { callbacks.onToggleFavorite(track) },
             onDownload = {},
             onQueue = { callbacks.onAddToQueue(listOf(track)) },
+            onAddToPlaylist = { callbacks.onAddToPlaylist(track) },
             onEditTags = mediaByUri[track.streamUrl]
                 ?.takeIf { it.isSafeTagEditorFormat() }
                 ?.let { { callbacks.onEditTags(track) } }
@@ -312,31 +349,25 @@ private fun LocalLibraryTabs(
         modifier = Modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(22.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         LocalLibraryTab.entries.forEach { entry ->
-            val active = entry == selected
-            Column(
-                modifier = Modifier.clickable { onSelect(entry) },
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text(
-                    text = entry.label(strings),
-                    color = if (active) LevyraText else LevyraMuted,
-                    fontSize = 13.sp,
-                    fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold
-                )
-                Box(
-                    modifier = Modifier
-                        .size(width = 28.dp, height = 2.dp)
-                        .background(
-                            if (active) LevyraCyan else Color.Transparent,
-                            RoundedCornerShape(99.dp)
-                        )
-                )
+            val icon = when (entry) {
+                LocalLibraryTab.Songs -> Icons.Rounded.MusicNote
+                LocalLibraryTab.Albums -> Icons.Rounded.Album
+                LocalLibraryTab.Artists -> Icons.Rounded.Person
+                LocalLibraryTab.Genres -> Icons.Rounded.Category
+                LocalLibraryTab.Folders -> Icons.Rounded.Folder
             }
+            FilterChip(
+                selected = selected == entry,
+                onClick = { onSelect(entry) },
+                label = { Text(entry.label(strings), fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
+                leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp)) },
+                colors = FilterChipDefaults.tonalFilterChipColors(),
+                modifier = Modifier.heightIn(min = 48.dp)
+            )
         }
     }
 }
@@ -540,6 +571,10 @@ internal fun localLibraryAlphabetIndex(
             .filterLocalArtists(query, library.catalog.mediaByUri)
             .mapNotNull { it.filteredByLocalQuality(effectiveFilter, library.catalog.mediaByUri, nowMs) }
             .map(LocalArtistGroup::name)
+        LocalLibraryTab.Genres -> library.catalog.genres
+            .filterLocalGenres(query, library.catalog.mediaByUri)
+            .mapNotNull { it.filteredByLocalQuality(effectiveFilter, library.catalog.mediaByUri, nowMs) }
+            .map(LocalGenreGroup::name)
         LocalLibraryTab.Folders -> emptyList()
     }
     val targets = buildList {
@@ -648,6 +683,24 @@ private fun LocalLibraryActions(library: LocalLibraryUiState, callbacks: LocalLi
                 } else {
                     IconButton(onClick = callbacks.onQuickScan) {
                         Icon(Icons.Rounded.Refresh, strings.localScanQuick, tint = LevyraCyan)
+                    }
+                }
+            }
+            if (library.catalog.songs.isNotEmpty()) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = { callbacks.onPlayAll(library.catalog.songs) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Rounded.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text(strings.playAll, modifier = Modifier.padding(start = 6.dp), maxLines = 1)
+                    }
+                    OutlinedButton(
+                        onClick = { callbacks.onShuffleAll(library.catalog.songs) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Rounded.Shuffle, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text(strings.shuffle, modifier = Modifier.padding(start = 6.dp), maxLines = 1)
                     }
                 }
             }
@@ -765,7 +818,14 @@ private fun LocalGroupBlock(
             }
         }
         if (expanded) {
-            tracks.forEach { track ->
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 440.dp)
+            ) {
+                items(
+                    tracks,
+                    key = { "expanded-local-${it.streamUrl}" },
+                    contentType = { "local-track" }
+                ) { track ->
                 LibraryTrackRow(
                     track = track,
                     selected = false,
@@ -785,11 +845,13 @@ private fun LocalGroupBlock(
                     onFavorite = { callbacks.onToggleFavorite(track) },
                     onDownload = {},
                     onQueue = { callbacks.onAddToQueue(listOf(track)) },
+                    onAddToPlaylist = { callbacks.onAddToPlaylist(track) },
                     onEditTags = mediaByUri[track.streamUrl]
                         ?.takeIf { it.isSafeTagEditorFormat() }
                         ?.let { { callbacks.onEditTags(track) } },
                     modifier = Modifier.padding(start = 16.dp)
                 )
+                }
             }
         }
     }
@@ -832,6 +894,27 @@ internal fun List<LocalArtistGroup>.filterLocalArtists(
     query: String,
     mediaByUri: Map<String, LocalMediaEntity>
 ): List<LocalArtistGroup> {
+    val clean = normalizeLibraryText(query)
+    if (clean.isEmpty()) return this
+    return filter { group ->
+        normalizeLibraryText(group.name).contains(clean) ||
+            group.tracks.any { mediaByUri[it.streamUrl]?.matchesFullTagQuery(query) == true }
+    }
+}
+
+private fun LocalGenreGroup.filteredByLocalQuality(
+    filter: LocalLibraryQualityFilter,
+    mediaByUri: Map<String, LocalMediaEntity>,
+    nowMs: Long
+): LocalGenreGroup? {
+    val visible = tracks.filterByLocalQuality(filter, mediaByUri, nowMs)
+    return takeIf { visible.isNotEmpty() }?.copy(tracks = visible)
+}
+
+internal fun List<LocalGenreGroup>.filterLocalGenres(
+    query: String,
+    mediaByUri: Map<String, LocalMediaEntity>
+): List<LocalGenreGroup> {
     val clean = normalizeLibraryText(query)
     if (clean.isEmpty()) return this
     return filter { group ->

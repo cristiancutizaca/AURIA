@@ -635,6 +635,26 @@ private fun SetupHero(
     }
 }
 
+@Composable
+private fun AuriaBrandGlyph(size: Dp) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(RoundedCornerShape(25.dp))
+            .background(Brush.linearGradient(listOf(Color(0xFF141B32), Color(0xFF101222)))),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "A",
+            color = Color(0xFF89E8DF),
+            fontSize = (size.value * 0.68f).sp,
+            lineHeight = (size.value * 0.75f).sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = (-2).sp
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun SetupLogoBloom(accent: Color, animated: Boolean) {
@@ -700,7 +720,7 @@ private fun SetupLogoBloom(accent: Color, animated: Boolean) {
                 alpha = value.coerceIn(0f, 1f)
             }
         ) {
-            LevyraLogoMark(size = SetupHeroIntroSize)
+            AuriaBrandGlyph(size = SetupHeroIntroSize)
         }
     }
 }
@@ -795,7 +815,14 @@ private fun SetupIntroStage(strings: LevyraStrings, accent: Color) {
             .padding(horizontal = 28.dp, vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        LevyraWordmark(fontSize = 24.sp)
+        Text(
+            text = "AURIA",
+            fontSize = 26.sp,
+            lineHeight = 30.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 4.sp,
+            color = SetupInk
+        )
         Spacer(modifier = Modifier.height(10.dp))
         SetupTitle(text = strings.introHeadline, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(12.dp))
@@ -1672,7 +1699,7 @@ private fun SetupYoutubeMusicLink(accent: Color, connected: Boolean, animated: B
                 .border(1.dp, SetupVeil.copy(alpha = 0.08f), MaterialShapes.Cookie9Sided.toShape()),
             contentAlignment = Alignment.Center
         ) {
-            LevyraLogoMark(size = 42.dp, contentDescription = null)
+            AuriaBrandGlyph(size = 42.dp)
         }
         SetupLinkConnector(accent = accent, link = { link }, pulse = { pulse?.value }, mirrored = rtl)
         Box(

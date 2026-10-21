@@ -33,7 +33,8 @@ data class JamSessionCode(
         const val TOTAL_BYTES = ADDRESS_BYTES + PORT_BYTES + SECRET_BYTES
         const val ENCODED_LENGTH = (TOTAL_BYTES * 8 + 4) / 5
         const val GROUP_SIZE = 6
-        const val DEEP_LINK_PREFIX = "levyra://jam/"
+        const val DEEP_LINK_PREFIX = "auria://jam/"
+        private const val LEGACY_DEEP_LINK_PREFIX = "levyra://jam/"
         const val MIN_PORT = 1024
         const val MAX_PORT = 65_535
 
@@ -53,10 +54,12 @@ data class JamSessionCode(
 
         fun parse(raw: String): JamSessionCode? {
             val trimmed = raw.trim()
-            val body = if (trimmed.startsWith(DEEP_LINK_PREFIX, ignoreCase = true)) {
-                trimmed.substring(DEEP_LINK_PREFIX.length)
-            } else {
-                trimmed
+            val body = when {
+                trimmed.startsWith(DEEP_LINK_PREFIX, ignoreCase = true) ->
+                    trimmed.substring(DEEP_LINK_PREFIX.length)
+                trimmed.startsWith(LEGACY_DEEP_LINK_PREFIX, ignoreCase = true) ->
+                    trimmed.substring(LEGACY_DEEP_LINK_PREFIX.length)
+                else -> trimmed
             }
             val compact = body.filterNot { it == '-' }
             if (compact.length != ENCODED_LENGTH || compact.any { it.uppercaseChar() !in ALPHABET }) return null

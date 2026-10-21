@@ -4,6 +4,7 @@ import com.luc4n3x.levyra.data.local.LocalMediaEntity
 import com.luc4n3x.levyra.domain.LibrarySort
 import com.luc4n3x.levyra.domain.LibrarySortDirection
 import com.luc4n3x.levyra.domain.Track
+import java.util.Locale
 
 data class LocalLibraryEntry(
     val track: Track,
@@ -13,7 +14,8 @@ data class LocalLibraryEntry(
     val discNumber: Int,
     val trackNumber: Int,
     val dateAddedMs: Long,
-    val isLevyraDownload: Boolean
+    val isLevyraDownload: Boolean,
+    val genre: String = ""
 )
 
 data class LocalAlbumGroup(
@@ -43,11 +45,19 @@ data class LocalFolderGroup(
     val tracks: List<Track>
 )
 
+data class LocalGenreGroup(
+    val key: String,
+    val name: String,
+    val artworkModel: String,
+    val tracks: List<Track>
+)
+
 data class LocalLibraryCatalog(
     val songs: List<Track> = emptyList(),
     val albums: List<LocalAlbumGroup> = emptyList(),
     val artists: List<LocalArtistGroup> = emptyList(),
     val folders: List<LocalFolderGroup> = emptyList(),
+    val genres: List<LocalGenreGroup> = emptyList(),
     val mediaByUri: Map<String, LocalMediaEntity> = emptyMap(),
     val totalCount: Int = 0,
     val levyraDownloadCount: Int = 0,
@@ -102,7 +112,8 @@ fun buildLocalLibraryCatalog(
             discNumber = row.discNumber,
             trackNumber = row.trackNumber,
             dateAddedMs = row.dateAddedMs,
-            isLevyraDownload = row.isLevyraDownload
+            isLevyraDownload = row.isLevyraDownload,
+            genre = row.genre
         )
     }
     val albumTitles = HashMap<String, String>()
@@ -159,17 +170,42 @@ fun buildLocalLibraryCatalog(
         )
     }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.path })
 
+    val genreEntries = linkedMapOf<String, MutableList<LocalLibraryEntry>>()
+    val genreNames = linkedMapOf<String, String>()
+    for (entry in entries) {
+        for (name in localGenreLabels(entry.genre)) {
+            val key = name.lowercase(Locale.ROOT)
+            genreEntries.getOrPut(key) { mutableListOf() }.add(entry)
+            genreNames.putIfAbsent(key, name)
+        }
+    }
+    val genres = genreEntries.map { (key, items) ->
+        val ordered = items.sortedWith(titleOrder).map(LocalLibraryEntry::track)
+        LocalGenreGroup(
+            key = key,
+            name = genreNames[key].orEmpty(),
+            artworkModel = ordered.firstOrNull()?.thumbnailUrl.orEmpty(),
+            tracks = ordered
+        )
+    }.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
+
     return LocalLibraryCatalog(
         songs = sortLocalSongs(entries, sort, direction),
         albums = albums,
         artists = artists,
         folders = folders,
+        genres = genres,
         mediaByUri = visible.associateBy { it.contentUri },
         totalCount = entries.size,
         levyraDownloadCount = entries.count { it.isLevyraDownload },
         hiddenDuplicateCount = rows.size - visible.size
     )
 }
+
+internal fun localGenreLabels(raw: String): List<String> = raw.split(';', ',', '|')
+    .map(String::trim)
+    .filter { it.isNotEmpty() && !it.equals("unknown", true) && !it.equals("desconocido", true) }
+    .distinctBy { it.lowercase(Locale.ROOT) }
 
 internal fun sortLocalSongs(
     entries: List<LocalLibraryEntry>,
