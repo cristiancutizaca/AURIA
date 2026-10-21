@@ -12587,7 +12587,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
             } else {
                 emptyList()
             }
-            if (!localSeed || radioTracks.size >= RADIO_MIX_LIMIT) {
+            if (radioTracks.size >= RADIO_MIX_LIMIT) {
                 radioTracks
             } else {
                 val current = _state.value
@@ -12596,7 +12596,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
                     localSongs = current.localLibrary.catalog.songs,
                     recent = current.recentListens,
                     favorites = current.favorites,
-                    limit = if (radioTracks.isEmpty()) 3 else 1
+                    limit = if (radioTracks.isEmpty()) 2 else 1
                 )
                 val discovered = ArrayList<Track>(RADIO_MIX_LIMIT)
                 for (query in queries) {
