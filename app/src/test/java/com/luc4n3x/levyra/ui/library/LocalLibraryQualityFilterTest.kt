@@ -1,6 +1,9 @@
 package com.luc4n3x.levyra.ui.library
 
 import com.luc4n3x.levyra.data.local.LocalMediaEntity
+import com.luc4n3x.levyra.data.locallibrary.LocalAlbumGroup
+import com.luc4n3x.levyra.data.locallibrary.LocalLibraryCatalog
+import com.luc4n3x.levyra.viewmodel.LocalLibraryUiState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -65,6 +68,34 @@ class LocalLibraryQualityFilterTest {
                 LocalLibraryQualityFilter.Recent
             ),
             localLibraryQualityFilters(rows, now)
+        )
+    }
+
+    @Test
+    fun alphabetNavigationAccountsForFeaturedArtworkAndFilters() {
+        val now = 2_000_000_000_000L
+        val music = media(displayName = "fresh.flac", mimeType = "audio/flac", dateAddedMs = now)
+        val state = LocalLibraryUiState(
+            permissionGranted = true,
+            catalog = LocalLibraryCatalog(
+                totalCount = 1,
+                albums = listOf(
+                    LocalAlbumGroup("album", "Album", "Artist", "2026", "", 180_000L, emptyList())
+                ),
+                mediaByUri = mapOf(music.contentUri to music)
+            )
+        )
+
+        assertEquals(4, localLibraryLeadingItemCount(state, now))
+        assertEquals(3, localLibraryLeadingItemCount(state, now, tab = LocalLibraryTab.Albums))
+        assertEquals(3, localLibraryLeadingItemCount(state, now, query = "other"))
+        assertEquals(
+            3,
+            localLibraryLeadingItemCount(state, now, qualityFilter = LocalLibraryQualityFilter.Lossless)
+        )
+        assertEquals(
+            0,
+            localLibraryLeadingItemCount(state.copy(permissionGranted = false), now)
         )
     }
 
