@@ -58,7 +58,7 @@ class AutoMixPlannerTest {
         )
         assertNotNull(plan)
         assertEquals(9_000L, plan?.transitionMs)
-        assertEquals(17_000L, plan?.preloadLeadMs)
+        assertEquals(23_000L, plan?.preloadLeadMs)
         assertNull(
             planAutoMix(track(), track("next"), LevyraAudioSettings(),
                 RepeatMode.Off, videoMode = false, lowRam = false, djEnabled = false)
@@ -107,7 +107,7 @@ class AutoMixPlannerTest {
             RepeatMode.Off, videoMode = false, lowRam = false
         )
         assertEquals(12_000L, plan?.transitionMs)
-        assertEquals(20_000L, plan?.preloadLeadMs)
+        assertEquals(26_000L, plan?.preloadLeadMs)
         assertNull(planAutoMix(
             track(), track("next"),
             LevyraAudioSettings(crossfadeSeconds = 0, djSoftMode = true, gaplessEnabled = false),
