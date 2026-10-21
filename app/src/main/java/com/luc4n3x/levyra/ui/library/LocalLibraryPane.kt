@@ -130,6 +130,7 @@ internal fun LazyListScope.localLibrarySection(
     tab: LocalLibraryTab,
     onTab: (LocalLibraryTab) -> Unit,
     djEnabled: Boolean,
+    djMixEnabled: Boolean,
     qualityFilter: LocalLibraryQualityFilter,
     onQualityFilter: (LocalLibraryQualityFilter) -> Unit,
     nowMs: Long,
@@ -143,7 +144,7 @@ internal fun LazyListScope.localLibrarySection(
     callbacks: LocalLibraryCallbacks
 ) {
     item(key = "local-actions", contentType = "local-actions") {
-        LocalLibraryActions(library, callbacks, djEnabled)
+        LocalLibraryActions(library, callbacks, djEnabled, djMixEnabled)
     }
     if (!library.permissionGranted) {
         item(key = "local-permission", contentType = "local-permission") {
@@ -860,7 +861,8 @@ private const val LOCAL_ALPHABET_MIN_LETTERS = 5
 private fun LocalLibraryActions(
     library: LocalLibraryUiState,
     callbacks: LocalLibraryCallbacks,
-    djEnabled: Boolean
+    djEnabled: Boolean,
+    djMixEnabled: Boolean
 ) {
     val strings = LocalLevyraStrings.current
     val colors = MaterialTheme.colorScheme
@@ -961,7 +963,7 @@ private fun LocalLibraryActions(
                     },
                     modifier = Modifier.heightIn(min = 48.dp)
                 )
-                if (djEnabled) {
+                if (djEnabled && djMixEnabled) {
                     Text(
                         "AutoMix · 27s",
                         color = colors.onSurfaceVariant,
