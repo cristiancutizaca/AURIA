@@ -18,12 +18,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.Category
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.MusicNote
@@ -181,6 +184,21 @@ internal fun LazyListScope.localLibrarySection(
     }
     when (tab) {
         LocalLibraryTab.Songs -> {
+            if (query.isBlank() && effectiveQualityFilter == LocalLibraryQualityFilter.All && library.catalog.albums.isNotEmpty()) {
+                item(key = "local-album-featured", contentType = "local-featured") {
+                    LocalAlbumSpotlight(
+                        albums = library.catalog.albums,
+                        onOpenAll = { onTab(LocalLibraryTab.Albums) },
+                        onOpenAlbum = { album ->
+                            onExpandGroup(album.key)
+                            onTab(LocalLibraryTab.Albums)
+                        },
+                        onPlayAlbum = { album ->
+                            album.tracks.firstOrNull()?.let { callbacks.onPlay(album.tracks, it) }
+                        }
+                    )
+                }
+            }
             val songs = library.catalog.songs
                 .filterLocalTracks(query, library.catalog.mediaByUri)
                 .filterByLocalQuality(effectiveQualityFilter, library.catalog.mediaByUri, nowMs)
@@ -348,6 +366,108 @@ private fun LazyListScope.localTrackItems(
                 ?.takeIf { it.isSafeTagEditorFormat() }
                 ?.let { { callbacks.onEditTags(track) } }
         )
+    }
+}
+
+@Composable
+private fun LocalAlbumSpotlight(
+    albums: List<LocalAlbumGroup>,
+    onOpenAll: () -> Unit,
+    onOpenAlbum: (LocalAlbumGroup) -> Unit,
+    onPlayAlbum: (LocalAlbumGroup) -> Unit
+) {
+    val strings = LocalLevyraStrings.current
+    val colors = MaterialTheme.colorScheme
+    val featured = remember(albums) {
+        albums.asSequence()
+            .filter { it.tracks.isNotEmpty() }
+            .sortedByDescending { it.tracks.size }
+            .take(8)
+            .toList()
+    }
+    if (featured.isEmpty()) return
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                strings.albumsPlain,
+                color = colors.onSurface,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            OutlinedButton(onClick = onOpenAll, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(strings.open, maxLines = 1)
+            }
+        }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(featured, key = { it.key }) { album ->
+                Surface(
+                    onClick = { onOpenAlbum(album) },
+                    shape = RoundedCornerShape(20.dp),
+                    color = colors.surfaceContainerLow,
+                    modifier = Modifier.width(164.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        if (album.artworkModel.isNotBlank()) {
+                            LibraryArtwork(
+                                url = album.artworkModel,
+                                title = album.title,
+                                modifier = Modifier.fillMaxWidth().height(164.dp),
+                                shape = RoundedCornerShape(20.dp),
+                                selected = false
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().height(164.dp)
+                                    .background(colors.secondaryContainer, RoundedCornerShape(20.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Album,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(44.dp),
+                                    tint = colors.onSecondaryContainer
+                                )
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 4.dp, bottom = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    album.title.ifBlank { strings.localUnknownAlbum },
+                                    color = colors.onSurface,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    album.artist.ifBlank { strings.localUnknownArtist },
+                                    color = colors.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            IconButton(
+                                onClick = { onPlayAlbum(album) },
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Icon(
+                                    Icons.Rounded.PlayArrow,
+                                    contentDescription = strings.playAll,
+                                    tint = colors.primary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
