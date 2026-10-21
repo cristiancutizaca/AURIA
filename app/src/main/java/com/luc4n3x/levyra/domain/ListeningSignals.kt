@@ -147,7 +147,7 @@ object ListeningSignalEngine {
     const val SKIP_RATIO = 0.5
 
     private val separatorPattern = Regex(
-        """\s*(?:feat\.?|featuring|ft\.?|&|,|;|\+|/|\bx\b|\bvs\.?\b)\s*""",
+        """\s*(?:\b(?:feat|featuring|ft|vs)\b\.?|[&,;+/]|\bx\b)\s*""",
         RegexOption.IGNORE_CASE
     )
 
