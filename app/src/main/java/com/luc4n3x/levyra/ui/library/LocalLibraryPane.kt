@@ -214,107 +214,139 @@ internal fun LazyListScope.localLibrarySection(
                 callbacks = callbacks
             )
         }
-        LocalLibraryTab.Albums -> items(
-            library.catalog.albums
+        LocalLibraryTab.Albums -> {
+            val albums = library.catalog.albums
                 .filterLocalAlbums(query, library.catalog.mediaByUri)
-                .mapNotNull { it.filteredByLocalQuality(effectiveQualityFilter, library.catalog.mediaByUri, nowMs) },
-            key = { "local-album-${it.key}" },
-            contentType = { "local-group" }
-        ) { album ->
-            LocalGroupBlock(
-                title = album.title.ifBlank { LocalLevyraStrings.current.localUnknownAlbum },
-                subtitle = localGroupSubtitle(album.artist, album.tracks.size, album.year),
-                artworkModel = album.artworkModel,
-                icon = Icons.Rounded.Album,
-                expanded = expandedGroupKey == album.key,
-                onToggle = { onExpandGroup(if (expandedGroupKey == album.key) null else album.key) },
-                onPlay = { album.tracks.firstOrNull()?.let { callbacks.onPlay(album.tracks, it) } },
-                tracks = album.tracks,
-                currentTrack = currentTrack,
-                isPlaying = isPlaying,
-                favoriteIds = favoriteIds,
-                unavailableUris = unavailableUris,
-                mediaByUri = library.catalog.mediaByUri,
-                callbacks = callbacks
-            )
+                .mapNotNull { it.filteredByLocalQuality(effectiveQualityFilter, library.catalog.mediaByUri, nowMs) }
+            albums.forEach { album ->
+                item(key = "local-album-${album.key}", contentType = "local-group") {
+                    LocalGroupBlock(
+                        title = album.title.ifBlank { LocalLevyraStrings.current.localUnknownAlbum },
+                        subtitle = localGroupSubtitle(album.artist, album.tracks.size, album.year),
+                        artworkModel = album.artworkModel,
+                        icon = Icons.Rounded.Album,
+                        expanded = expandedGroupKey == album.key,
+                        onToggle = { onExpandGroup(if (expandedGroupKey == album.key) null else album.key) },
+                        onPlay = { album.tracks.firstOrNull()?.let { callbacks.onPlay(album.tracks, it) } }
+                    )
+                }
+                if (expandedGroupKey == album.key) {
+                    localTrackItems(
+                        keyPrefix = "local-album-expanded-${album.key}",
+                        tracks = album.tracks,
+                        context = album.tracks,
+                        currentTrack = currentTrack,
+                        isPlaying = isPlaying,
+                        favoriteIds = favoriteIds,
+                        unavailableUris = unavailableUris,
+                        mediaByUri = library.catalog.mediaByUri,
+                        callbacks = callbacks,
+                        indented = true
+                    )
+                }
+            }
         }
-        LocalLibraryTab.Artists -> items(
-            library.catalog.artists
+        LocalLibraryTab.Artists -> {
+            val artists = library.catalog.artists
                 .filterLocalArtists(query, library.catalog.mediaByUri)
-                .mapNotNull { it.filteredByLocalQuality(effectiveQualityFilter, library.catalog.mediaByUri, nowMs) },
-            key = { "local-artist-${it.key}" },
-            contentType = { "local-group" }
-        ) { artist ->
-            val strings = LocalLevyraStrings.current
-            LocalGroupBlock(
-                title = artist.name.ifBlank { strings.localUnknownArtist },
-                subtitle = localGroupSubtitle(
-                    "${artist.albumCount} ${strings.albumsPlain}",
-                    artist.tracks.size,
-                    ""
-                ),
-                artworkModel = artist.artworkModel,
-                icon = Icons.Rounded.Person,
-                expanded = expandedGroupKey == artist.key,
-                onToggle = { onExpandGroup(if (expandedGroupKey == artist.key) null else artist.key) },
-                onPlay = { artist.tracks.firstOrNull()?.let { callbacks.onPlay(artist.tracks, it) } },
-                tracks = artist.tracks,
-                currentTrack = currentTrack,
-                isPlaying = isPlaying,
-                favoriteIds = favoriteIds,
-                unavailableUris = unavailableUris,
-                mediaByUri = library.catalog.mediaByUri,
-                callbacks = callbacks
-            )
+                .mapNotNull { it.filteredByLocalQuality(effectiveQualityFilter, library.catalog.mediaByUri, nowMs) }
+            artists.forEach { artist ->
+                item(key = "local-artist-${artist.key}", contentType = "local-group") {
+                    val strings = LocalLevyraStrings.current
+                    LocalGroupBlock(
+                        title = artist.name.ifBlank { strings.localUnknownArtist },
+                        subtitle = localGroupSubtitle(
+                            "${artist.albumCount} ${strings.albumsPlain}",
+                            artist.tracks.size,
+                            ""
+                        ),
+                        artworkModel = artist.artworkModel,
+                        icon = Icons.Rounded.Person,
+                        expanded = expandedGroupKey == artist.key,
+                        onToggle = { onExpandGroup(if (expandedGroupKey == artist.key) null else artist.key) },
+                        onPlay = { artist.tracks.firstOrNull()?.let { callbacks.onPlay(artist.tracks, it) } }
+                    )
+                }
+                if (expandedGroupKey == artist.key) {
+                    localTrackItems(
+                        keyPrefix = "local-artist-expanded-${artist.key}",
+                        tracks = artist.tracks,
+                        context = artist.tracks,
+                        currentTrack = currentTrack,
+                        isPlaying = isPlaying,
+                        favoriteIds = favoriteIds,
+                        unavailableUris = unavailableUris,
+                        mediaByUri = library.catalog.mediaByUri,
+                        callbacks = callbacks,
+                        indented = true
+                    )
+                }
+            }
         }
-        LocalLibraryTab.Genres -> items(
-            library.catalog.genres
+        LocalLibraryTab.Genres -> {
+            val genres = library.catalog.genres
                 .filterLocalGenres(query, library.catalog.mediaByUri)
-                .mapNotNull { it.filteredByLocalQuality(effectiveQualityFilter, library.catalog.mediaByUri, nowMs) },
-            key = { "local-genre-${it.key}" },
-            contentType = { "local-group" }
-        ) { genre ->
-            LocalGroupBlock(
-                title = genre.name,
-                subtitle = LocalLevyraStrings.current.formatTrackCount(genre.tracks.size),
-                artworkModel = genre.artworkModel,
-                icon = Icons.Rounded.Category,
-                expanded = expandedGroupKey == genre.key,
-                onToggle = { onExpandGroup(if (expandedGroupKey == genre.key) null else genre.key) },
-                onPlay = { genre.tracks.firstOrNull()?.let { callbacks.onPlay(genre.tracks, it) } },
-                tracks = genre.tracks,
-                currentTrack = currentTrack,
-                isPlaying = isPlaying,
-                favoriteIds = favoriteIds,
-                unavailableUris = unavailableUris,
-                mediaByUri = library.catalog.mediaByUri,
-                callbacks = callbacks
-            )
+                .mapNotNull { it.filteredByLocalQuality(effectiveQualityFilter, library.catalog.mediaByUri, nowMs) }
+            genres.forEach { genre ->
+                item(key = "local-genre-${genre.key}", contentType = "local-group") {
+                    LocalGroupBlock(
+                        title = genre.name,
+                        subtitle = LocalLevyraStrings.current.formatTrackCount(genre.tracks.size),
+                        artworkModel = genre.artworkModel,
+                        icon = Icons.Rounded.Category,
+                        expanded = expandedGroupKey == genre.key,
+                        onToggle = { onExpandGroup(if (expandedGroupKey == genre.key) null else genre.key) },
+                        onPlay = { genre.tracks.firstOrNull()?.let { callbacks.onPlay(genre.tracks, it) } }
+                    )
+                }
+                if (expandedGroupKey == genre.key) {
+                    localTrackItems(
+                        keyPrefix = "local-genre-expanded-${genre.key}",
+                        tracks = genre.tracks,
+                        context = genre.tracks,
+                        currentTrack = currentTrack,
+                        isPlaying = isPlaying,
+                        favoriteIds = favoriteIds,
+                        unavailableUris = unavailableUris,
+                        mediaByUri = library.catalog.mediaByUri,
+                        callbacks = callbacks,
+                        indented = true
+                    )
+                }
+            }
         }
-        LocalLibraryTab.Folders -> items(
-            library.catalog.folders
+        LocalLibraryTab.Folders -> {
+            val folders = library.catalog.folders
                 .filterLocalFolders(query, library.catalog.mediaByUri)
-                .mapNotNull { it.filteredByLocalQuality(effectiveQualityFilter, library.catalog.mediaByUri, nowMs) },
-            key = { "local-folder-${it.key}" },
-            contentType = { "local-group" }
-        ) { folder ->
-            LocalGroupBlock(
-                title = folder.name.ifBlank { folder.volumeName },
-                subtitle = localGroupSubtitle(folder.path, folder.tracks.size, ""),
-                artworkModel = folder.tracks.firstOrNull()?.thumbnailUrl.orEmpty(),
-                icon = Icons.Rounded.Folder,
-                expanded = expandedGroupKey == folder.key,
-                onToggle = { onExpandGroup(if (expandedGroupKey == folder.key) null else folder.key) },
-                onPlay = { folder.tracks.firstOrNull()?.let { callbacks.onPlay(folder.tracks, it) } },
-                tracks = folder.tracks,
-                currentTrack = currentTrack,
-                isPlaying = isPlaying,
-                favoriteIds = favoriteIds,
-                unavailableUris = unavailableUris,
-                mediaByUri = library.catalog.mediaByUri,
-                callbacks = callbacks,
-                onHide = { callbacks.onToggleFolderHidden(folder.key, true) }
-            )
+                .mapNotNull { it.filteredByLocalQuality(effectiveQualityFilter, library.catalog.mediaByUri, nowMs) }
+            folders.forEach { folder ->
+                item(key = "local-folder-${folder.key}", contentType = "local-group") {
+                    LocalGroupBlock(
+                        title = folder.name.ifBlank { folder.volumeName },
+                        subtitle = localGroupSubtitle(folder.path, folder.tracks.size, ""),
+                        artworkModel = folder.tracks.firstOrNull()?.thumbnailUrl.orEmpty(),
+                        icon = Icons.Rounded.Folder,
+                        expanded = expandedGroupKey == folder.key,
+                        onToggle = { onExpandGroup(if (expandedGroupKey == folder.key) null else folder.key) },
+                        onPlay = { folder.tracks.firstOrNull()?.let { callbacks.onPlay(folder.tracks, it) } },
+                        onHide = { callbacks.onToggleFolderHidden(folder.key, true) }
+                    )
+                }
+                if (expandedGroupKey == folder.key) {
+                    localTrackItems(
+                        keyPrefix = "local-folder-expanded-${folder.key}",
+                        tracks = folder.tracks,
+                        context = folder.tracks,
+                        currentTrack = currentTrack,
+                        isPlaying = isPlaying,
+                        favoriteIds = favoriteIds,
+                        unavailableUris = unavailableUris,
+                        mediaByUri = library.catalog.mediaByUri,
+                        callbacks = callbacks,
+                        indented = true
+                    )
+                }
+            }
         }
     }
     if (library.catalog.hiddenDuplicateCount > 0) {
@@ -339,7 +371,8 @@ private fun LazyListScope.localTrackItems(
     favoriteIds: Set<String>,
     unavailableUris: Set<String>,
     mediaByUri: Map<String, LocalMediaEntity>,
-    callbacks: LocalLibraryCallbacks
+    callbacks: LocalLibraryCallbacks,
+    indented: Boolean = false
 ) {
     items(tracks, key = { "$keyPrefix-${it.streamUrl}" }, contentType = { "local-track" }) { track ->
         LibraryTrackRow(
@@ -364,7 +397,8 @@ private fun LazyListScope.localTrackItems(
             onAddToPlaylist = { callbacks.onAddToPlaylist(track) },
             onEditTags = mediaByUri[track.streamUrl]
                 ?.takeIf { it.isSafeTagEditorFormat() }
-                ?.let { { callbacks.onEditTags(track) } }
+                ?.let { { callbacks.onEditTags(track) } },
+            modifier = if (indented) Modifier.padding(start = 16.dp) else Modifier
         )
     }
 }
@@ -1009,118 +1043,71 @@ private fun LocalGroupBlock(
     expanded: Boolean,
     onToggle: () -> Unit,
     onPlay: () -> Unit,
-    tracks: List<Track>,
-    currentTrack: Track?,
-    isPlaying: Boolean,
-    favoriteIds: Set<String>,
-    unavailableUris: Set<String>,
-    mediaByUri: Map<String, LocalMediaEntity>,
-    callbacks: LocalLibraryCallbacks,
     onHide: (() -> Unit)? = null
 ) {
     val strings = LocalLevyraStrings.current
     val colors = MaterialTheme.colorScheme
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Surface(
-            color = if (expanded) colors.secondaryContainer else colors.surfaceContainerLow,
-            shape = RoundedCornerShape(18.dp),
-            modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle)
+    Surface(
+        color = if (expanded) colors.secondaryContainer else colors.surfaceContainerLow,
+        shape = RoundedCornerShape(18.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                if (artworkModel.isNotBlank()) {
-                    LibraryArtwork(
-                        url = artworkModel,
-                        title = title,
-                        modifier = Modifier.size(56.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        selected = false
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .background(colors.surfaceContainerHigh, RoundedCornerShape(14.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(icon, contentDescription = null, tint = colors.onSurfaceVariant, modifier = Modifier.size(24.dp))
-                    }
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = title,
-                        color = colors.onSurface,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = subtitle,
-                        color = colors.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                if (onHide != null) {
-                    IconButton(onClick = onHide, modifier = Modifier.size(48.dp)) {
-                        Icon(
-                            Icons.Rounded.VisibilityOff,
-                            strings.localHideFolder,
-                            tint = LevyraMuted,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-                LevyraPlayAllIconButton(onClick = onPlay, size = 48.dp)
-                Icon(
-                    imageVector = if (expanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = colors.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp)
+            if (artworkModel.isNotBlank()) {
+                LibraryArtwork(
+                    url = artworkModel,
+                    title = title,
+                    modifier = Modifier.size(56.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    selected = false
                 )
-            }
-        }
-        if (expanded) {
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth().heightIn(max = 440.dp)
-            ) {
-                items(
-                    tracks,
-                    key = { "expanded-local-${it.streamUrl}" },
-                    contentType = { "local-track" }
-                ) { track ->
-                LibraryTrackRow(
-                    track = track,
-                    selected = false,
-                    selectionActive = false,
-                    isCurrent = currentTrack?.streamUrl == track.streamUrl,
-                    isPlaying = isPlaying && currentTrack?.streamUrl == track.streamUrl,
-                    isFavorite = track.id in favoriteIds,
-                    isDownloaded = true,
-                    downloadProgress = null,
-                    metadata = if (track.streamUrl in unavailableUris) {
-                        strings.localFileUnavailable
-                    } else {
-                        mediaByUri[track.streamUrl]?.localAudioSummary()
-                    },
-                    onClick = { callbacks.onPlay(tracks, track) },
-                    onLongClick = { callbacks.onAddToQueue(listOf(track)) },
-                    onFavorite = { callbacks.onToggleFavorite(track) },
-                    onDownload = {},
-                    onQueue = { callbacks.onAddToQueue(listOf(track)) },
-                    onAddToPlaylist = { callbacks.onAddToPlaylist(track) },
-                    onEditTags = mediaByUri[track.streamUrl]
-                        ?.takeIf { it.isSafeTagEditorFormat() }
-                        ?.let { { callbacks.onEditTags(track) } },
-                    modifier = Modifier.padding(start = 16.dp)
-                )
+            } else {
+                Box(
+                    modifier = Modifier.size(56.dp)
+                        .background(colors.surfaceContainerHigh, RoundedCornerShape(14.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(icon, contentDescription = null, tint = colors.onSurfaceVariant, modifier = Modifier.size(24.dp))
                 }
             }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    color = colors.onSurface,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = subtitle,
+                    color = colors.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            if (onHide != null) {
+                IconButton(onClick = onHide, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        Icons.Rounded.VisibilityOff,
+                        strings.localHideFolder,
+                        tint = colors.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+            LevyraPlayAllIconButton(onClick = onPlay, size = 48.dp)
+            Icon(
+                imageVector = if (expanded) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
+                contentDescription = null,
+                tint = colors.onSurfaceVariant,
+                modifier = Modifier.size(22.dp)
+            )
         }
     }
 }
