@@ -8,9 +8,10 @@ import org.junit.Test
 
 class CrossfadePlannerTest {
 
-    private fun track(album: String = "", durationMs: Long = 240_000L) = Track(
+    private fun track(album: String = "", durationMs: Long = 240_000L, artist: String = "Artist") = Track(
         id = album + durationMs,
         title = "Title",
+        artist = artist,
         album = album,
         videoUrl = "https://example.org",
         durationMs = durationMs
@@ -62,6 +63,31 @@ class CrossfadePlannerTest {
             6_000L,
             CrossfadePlanner.transitionDurationMs(6_000, false, current, next, 240_000L)
         )
+    }
+
+    @Test
+    fun identicalAlbumTitlesFromDifferentArtistsMustStillMix() {
+        val previous = track(album = "Greatest Hits", artist = "First Artist")
+        val next = track(album = "greatest hits", artist = "Second Artist")
+
+        assertFalse(CrossfadePlanner.sharesAlbum(previous, next))
+        assertEquals(27_000L, CrossfadePlanner.transitionDurationMs(27_000, true, previous, next, 240_000L))
+    }
+
+    @Test
+    fun albumWithoutBothArtistNamesCannotSafelyDisableAutomix() {
+        val unknown = track(album = "Greatest Hits", artist = "")
+        val known = track(album = "Greatest Hits", artist = "Known Artist")
+        assertFalse(CrossfadePlanner.sharesAlbum(unknown, known))
+        assertFalse(CrossfadePlanner.sharesAlbum(known, unknown))
+    }
+
+    @Test
+    fun sameArtistAndAlbumIgnoreWhitespaceAndCase() {
+        val previous = track(album = "  Album Name ", artist = " ARTIST ")
+        val next = track(album = "album name", artist = "artist")
+        assertTrue(CrossfadePlanner.sharesAlbum(previous, next))
+        assertEquals(0L, CrossfadePlanner.transitionDurationMs(27_000, true, previous, next, 240_000L))
     }
 
     @Test
