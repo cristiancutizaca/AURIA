@@ -809,6 +809,10 @@ internal fun LevyraLibraryScreen(
                             onPlayAll = {
                                 val songs = state.localLibrary.catalog.songs
                                 songs.firstOrNull()?.let { viewModel.playLocalTracks(songs, it) }
+                            },
+                            onShuffleAll = {
+                                val songs = state.localLibrary.catalog.songs.shuffled()
+                                songs.firstOrNull()?.let { viewModel.playLocalTracks(songs, it) }
                             }
                         )
                     }
