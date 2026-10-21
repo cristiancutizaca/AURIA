@@ -50,6 +50,7 @@ internal fun planAutoMix(
         .coerceIn(MIN_TRANSITION_MS, if (automaticDjMix) MAX_DJ_TRANSITION_MS else MAX_TRANSITION_MS)
         .coerceAtMost(current.durationMs / 4L)
         .let { if (next.durationMs > 0L) it.coerceAtMost(next.durationMs / 2L) else it }
+    if (transition < MIN_TRANSITION_MS) return null
     return AutoMixPlan(
         transitionMs = transition,
         preloadLeadMs = (transition + PRELOAD_MARGIN_MS).coerceAtMost(
