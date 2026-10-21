@@ -34,6 +34,18 @@ class AutoMixPlannerTest {
     }
 
     @Test
+    fun tooShortIncomingTracksCannotCreateAnInvalidSecondPlayerTransition() {
+        assertNull(planAutoMix(
+            track(), track("short").copy(durationMs = 1_200L),
+            crossfade, RepeatMode.Off, videoMode = false, lowRam = false
+        ))
+        assertEquals(800L, planAutoMix(
+            track(), track("boundary").copy(durationMs = 1_600L),
+            crossfade, RepeatMode.Off, videoMode = false, lowRam = false
+        )?.transitionMs)
+    }
+
+    @Test
     fun djAutomaticallyMixesWithoutManualCrossfadeSetting() {
         val plan = planAutoMix(
             track("old").copy(energy = 0, vocal = 0),
