@@ -805,6 +805,8 @@ internal fun LevyraLibraryScreen(
                         LocalMusicQuickAccessCard(
                             songCount = state.localLibrary.catalog.totalCount,
                             hasPermission = state.localLibrary.permissionGranted,
+                            artworkModel = state.localLibrary.catalog.albums
+                                .firstOrNull { it.artworkModel.isNotBlank() }?.artworkModel.orEmpty(),
                             onOpen = { switchCategory(LibraryCategory.Device) },
                             onPlayAll = {
                                 val songs = state.localLibrary.catalog.songs
