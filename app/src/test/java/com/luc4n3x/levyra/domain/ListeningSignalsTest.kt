@@ -111,6 +111,16 @@ class ListeningSignalsTest {
     }
 
     @Test
+    fun `artist names containing ft letters are not split mid word`() {
+        assertEquals(listOf("Daft Punk"), ListeningSignalEngine.splitArtists("Daft Punk"))
+        assertEquals(listOf("Leftfield"), ListeningSignalEngine.splitArtists("Leftfield"))
+        assertEquals(
+            listOf("Daft Punk", "Pharrell Williams"),
+            ListeningSignalEngine.splitArtists("Daft Punk feat. Pharrell Williams")
+        )
+    }
+
+    @Test
     fun `artist affinity is credited to every collaborator`() {
         val events = listOf(event("duet", "Alpha feat. Beta", 200_000L, completed = true))
         val profile = ListeningSignalEngine.build(events, nowMs = now)
