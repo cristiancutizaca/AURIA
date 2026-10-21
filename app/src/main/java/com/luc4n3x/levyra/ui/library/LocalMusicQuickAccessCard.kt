@@ -33,28 +33,40 @@ import com.luc4n3x.levyra.ui.i18n.LocalLevyraStrings
 internal fun LocalMusicQuickAccessCard(
     songCount: Int,
     hasPermission: Boolean,
+    artworkModel: String,
     onOpen: () -> Unit,
     onPlayAll: () -> Unit,
     onShuffleAll: () -> Unit
 ) {
     val strings = LocalLevyraStrings.current
+    val colors = MaterialTheme.colorScheme
     Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = colors.surfaceContainer,
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Rounded.LibraryMusic,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(14.dp))
-                        .padding(10.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
+                if (artworkModel.isNotBlank() && hasPermission) {
+                    LibraryArtwork(
+                        url = artworkModel,
+                        title = strings.localOnDevice,
+                        modifier = Modifier.size(76.dp),
+                        shape = RoundedCornerShape(18.dp),
+                        selected = false
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Rounded.LibraryMusic,
+                        contentDescription = null,
+                        tint = colors.onPrimaryContainer,
+                        modifier = Modifier
+                            .size(76.dp)
+                            .background(colors.primaryContainer, RoundedCornerShape(18.dp))
+                            .padding(19.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(14.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = strings.localOnDevice,
