@@ -2,6 +2,7 @@ package com.luc4n3x.levyra.ui.player
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -47,9 +48,19 @@ internal fun AuriaDjArtworkTransition(
         modifier = modifier
     ) { mix ->
         if (mix != null) {
-            val reveal = remember(mix.sourceId, mix.targetId) { Animatable(0f) }
-            LaunchedEffect(mix.sourceId, mix.targetId, animated) {
-                if (animated) reveal.animateTo(1f, tween(500)) else reveal.snapTo(1f)
+            val reveal = remember(mix.sourceId, mix.targetId, mix.durationMs) { Animatable(0f) }
+            LaunchedEffect(mix.sourceId, mix.targetId, mix.durationMs, animated) {
+                if (animated) {
+                    reveal.animateTo(
+                        1f,
+                        tween(
+                            durationMillis = mix.durationMs.coerceIn(800L, 30_000L).toInt(),
+                            easing = LinearEasing
+                        )
+                    )
+                } else {
+                    reveal.snapTo(1f)
+                }
             }
             val primary = MaterialTheme.colorScheme.primary
             val secondary = MaterialTheme.colorScheme.tertiary
@@ -88,18 +99,31 @@ internal fun AuriaDjArtworkTransition(
                     ) {
                         MixArtwork(
                             url = mix.sourceArtwork,
-                            alpha = 1f - reveal.value * 0.10f,
+                            alpha = 1f - reveal.value * 0.50f,
                             translationFraction = 1f - reveal.value,
                             modifier = Modifier.weight(1f)
                         )
                         MixArtwork(
                             url = mix.targetArtwork,
-                            alpha = reveal.value,
+                            alpha = 0.50f + reveal.value * 0.50f,
                             translationFraction = reveal.value - 1f,
                             modifier = Modifier.weight(1f)
                         )
                     }
                     Spacer(Modifier.height(12.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .background(Color.White.copy(alpha = 0.12f), RoundedCornerShape(2.dp))
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(reveal.value)
+                                .height(3.dp)
+                                .background(primary, RoundedCornerShape(2.dp))
+                        )
+                    }
+                    Spacer(Modifier.height(8.dp))
                     Text(
                         text = mix.targetTitle,
                         color = Color.White,
