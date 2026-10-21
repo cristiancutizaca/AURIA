@@ -694,14 +694,18 @@ private val LOCAL_LOSSLESS_EXTENSIONS = setOf("flac", "alac", "wav", "wave", "ai
 
 internal fun localLibraryLeadingItemCount(
     library: LocalLibraryUiState,
-    nowMs: Long
+    nowMs: Long,
+    tab: LocalLibraryTab = LocalLibraryTab.Songs,
+    query: String = "",
+    qualityFilter: LocalLibraryQualityFilter = LocalLibraryQualityFilter.All
 ): Int {
     if (!library.permissionGranted || library.catalog.totalCount == 0) return 0
-    val qualityFilterCount = localLibraryQualityFilters(
-        library.catalog.mediaByUri.values,
-        nowMs
-    ).size
-    return 2 + if (qualityFilterCount > 1) 1 else 0
+    val available = localLibraryQualityFilters(library.catalog.mediaByUri.values, nowMs)
+    val showsFeaturedAlbums = tab == LocalLibraryTab.Songs &&
+        query.isBlank() &&
+        (qualityFilter == LocalLibraryQualityFilter.All || qualityFilter !in available) &&
+        library.catalog.albums.isNotEmpty()
+    return 2 + (if (available.size > 1) 1 else 0) + (if (showsFeaturedAlbums) 1 else 0)
 }
 
 internal fun localLibraryAlphabetIndex(
