@@ -2006,7 +2006,7 @@ class PlaybackService : MediaLibraryService() {
             secondary.play()
             fadePlayers(
                 primary, secondary, actualTransitionMs,
-                djOverlay = djEnabled && actualTransitionMs >= 15_000L,
+                djOverlay = djEnabled && actualTransitionMs >= 3_000L,
                 overlappingVocals = current.vocal >= 70 && next.vocal >= 70
             ) {
                 transitionStillValid(snapshot.generation, currentIdentity, targetIdentity, primary) &&
@@ -2342,7 +2342,7 @@ class PlaybackService : MediaLibraryService() {
         overlappingVocals: Boolean = false,
         isValid: () -> Boolean = { true }
     ) {
-        val steps = (durationMs / TRANSITION_STEP_MS).toInt().coerceIn(8, 120)
+        val steps = (durationMs / TRANSITION_STEP_MS).toInt().coerceIn(8, 400)
         val mediaStepMs = (durationMs / steps).coerceAtLeast(10L)
         repeat(steps + 1) { step ->
             if ((!outgoing.playWhenReady || !incoming.playWhenReady || !isValid()) && step < steps) {
