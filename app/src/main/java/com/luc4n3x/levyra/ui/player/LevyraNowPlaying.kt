@@ -82,6 +82,7 @@ import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -1104,6 +1105,33 @@ fun LevyraNowPlaying(
                 transportBlock()
             }
             if (!activeTrack.isLiveRadio()) {
+                if (!compactPlayer && !state.isVideoMode) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip(
+                            selected = state.radioEnabled,
+                            onClick = { viewModel.setAuriaDjEnabled(!state.radioEnabled) },
+                            label = { Text("AURIA DJ", fontWeight = FontWeight.SemiBold) },
+                            leadingIcon = {
+                                Icon(Icons.Rounded.Radio, contentDescription = null, modifier = Modifier.size(18.dp))
+                            }
+                        )
+                        Text(
+                            text = if (state.radioEnabled && state.audioSettings.djSoftMode) {
+                                "AutoMix"
+                            } else {
+                                strings.continuousRadioSubtitle
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(if (compactPlayer) LevyraPlayerDesign.SpaceMd else LevyraPlayerDesign.SpaceLg + LevyraPlayerDesign.SpaceXs))
                 dockBlock(activeTrack)
             }
