@@ -965,7 +965,7 @@ private fun LocalLibraryActions(
                 )
                 if (djEnabled && djMixEnabled) {
                     Text(
-                        "AutoMix · 27s",
+                        "AutoMix",
                         color = colors.onSurfaceVariant,
                         style = MaterialTheme.typography.labelMedium
                     )
