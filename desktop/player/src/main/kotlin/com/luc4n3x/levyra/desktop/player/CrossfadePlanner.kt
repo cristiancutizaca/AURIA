@@ -24,8 +24,11 @@ object CrossfadePlanner {
     fun sharesAlbum(current: Track, next: Track): Boolean {
         val currentAlbum = current.album.trim()
         val nextAlbum = next.album.trim()
-        if (currentAlbum.isEmpty() || nextAlbum.isEmpty()) return false
-        return currentAlbum.equals(nextAlbum, ignoreCase = true)
+        val currentArtist = current.artist.trim()
+        val nextArtist = next.artist.trim()
+        if (currentAlbum.isEmpty() || nextAlbum.isEmpty() || currentArtist.isEmpty() || nextArtist.isEmpty()) return false
+        return currentAlbum.equals(nextAlbum, ignoreCase = true) &&
+            currentArtist.equals(nextArtist, ignoreCase = true)
     }
 
     fun requestedDjCrossfadeMs(
