@@ -184,6 +184,7 @@ import com.luc4n3x.levyra.domain.LevyraPersonalOrbit
 import com.luc4n3x.levyra.domain.ListenPlayPolicy
 import com.luc4n3x.levyra.domain.ListeningSignalProfile
 import com.luc4n3x.levyra.domain.ListeningSignalRanker
+import com.luc4n3x.levyra.domain.AuriaDjDiscoveryQueries
 import com.luc4n3x.levyra.domain.RadioMixer
 import com.luc4n3x.levyra.domain.SmartOrbitEngine
 import com.luc4n3x.levyra.domain.SmartOrbitPool
@@ -6932,20 +6933,25 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         refreshQueuePrefetch()
     }
 
-    fun toggleContinuousRadio() {
+    fun setAuriaDjEnabled(enabled: Boolean) {
         if (_state.value.currentTrack?.isLiveRadio() == true) return
-        val enabled = !queueEngine.state.value.radioEnabled
+        if (jamController.rejectGuestLocalMutation()) return
         auriaDjManuallyDisabled = !enabled
         auriaDjPreferences.edit().putBoolean("explicitly_disabled", !enabled).apply()
-        queueEngine.setRadioEnabled(enabled)
+        if (_state.value.audioSettings.djSoftMode != enabled) setDjSoftMode(enabled)
+        if (queueEngine.state.value.radioEnabled != enabled) queueEngine.setRadioEnabled(enabled)
+        radioJob?.cancel()
+        radioEndContinuationJob?.cancel()
         if (enabled) {
-            radioJob?.cancel()
             beginRadioSession()
             ensureRadioTail(force = true)
         } else {
-            radioJob?.cancel()
             radioSession.set(null)
         }
+    }
+
+    fun toggleContinuousRadio() {
+        setAuriaDjEnabled(!queueEngine.state.value.radioEnabled)
     }
 
     fun startSongRadio() {
@@ -6954,6 +6960,7 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         auriaDjManuallyDisabled = false
         auriaDjPreferences.edit().putBoolean("explicitly_disabled", false).apply()
         if (!queueEngine.state.value.radioEnabled) queueEngine.setRadioEnabled(true)
+        if (!_state.value.audioSettings.djSoftMode) setDjSoftMode(true)
         radioJob?.cancel()
         beginRadioSession()
         ensureRadioTail(force = true, insertAfterCurrent = true)
@@ -11089,7 +11096,14 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
         leaveLiveRadioQueue()
         _state.update { it.copy(isVideoMode = false) }
         loopCurrentQueueOnCompletion = false
-        queueEngine.replace(listOf(track), 0, keepPlaybackModes = true, radioEnabled = false)
+        val useDj = auriaDjForPlayback(
+            manuallyDisabled = auriaDjManuallyDisabled,
+            loopingPlaylist = false,
+            videoMode = false,
+            liveRadio = false
+        )
+        queueEngine.replace(listOf(track), 0, keepPlaybackModes = true, radioEnabled = useDj)
+        if (useDj) beginRadioSession()
         queueIndex = 0
         startResolve(track)
     }
@@ -12545,27 +12559,60 @@ class LevyraViewModel(application: Application) : AndroidViewModel(application) 
 
     private suspend fun fetchRadioTracks(request: RadioTailRequest, fetchLimit: Int): List<Track> =
         try {
-            val playableSeed = if (isLocalPlaybackTrack(request.seed)) {
+            val localSeed = isLocalPlaybackTrack(request.seed)
+            val languageCode = _state.value.languageCode
+            val playableSeed = if (localSeed) {
                 withTimeoutOrNull(6_000L) {
-                    repository.searchSongMatch(
-                        request.seed.title,
-                        request.seed.artist,
-                        _state.value.languageCode
-                    )
+                    repository.searchSongMatch(request.seed.title, request.seed.artist, languageCode)
                 }
             } else {
                 request.seed
             }
-            if (playableSeed == null) {
-                emptyList()
+            val radioTracks = if (playableSeed != null) {
+                try {
+                    withTimeoutOrNull(12_000L) {
+                        repository.radio(
+                            seed = playableSeed,
+                            languageCode = languageCode,
+                            limit = fetchLimit,
+                            excludeIds = request.session?.addedIds.orEmpty(),
+                            diversify = true
+                        )
+                    }.orEmpty()
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    emptyList()
+                }
             } else {
-                repository.radio(
-                    seed = playableSeed,
-                    languageCode = _state.value.languageCode,
-                    limit = fetchLimit,
-                    excludeIds = request.session?.addedIds.orEmpty(),
-                    diversify = true
+                emptyList()
+            }
+            if (!localSeed || radioTracks.size >= RADIO_MIX_LIMIT) {
+                radioTracks
+            } else {
+                val current = _state.value
+                val queries = AuriaDjDiscoveryQueries.plan(
+                    seed = request.seed,
+                    localSongs = current.localLibrary.catalog.songs,
+                    recent = current.recentListens,
+                    favorites = current.favorites,
+                    limit = if (radioTracks.isEmpty()) 3 else 1
                 )
+                val discovered = ArrayList<Track>(RADIO_MIX_LIMIT)
+                for (query in queries) {
+                    val results = try {
+                        withTimeoutOrNull(6_000L) {
+                            repository.search(query, RADIO_MIX_LIMIT, languageCode)
+                        }.orEmpty()
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (_: Exception) {
+                        emptyList()
+                    }
+                    discovered += results.filter { it.videoUrl.isNotBlank() && it.id.isNotBlank() }
+                    if (radioTracks.size + discovered.size >= RADIO_MIX_LIMIT) break
+                }
+                (radioTracks + discovered).distinctBy(Track::id).take(maxOf(fetchLimit, RADIO_MIX_LIMIT))
             }
         } catch (cancelled: CancellationException) {
             throw cancelled
