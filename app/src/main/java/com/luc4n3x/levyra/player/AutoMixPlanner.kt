@@ -50,9 +50,8 @@ internal fun planAutoMix(
     if (transition < MIN_TRANSITION_MS) return null
     return AutoMixPlan(
         transitionMs = transition,
-        preloadLeadMs = (transition + PRELOAD_MARGIN_MS).coerceAtMost(
-            if (automaticDjMix) MAX_DJ_PRELOAD_LEAD_MS else MAX_PRELOAD_LEAD_MS
-        )
+        preloadLeadMs = (transition + if (automaticDjMix) DJ_PRELOAD_MARGIN_MS else PRELOAD_MARGIN_MS)
+            .coerceAtMost(if (automaticDjMix) MAX_DJ_PRELOAD_LEAD_MS else MAX_PRELOAD_LEAD_MS)
     )
 }
 
@@ -150,5 +149,6 @@ private const val MIN_TRANSITION_MS = 800L
 private const val MAX_TRANSITION_MS = 12_000L
 private const val MAX_DJ_TRANSITION_MS = 30_000L
 private const val PRELOAD_MARGIN_MS = 8_000L
+private const val DJ_PRELOAD_MARGIN_MS = 14_000L
 private const val MAX_PRELOAD_LEAD_MS = 20_000L
 private const val MAX_DJ_PRELOAD_LEAD_MS = 40_000L
