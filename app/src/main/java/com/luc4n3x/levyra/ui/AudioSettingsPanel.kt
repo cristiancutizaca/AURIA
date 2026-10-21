@@ -527,7 +527,7 @@ internal fun AudioSettingsPanel(
                     AudioToggleRow(
                         title = strings.djSoft,
                         subtitle = if (audioSettings.crossfadeSeconds == 0) {
-                            "${strings.crossfade} · DJ AutoMix 27s"
+                            "${strings.crossfade} · DJ AutoMix"
                         } else {
                             "${strings.crossfade} ${audioSettings.crossfadeSeconds}s"
                         },
@@ -1531,7 +1531,7 @@ private fun CrossfadeCurveLab(
     val outgoingColor = LevyraOrange
     val incomingColor = LevyraCyan
     val enabled = gaplessEnabled && (seconds > 0 || autoMixEnabled)
-    val displayedSeconds = if (autoMixEnabled && seconds == 0) 27 else seconds
+    val displayedSeconds = if (autoMixEnabled && seconds == 0) 12 else seconds
     val curveDescription = if (autoMixEnabled) "DJ AutoMix" else copy.equalPower
     val samples = remember(autoMixEnabled) {
         val outgoing = FloatArray(CROSSFADE_CURVE_SAMPLE_COUNT)
