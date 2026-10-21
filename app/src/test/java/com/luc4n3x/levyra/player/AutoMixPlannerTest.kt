@@ -57,8 +57,8 @@ class AutoMixPlannerTest {
             djEnabled = true
         )
         assertNotNull(plan)
-        assertEquals(27_000L, plan?.transitionMs)
-        assertEquals(35_000L, plan?.preloadLeadMs)
+        assertEquals(9_000L, plan?.transitionMs)
+        assertEquals(17_000L, plan?.preloadLeadMs)
         assertNull(
             planAutoMix(track(), track("next"), LevyraAudioSettings(),
                 RepeatMode.Off, videoMode = false, lowRam = false, djEnabled = false)
@@ -73,8 +73,8 @@ class AutoMixPlannerTest {
         val end = djOverlayCrossfade(1f)
         assertEquals(1f, start.outgoing, 0.001f)
         assertEquals(0f, start.incoming, 0.001f)
-        assertTrue(midpoint.outgoing > 0.75f)
-        assertTrue(midpoint.incoming > 0f)
+        assertEquals(0.5f, midpoint.outgoing, 0.001f)
+        assertEquals(0.5f, midpoint.incoming, 0.001f)
         assertTrue(late.incoming > midpoint.incoming)
         assertTrue(late.outgoing < midpoint.outgoing)
         assertEquals(0f, end.outgoing, 0.001f)
@@ -89,14 +89,14 @@ class AutoMixPlannerTest {
             LevyraAudioSettings(),
             RepeatMode.Off, videoMode = false, lowRam = false, djEnabled = true
         )
-        assertEquals(21_000L, energetic?.transitionMs)
+        assertEquals(9_000L, energetic?.transitionMs)
         val short = planAutoMix(
             track().copy(durationMs = 64_000L),
             track("next"),
             LevyraAudioSettings(),
             RepeatMode.Off, videoMode = false, lowRam = false, djEnabled = true
         )
-        assertEquals(16_000L, short?.transitionMs)
+        assertEquals(12_000L, short?.transitionMs)
     }
 
     @Test
@@ -106,8 +106,8 @@ class AutoMixPlannerTest {
             LevyraAudioSettings(crossfadeSeconds = 0, djSoftMode = true),
             RepeatMode.Off, videoMode = false, lowRam = false
         )
-        assertEquals(27_000L, plan?.transitionMs)
-        assertEquals(35_000L, plan?.preloadLeadMs)
+        assertEquals(12_000L, plan?.transitionMs)
+        assertEquals(20_000L, plan?.preloadLeadMs)
         assertNull(planAutoMix(
             track(), track("next"),
             LevyraAudioSettings(crossfadeSeconds = 0, djSoftMode = true, gaplessEnabled = false),
@@ -122,12 +122,50 @@ class AutoMixPlannerTest {
             LevyraAudioSettings(djSoftMode = true),
             RepeatMode.Off, videoMode = false, lowRam = false
         )
-        assertEquals(20_000L, plan?.transitionMs)
+        assertEquals(7_000L, plan?.transitionMs)
 
         val normal = djOverlayCrossfade(0.5f)
         val voices = djOverlayCrossfade(0.5f, overlappingVocals = true)
         assertTrue(voices.incoming < normal.incoming)
         assertTrue(voices.outgoing > normal.outgoing)
+    }
+
+    @Test
+    fun missingLocalAudioAnalysisIsNotMistakenForInstrumentalMusic() {
+        val unknown = track("local").copy(energy = 0, vocal = 0)
+        val known = track("stream").copy(energy = 60, vocal = 20)
+        assertEquals(9_000L, djBlendDurationMs(unknown, known))
+        assertEquals(9_000L, djBlendDurationMs(known, unknown))
+    }
+
+    @Test
+    fun instrumentalMetadataPermitsLongerMixesButVocalsDoNot() {
+        assertEquals(
+            20_000L,
+            djBlendDurationMs(
+                track("instrumental-a").copy(energy = 60, vocal = 10),
+                track("instrumental-b").copy(energy = 65, vocal = 15)
+            )
+        )
+        assertEquals(
+            12_000L,
+            djBlendDurationMs(
+                track("voices-a").copy(energy = 60, vocal = 55),
+                track("voices-b").copy(energy = 65, vocal = 55)
+            )
+        )
+    }
+
+    @Test
+    fun djEnvelopeHasNoLateJumpAndCrossesSmoothlyAtTheMiddle() {
+        val middle = djOverlayCrossfade(0.5f)
+        val left = djOverlayCrossfade(0.49f)
+        val right = djOverlayCrossfade(0.51f)
+        assertEquals(0.5f, middle.incoming, 0.001f)
+        assertTrue(middle.incoming - left.incoming < 0.025f)
+        assertTrue(right.incoming - middle.incoming < 0.025f)
+        assertTrue(djOverlayCrossfade(0.25f).incoming > 0.12f)
+        assertTrue(djOverlayCrossfade(0.75f).incoming > 0.8f)
     }
 
     @Test
