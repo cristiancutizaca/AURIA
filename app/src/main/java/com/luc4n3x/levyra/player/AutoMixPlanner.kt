@@ -29,13 +29,10 @@ internal fun planAutoMix(
     if (continuesSameRelease(current, next, shuffleEnabled)) return null
     val base = effectiveSeconds * 1_000L
     val adaptive = if (automaticDjMix) {
-        val energyDistance = abs(current.energy - next.energy)
-        val dualVocals = current.vocal >= 70 && next.vocal >= 70
-        when {
-            dualVocals -> base - 7_000L
-            energyDistance >= 45 -> base - 6_000L
-            else -> base
-        }
+        // A fixed 27-second overlay hides neither mismatched beats nor competing vocals.
+        // Unknown metadata is especially common for on-device files and needs a short,
+        // unobtrusive blend until proper BPM/phrase analysis is available.
+        djBlendDurationMs(current, next)
     } else if (normalized.djSoftMode || djEnabled) {
         val energyDistance = abs(current.energy - next.energy)
         val vocalOverlap = (current.vocal + next.vocal) / 2
@@ -57,6 +54,26 @@ internal fun planAutoMix(
             if (automaticDjMix) MAX_DJ_PRELOAD_LEAD_MS else MAX_PRELOAD_LEAD_MS
         )
     )
+}
+
+/**
+ * Conservative duration selection until we have a measured beat grid and vocal activity.
+ * Do not interpret Track.energy as BPM or assume absent tags mean an instrumental.
+ */
+internal fun djBlendDurationMs(current: Track, next: Track): Long {
+    val missingAnalysis = (current.energy <= 0 && current.vocal <= 0) ||
+        (next.energy <= 0 && next.vocal <= 0)
+    val energyDistance = abs(current.energy - next.energy)
+    val simultaneousVocals = current.vocal >= 70 && next.vocal >= 70
+    return when {
+        missingAnalysis -> 9_000L
+        simultaneousVocals -> 7_000L
+        energyDistance >= 45 -> 9_000L
+        current.vocal >= 70 || next.vocal >= 70 -> 10_000L
+        current.vocal >= 35 && next.vocal >= 35 -> 12_000L
+        current.vocal <= 25 && next.vocal <= 25 -> 20_000L
+        else -> 14_000L
+    }
 }
 
 internal fun continuesSameRelease(current: Track, next: Track, shuffleEnabled: Boolean): Boolean {
@@ -95,18 +112,12 @@ internal fun equalPowerCrossfade(progress: Float): CrossfadeGains {
 
 internal fun djOverlayCrossfade(progress: Float, overlappingVocals: Boolean = false): CrossfadeGains {
     val t = progress.coerceIn(0f, 1f)
-    val split = 0.65f
-    val phase = if (t <= split) t / split else (t - split) / (1f - split)
-    val eased = phase * phase * (3f - 2f * phase)
-    val incomingLead = if (overlappingVocals) 0.14f else 0.25f
-    return if (t <= split) {
-        CrossfadeGains(outgoing = 1f - incomingLead * eased, incoming = incomingLead * eased)
-    } else {
-        CrossfadeGains(
-            outgoing = (1f - incomingLead) * (1f - eased),
-            incoming = incomingLead + (1f - incomingLead) * eased
-        )
-    }
+    // An easing envelope without the old 65% hold avoids keeping the second
+    // track barely audible for most of the mix, followed by an obvious handover.
+    // Delay the incoming vocal slightly when both tracks have known strong vocals.
+    val adjusted = if (overlappingVocals) ((t - 0.08f) / 0.92f).coerceIn(0f, 1f) else t
+    val incoming = adjusted * adjusted * (3f - 2f * adjusted)
+    return CrossfadeGains(outgoing = 1f - incoming, incoming = incoming)
 }
 
 internal fun crossfadeHandoffNeedsResync(
