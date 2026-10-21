@@ -480,6 +480,7 @@ class PlayerViewModel(root: LevyraViewModel) : LevyraScreenViewModel(root, ::pla
     fun cycleSpeed() = root.cycleSpeed()
     fun playSimilarSong(track: Track) = root.playSimilarSong(track)
     fun startSongRadio() = root.startSongRadio()
+    fun setAuriaDjEnabled(enabled: Boolean) = root.setAuriaDjEnabled(enabled)
     fun openSleepTimer() = root.openSleepTimer()
     fun openAmbient() = root.openAmbient()
     fun exportCurrentTrack() = root.exportCurrentTrack()
