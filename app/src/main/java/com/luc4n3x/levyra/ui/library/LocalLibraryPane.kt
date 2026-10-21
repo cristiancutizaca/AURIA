@@ -955,7 +955,7 @@ private fun LocalLibraryActions(
                 FilterChip(
                     selected = djEnabled,
                     onClick = { callbacks.onToggleDj(!djEnabled) },
-                    label = { Text("DJ AutoMix", fontWeight = FontWeight.SemiBold) },
+                    label = { Text("AURIA DJ", fontWeight = FontWeight.SemiBold) },
                     leadingIcon = {
                         Icon(Icons.Rounded.GraphicEq, contentDescription = null, modifier = Modifier.size(18.dp))
                     },
@@ -963,7 +963,7 @@ private fun LocalLibraryActions(
                 )
                 if (djEnabled) {
                     Text(
-                        "27s",
+                        "AutoMix · 27s",
                         color = colors.onSurfaceVariant,
                         style = MaterialTheme.typography.labelMedium
                     )
@@ -1003,6 +1003,13 @@ private fun LocalLibraryActions(
                     }
                 }
             }
+            Text(
+                text = strings.continuousRadioSubtitle,
+                color = colors.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
