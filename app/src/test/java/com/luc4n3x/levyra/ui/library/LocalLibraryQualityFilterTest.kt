@@ -37,6 +37,38 @@ class LocalLibraryQualityFilterTest {
     }
 
     @Test
+    fun emptyAndOrdinaryLibrariesOfferOnlyTheUniversalFilter() {
+        val now = 2_000_000_000_000L
+        assertEquals(listOf(LocalLibraryQualityFilter.All), localLibraryQualityFilters(emptyList(), now))
+        assertEquals(
+            listOf(LocalLibraryQualityFilter.All),
+            localLibraryQualityFilters(
+                listOf(media(displayName = "old.mp3", bitrate = 192_000, dateAddedMs = now - 90L * DAY_MS)),
+                now
+            )
+        )
+    }
+
+    @Test
+    fun qualityFacetsCanComeFromDifferentFilesWithoutChangingTheirOrder() {
+        val now = 2_000_000_000_000L
+        val rows = listOf(
+            media(displayName = "new.mp3", bitrate = 128_000, dateAddedMs = now),
+            media(displayName = "archived.flac", mimeType = "audio/flac", bitrate = 192_000),
+            media(displayName = "high.mp3", bitrate = 320_000)
+        )
+        assertEquals(
+            listOf(
+                LocalLibraryQualityFilter.All,
+                LocalLibraryQualityFilter.Lossless,
+                LocalLibraryQualityFilter.HighBitrate,
+                LocalLibraryQualityFilter.Recent
+            ),
+            localLibraryQualityFilters(rows, now)
+        )
+    }
+
+    @Test
     fun m4aIsNotCalledLosslessWithoutLosslessMetadata() {
         val row = media(
             displayName = "track.m4a",
