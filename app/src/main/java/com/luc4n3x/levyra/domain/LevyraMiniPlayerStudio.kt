@@ -227,7 +227,7 @@ data class MiniPlayerTuning(
 }
 
 data class LevyraMiniPlayerStudioSettings(
-    val style: MiniPlayerStyle = MiniPlayerStyle.Original,
+    val style: MiniPlayerStyle = MiniPlayerStyle.Connected,
     val tunings: Map<MiniPlayerStyle, MiniPlayerTuning> = emptyMap()
 ) {
     fun tuningFor(target: MiniPlayerStyle): MiniPlayerTuning =
@@ -553,11 +553,11 @@ data class LevyraMiniPlayerStudioSettings(
             buttonStyles = listOf(MiniButtonStyle.Tonal, MiniButtonStyle.Filled, MiniButtonStyle.Plain),
             backgrounds = listOf(MiniBackground.Solid),
             defaults = baseTuning.copy(
-                heightDp = 64,
+                heightDp = 60,
                 cornerDp = 28,
                 insetDp = 16,
                 artworkShape = MiniArtworkShape.Rounded,
-                artworkDp = 44,
+                artworkDp = 42,
                 shadow = 0,
                 glow = 0,
                 opacity = 100,

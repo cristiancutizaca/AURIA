@@ -12,9 +12,9 @@ import org.junit.Test
 class LevyraMiniPlayerStudioSettingsTest {
 
     @Test
-    fun defaultSettingsKeepOriginalStyle() {
+    fun defaultSettingsUseAuriaConnectedStyle() {
         val settings = LevyraMiniPlayerStudioSettings()
-        assertEquals(MiniPlayerStyle.Original, settings.style)
+        assertEquals(MiniPlayerStyle.Connected, settings.style)
         assertTrue(settings.tunings.isEmpty())
         assertTrue(LevyraMiniPlayerStudioSettings.spec(MiniPlayerStyle.Original).options.isEmpty())
     }

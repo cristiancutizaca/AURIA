@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="240" viewBox="0 0 800 240">
+  <defs><linearGradient id="halo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8B5CF6"/><stop offset=".53" stop-color="#C8B4FF"/><stop offset="1" stop-color="#FF9E8A"/></linearGradient></defs>
+  <rect width="800" height="240" fill="#0A0F26"/>
+  <circle cx="408" cy="106" r="84" fill="none" stroke="url(#halo)" stroke-width="3.5"/>
+  <text x="400" y="138" text-anchor="middle" fill="#F1F5FF" font-family="sans-serif" font-weight="300" font-size="116" letter-spacing="25">AURIA</text>
+  <text x="400" y="199" text-anchor="middle" fill="#C8B4FF" font-family="sans-serif" font-size="18" letter-spacing="7">TU MÚSICA, TU ÓRBITA</text>
+</svg>

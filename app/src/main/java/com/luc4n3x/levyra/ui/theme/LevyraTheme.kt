@@ -39,6 +39,7 @@ data class LevyraPalette(
 
 object LevyraThemes {
     const val COSMIC = "cosmic"
+    const val AURIA_HALO = "auria_halo"
     const val AMOLED = "amoled"
     const val NEON_CYAN = "neon_cyan"
     const val PURPLE_GLASS = "purple_glass"
@@ -77,6 +78,24 @@ object LevyraThemes {
         text = Color(0xFFF5F5F7),
         muted = Color(0xFF86868B),
         outline = Color(0x33FFFFFF)
+    )
+
+    val auriaHalo = cosmic.copy(
+        id = AURIA_HALO,
+        label = "AURIA Halo",
+        emoji = "◉",
+        black = Color(0xFF0A0F26),
+        ink = Color(0xFF0B1128),
+        panel = Color(0xFF171D38),
+        panelSoft = Color(0xFF252A49),
+        cyan = Color(0xFFB09AFF),
+        blue = Color(0xFF8B5CF6),
+        violet = Color(0xFFC8B4FF),
+        pink = Color(0xFFFF9E8A),
+        orange = Color(0xFFFFB09A),
+        text = Color(0xFFF1F5FF),
+        muted = Color(0xFFADB7CD),
+        outline = Color(0x40C8B4FF)
     )
 
     val levyraAura = cosmic.copy(
@@ -323,6 +342,7 @@ object LevyraThemes {
     )
 
     val presets: List<LevyraPalette> = listOf(
+        auriaHalo,
         levyraAura,
         coverFlow,
         amoled,
@@ -357,6 +377,8 @@ object LevyraThemes {
     fun customTheme(id: String): LevyraCustomTheme? = customThemes.firstOrNull { it.id == id }
 
     fun byId(id: String): LevyraPalette = when {
+        id.isBlank() -> auriaHalo
+        id == AURIA_HALO -> auriaHalo
         id == LEVYRA_AURA || id == LEGACY_APPLE_MUSIC -> levyraAura
         LevyraCustomTheme.isCustomId(id) -> customPalettes[id] ?: levyraAura
         else -> presets.firstOrNull { it.id == id } ?: levyraAura
@@ -421,7 +443,7 @@ private fun readableOn(color: Color, background: Color, light: Boolean): Color {
 
 private const val MIN_ACCENT_CONTRAST = 3f
 
-private val activePaletteState = mutableStateOf(LevyraThemes.cosmic)
+private val activePaletteState = mutableStateOf(LevyraThemes.auriaHalo)
 private val activeFontPresetState = mutableStateOf(LevyraFontPreset.Outfit)
 private val activePureBlackState = mutableStateOf(false)
 private val activeCornerScaleState = mutableStateOf(1f)

@@ -210,7 +210,7 @@ internal fun rememberMiniPlayerPalette(
         MiniPlayerStyle.UltraCompact -> scheme.surfaceContainerHighest.playerMix(accent, 0.06f)
         MiniPlayerStyle.LiquidGlass -> scheme.surfaceContainerHighest
         MiniPlayerStyle.YtMusic -> StyledMiniYtMusicSurface
-        MiniPlayerStyle.Connected -> scheme.surfaceContainerHigh.playerMix(accent, 0.12f)
+        MiniPlayerStyle.Connected -> scheme.surfaceContainerHigh.playerMix(accent, 0.07f)
         else -> StyledMiniDarkBase
     }
     val onDark = surface.luminance() < 0.45f
@@ -1191,7 +1191,7 @@ private fun MiniStyledPlayButton(
     val baseCore = if (style == MiniPlayerStyle.UltraCompact) 34.dp else 40.dp
     val core = baseCore * (tuning.controlScale / 100f)
     val ring = tuning.progress == MiniProgressStyle.Ring
-    val outer = if (ring) core + 16.dp else core
+    val outer = if (ring) core + 16.dp else if (style == MiniPlayerStyle.Connected) core + 10.dp else core
     val morphShape = rememberLevyraPlayMorphShape(playing = isPlaying, animated = animated)
     val coreShape = if (style == MiniPlayerStyle.SuperExpressive) morphShape else CircleShape
     val fillColor = miniPlayFillColor(tuning.buttons, palette)
@@ -1200,6 +1200,15 @@ private fun MiniStyledPlayButton(
         modifier = Modifier
             .sizeIn(minWidth = LevyraPlayerDesign.MinimumTouchTarget, minHeight = LevyraPlayerDesign.MinimumTouchTarget)
             .size(outer)
+            .drawBehind {
+                if (style == MiniPlayerStyle.Connected && !ring) {
+                    drawCircle(
+                        brush = Brush.sweepGradient(listOf(palette.accent, palette.accentAlt, palette.accent)),
+                        radius = size.minDimension / 2f - 2.dp.toPx(),
+                        style = Stroke(width = 2.dp.toPx())
+                    )
+                }
+            }
             .semantics(mergeDescendants = true) {}
             .levyraPressable(onClick = onToggle, pressedScale = LevyraPressScale.Control),
         contentAlignment = Alignment.Center

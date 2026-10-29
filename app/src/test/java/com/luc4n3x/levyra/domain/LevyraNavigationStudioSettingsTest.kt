@@ -12,9 +12,9 @@ import org.junit.Test
 class LevyraNavigationStudioSettingsTest {
 
     @Test
-    fun defaultsKeepTheOriginalBar() {
+    fun defaultsUseAuriaConnectedDock() {
         val settings = LevyraNavigationStudioSettings()
-        assertEquals(NavStyle.Original, settings.style)
+        assertEquals(NavStyle.ConnectedDock, settings.style)
         assertTrue(settings.tunings.isEmpty())
         assertEquals(NavDestinations.defaultOrder, settings.activeTuning().visibleOrder())
     }
@@ -151,7 +151,6 @@ class LevyraNavigationStudioSettingsTest {
             NavStyle.SuperExpressive,
             NavStyle.FloatingDock,
             NavStyle.SplitDock,
-            NavStyle.ConnectedDock,
             NavStyle.LiquidGlass,
             NavStyle.Minimal,
             NavStyle.ExpressiveCompact
@@ -159,6 +158,7 @@ class LevyraNavigationStudioSettingsTest {
         expanding.forEach { style ->
             assertEquals(style.name, NavLabelMode.Expanding, LevyraNavigationStudioSettings().tuningFor(style).labels)
         }
+        assertEquals(NavLabelMode.ActiveOnly, LevyraNavigationStudioSettings().tuningFor(NavStyle.ConnectedDock).labels)
         assertEquals(NavLabelMode.Always, LevyraNavigationStudioSettings().tuningFor(NavStyle.YtMusic).labels)
         assertEquals(NavLabelMode.Always, LevyraNavigationStudioSettings().tuningFor(NavStyle.Original).labels)
         assertEquals(NavColorSource.Theme, LevyraNavigationStudioSettings().tuningFor(NavStyle.FloatingDock).colorSource)

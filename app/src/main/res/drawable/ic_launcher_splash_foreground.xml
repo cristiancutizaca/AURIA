@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
-    android:drawable="@mipmap/ic_launcher_foreground"
-    android:insetLeft="12dp"
-    android:insetTop="12dp"
-    android:insetRight="12dp"
-    android:insetBottom="12dp" />
+    android:drawable="@drawable/ic_auria_halo_foreground"
+    android:insetLeft="4dp" android:insetTop="4dp"
+    android:insetRight="4dp" android:insetBottom="4dp" />

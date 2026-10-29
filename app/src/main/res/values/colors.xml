@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="levyra_black">#05070D</color>
+    <color name="levyra_black">#0A0F26</color>
     <color name="levyra_blue">#091A3D</color>
     <color name="levyra_cyan">#20E7FF</color>
     <color name="levyra_violet">#8E57FF</color>
+    <color name="auria_background">#0A0F26</color>
+    <color name="auria_violet">#8B5CF6</color>
+    <color name="auria_lavender">#C8B4FF</color>
+    <color name="auria_coral">#FF9E8A</color>
+    <color name="auria_ice">#F1F5FF</color>
 </resources>

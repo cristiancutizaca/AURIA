@@ -245,7 +245,7 @@ data class NavTuning(
 }
 
 data class LevyraNavigationStudioSettings(
-    val style: NavStyle = NavStyle.Original,
+    val style: NavStyle = NavStyle.ConnectedDock,
     val tunings: Map<NavStyle, NavTuning> = emptyMap()
 ) {
     fun tuningFor(target: NavStyle): NavTuning = tunings[target]?.normalized(target) ?: spec(target).defaults
@@ -420,13 +420,13 @@ data class LevyraNavigationStudioSettings(
             indicators = listOf(NavIndicator.Pill, NavIndicator.Floating, NavIndicator.Morph, NavIndicator.Dot, NavIndicator.Line),
             backgrounds = allBackgrounds,
             defaults = NavTuning(
-                labels = NavLabelMode.Expanding,
+                labels = NavLabelMode.ActiveOnly,
                 indicator = NavIndicator.Pill,
                 background = NavBackground.Solid,
                 iconDp = 24,
-                heightDp = 64,
+                heightDp = 60,
                 motion = NavMotion.Expressive,
-                intensity = 50,
+                intensity = 40,
                 cornerDp = 28,
                 paddingDp = 4
             )

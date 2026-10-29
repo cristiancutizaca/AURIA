@@ -15,6 +15,7 @@ class LevyraThemeStudioTest {
 
         assertEquals(
             listOf(
+                LevyraThemes.AURIA_HALO,
                 LevyraThemes.LEVYRA_AURA,
                 LevyraThemes.COVER_FLOW,
                 LevyraThemes.AMOLED,
@@ -22,7 +23,7 @@ class LevyraThemeStudioTest {
                 LevyraThemes.OCEAN,
                 LevyraThemes.EMBER
             ),
-            ids.take(6)
+            ids.take(7)
         )
         listOf(
             LevyraThemes.COSMIC,
@@ -43,7 +44,7 @@ class LevyraThemeStudioTest {
             assertEquals(preset.id, LevyraThemes.normalize(preset.id))
         }
         assertEquals(LevyraThemes.LEVYRA_AURA, LevyraThemes.byId("apple_music").id)
-        assertEquals(LevyraThemes.LEVYRA_AURA, LevyraThemes.byId("").id)
+        assertEquals(LevyraThemes.AURIA_HALO, LevyraThemes.byId("").id)
         assertEquals(LevyraThemes.LEVYRA_AURA, LevyraThemes.byId("removed_theme").id)
     }
 
