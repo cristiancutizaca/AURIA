@@ -2008,7 +2008,7 @@ class PlaybackService : MediaLibraryService() {
             fadePlayers(
                 primary, secondary, actualTransitionMs,
                 djOverlay = djEnabled && actualTransitionMs >= 3_000L,
-                overlappingVocals = current.vocal >= 70 && next.vocal >= 70
+                overlappingVocals = current.vocal >= 70 && target.vocal >= 70
             ) {
                 transitionStillValid(snapshot.generation, currentIdentity, targetIdentity, primary) &&
                     primary.duration - primary.currentPosition <= actualTransitionMs + SEEK_TOLERANCE_MS
