@@ -54,6 +54,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.luc4n3x.levyra.ui.theme.LevyraBlack
 import com.luc4n3x.levyra.ui.theme.LevyraCardDesign
@@ -161,6 +162,23 @@ private fun DrawScope.drawHomeBackdrop(
         center = tertiaryCenter,
         radius = tertiaryRadius
     )
+    if (!isLight) {
+        val haloCenter = Offset(size.width * 0.83f, height * 0.12f)
+        drawCircle(
+            brush = Brush.sweepGradient(
+                colors = listOf(
+                    accent.copy(alpha = 0.42f),
+                    HomeHaloCoral.copy(alpha = 0.30f),
+                    accent.copy(alpha = 0.16f),
+                    accent.copy(alpha = 0.42f)
+                ),
+                center = haloCenter
+            ),
+            radius = size.width * 0.43f,
+            center = haloCenter,
+            style = Stroke(width = 1.6.dp.toPx())
+        )
+    }
 }
 
 private fun mixHomeBackdropColor(first: Color, second: Color, amount: Float): Color {
@@ -177,8 +195,9 @@ private val HomeBackdropHeight = 420.dp
 private val HomeChipVisualHeight = 40.dp
 private val HomeChipRestCorner = 20.dp
 private val HomeChipPressedCorner = 12.dp
-private val HomeBackdropBlue = Color(0xFF0A84FF)
-private val HomeBackdropIndigo = Color(0xFF5E5CE6)
+private val HomeBackdropBlue = Color(0xFF8B5CF6)
+private val HomeHaloCoral = Color(0xFFFF9E8A)
+private val HomeBackdropIndigo = Color(0xFFC8B4FF)
 
 @Composable
 internal fun HomeGenreChips(
@@ -336,7 +355,7 @@ internal fun HomeChartPodium(
 
 private val PodiumPreferredWidth = 236.dp
 private val PodiumCarouselHeight = 252.dp
-private val PodiumActiveInk = Color(0xFF8FE3FF)
+private val PodiumActiveInk = Color(0xFFC8B4FF)
 private val PodiumScrim = Brush.verticalGradient(
     0.00f to Color.Black.copy(alpha = 0.30f),
     0.24f to Color.Transparent,

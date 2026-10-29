@@ -207,13 +207,14 @@ internal fun LibraryFavoritesSpotlight(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(132.dp)
+            .height(116.dp)
             .clip(shape)
             .background(
                 Brush.horizontalGradient(
-                    listOf(colors.primary.copy(alpha = 0.16f), colors.surfaceContainerHigh.copy(alpha = 0.62f))
+                    listOf(colors.primary.copy(alpha = 0.22f), colors.surfaceContainerHigh.copy(alpha = 0.74f))
                 )
             )
+            .border(1.dp, colors.primary.copy(alpha = 0.24f), shape)
             .semantics(mergeDescendants = true) {}
             .levyraPressable(
                 onClick = onOpen,

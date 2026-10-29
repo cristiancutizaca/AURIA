@@ -42,16 +42,16 @@ internal fun LocalMusicQuickAccessCard(
     val colors = MaterialTheme.colorScheme
     Surface(
         color = colors.surfaceContainer,
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(20.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (artworkModel.isNotBlank() && hasPermission) {
                     LibraryArtwork(
                         url = artworkModel,
                         title = strings.localOnDevice,
-                        modifier = Modifier.size(76.dp),
+                        modifier = Modifier.size(60.dp),
                         shape = RoundedCornerShape(18.dp),
                         selected = false
                     )
@@ -61,16 +61,16 @@ internal fun LocalMusicQuickAccessCard(
                         contentDescription = null,
                         tint = colors.onPrimaryContainer,
                         modifier = Modifier
-                            .size(76.dp)
-                            .background(colors.primaryContainer, RoundedCornerShape(18.dp))
-                            .padding(19.dp)
+                            .size(60.dp)
+                            .background(colors.primaryContainer, RoundedCornerShape(16.dp))
+                            .padding(15.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(14.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = strings.localOnDevice,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
                     Text(

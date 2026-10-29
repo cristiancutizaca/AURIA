@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -61,9 +62,9 @@ import com.luc4n3x.levyra.ui.theme.LevyraMotion
 import com.luc4n3x.levyra.ui.theme.LevyraPlayerDesign
 import com.luc4n3x.levyra.ui.theme.LocalLevyraHaptics
 
-private val HaloArtworkCorner = 40.dp
-private val HaloToolbarHeight = 80.dp
-private val HaloFabSize = 64.dp
+private val HaloArtworkCorner = 32.dp
+private val HaloToolbarHeight = 72.dp
+private val HaloFabSize = 60.dp
 private val HaloScrollingStage = 300.dp
 
 @Composable
@@ -124,8 +125,26 @@ internal fun PlayerHaloDeck(
             contentAlignment = Alignment.Center
         ) {
             val side = minOf(maxWidth, maxHeight) * 0.9f
-            Box(modifier = Modifier.size(side)) {
-                slots.stage(track, Modifier.size(side), HaloArtworkCorner)
+            Box(
+                modifier = Modifier
+                    .size(side)
+                    .drawBehind {
+                        drawCircle(
+                            brush = Brush.sweepGradient(
+                                listOf(
+                                    halo.copy(alpha = 0.76f),
+                                    Color(0xFFFF9E8A).copy(alpha = 0.62f),
+                                    halo.copy(alpha = 0.24f),
+                                    halo.copy(alpha = 0.76f)
+                                )
+                            ),
+                            radius = size.minDimension / 2f - 2.dp.toPx(),
+                            style = Stroke(width = 3.dp.toPx())
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                slots.stage(track, Modifier.size(side * 0.94f), HaloArtworkCorner)
                 if (queuePosition != null) {
                     HaloQueueIndex(
                         position = queuePosition,
@@ -232,8 +251,8 @@ private fun HaloHeadline(
                     color = surfaces.content,
                     fontSize = 28.sp,
                     lineHeight = 31.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = (-1.0).sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.7).sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.semantics { heading() }
@@ -291,7 +310,7 @@ private fun HaloToolbar(
         modifier = Modifier
             .fillMaxWidth()
             .height(HaloToolbarHeight)
-            .shadow(12.dp, CircleShape, ambientColor = Color.Black.copy(alpha = 0.3f))
+            .shadow(5.dp, CircleShape, ambientColor = Color.Black.copy(alpha = 0.24f))
             .clip(CircleShape)
             .background(container)
             .padding(horizontal = 8.dp),

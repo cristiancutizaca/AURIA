@@ -204,7 +204,7 @@ data class LevyraInterfaceSettings(
     val enhanceVideoMetadata: Boolean = false,
     val pureBlack: Boolean = false,
     val hapticFeedback: Boolean = true,
-    val playerVisualMode: PlayerVisualMode = PlayerVisualMode.Flow,
+    val playerVisualMode: PlayerVisualMode = PlayerVisualMode.Halo,
     val playerBackground: PlayerBackgroundMode = PlayerBackgroundMode.Dynamic,
     val reactiveAuraPreset: ReactiveAuraPreset = ReactiveAuraPreset.Recommended,
     val reactiveAuraIntensity: Int = DEFAULT_REACTIVE_AURA_INTENSITY,

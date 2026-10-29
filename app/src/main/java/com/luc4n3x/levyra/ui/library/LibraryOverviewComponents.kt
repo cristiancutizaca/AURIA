@@ -11,6 +11,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import com.luc4n3x.levyra.ui.components.LevyraBackButton
 import com.luc4n3x.levyra.ui.components.levyraExpressiveCorner
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +31,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
@@ -113,7 +115,35 @@ internal fun LibraryHero(title: String, subtitle: String, onBack: (() -> Unit)? 
         if (onBack != null) {
             LevyraBackButton(onClick = onBack, contentDescription = strings.back, modifier = Modifier.padding(bottom = 4.dp))
         }
-        Text(title, color = colors.onSurface, style = LevyraType.heroTitle, softWrap = true, modifier = Modifier.semantics { heading() })
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                title,
+                color = colors.onSurface,
+                style = LevyraType.heroTitle,
+                softWrap = true,
+                modifier = Modifier.weight(1f).semantics { heading() }
+            )
+            if (onBack == null) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .border(1.dp, colors.primary.copy(alpha = 0.45f), CircleShape)
+                        .background(colors.primaryContainer.copy(alpha = 0.28f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.MusicNote,
+                        contentDescription = null,
+                        tint = colors.primary,
+                        modifier = Modifier.size(23.dp)
+                    )
+                }
+            }
+        }
         if (subtitle.isNotBlank()) {
             Text(subtitle, color = colors.onSurfaceVariant, style = LevyraType.metadata, softWrap = true)
         }
