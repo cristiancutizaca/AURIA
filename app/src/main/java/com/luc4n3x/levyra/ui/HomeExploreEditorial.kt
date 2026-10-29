@@ -215,8 +215,8 @@ internal fun DiscoveryEditorialCard(
     artwork: Track?,
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
-    accentStart: Color = Color(0xFF7C3AED),
-    accentEnd: Color = Color(0xFF4C1D95),
+    accentStart: Color = Color(0xFF8B5CF6),
+    accentEnd: Color = Color(0xFFC8B4FF),
     artworkShape: Shape? = null
 ) {
     val colors = MaterialTheme.colorScheme
@@ -294,7 +294,7 @@ internal fun DiscoveryEditorialCard(
                         .align(Alignment.BottomEnd)
                         .offset(x = 16.dp, y = 18.dp)
                         .size(artworkSize)
-                        .rotate(12f)
+                        .rotate(4f)
                         .clip(artworkShape ?: LevyraCardDesign.ArtworkShape)
                 )
             }
@@ -312,7 +312,7 @@ private fun DiscoveryEditorialText(
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically)) {
         Text(
             title,
-            style = LevyraType.sectionTitle.copy(fontSize = 24.sp, lineHeight = 27.sp, fontWeight = FontWeight.Black, letterSpacing = (-0.7).sp),
+            style = LevyraType.sectionTitle.copy(fontSize = 24.sp, lineHeight = 27.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.55).sp),
             color = textColor,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis

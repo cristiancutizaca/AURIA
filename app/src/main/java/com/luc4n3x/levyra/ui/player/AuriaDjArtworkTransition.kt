@@ -26,6 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -71,12 +73,19 @@ internal fun AuriaDjArtworkTransition(
                         Brush.linearGradient(
                             listOf(
                                 primary.copy(alpha = 0.52f),
-                                Color(0xFF141323),
+                                Color(0xFF0A0F26),
                                 secondary.copy(alpha = 0.42f),
-                                Color(0xFF10131E)
+                                Color(0xFF171D38)
                             )
                         )
-                    ),
+                    )
+                    .drawBehind {
+                        drawCircle(
+                            color = primary.copy(alpha = 0.34f),
+                            radius = size.minDimension * 0.46f,
+                            style = Stroke(width = 2.dp.toPx())
+                        )
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Column(

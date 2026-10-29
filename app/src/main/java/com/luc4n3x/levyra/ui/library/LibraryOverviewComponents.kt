@@ -7,6 +7,13 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.BasicText
 import androidx.activity.compose.BackHandler
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+import com.luc4n3x.levyra.data.locallibrary.AuriaFavoriteFileExporter
+import com.luc4n3x.levyra.data.locallibrary.AuriaFavoriteCopyResult
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import com.luc4n3x.levyra.ui.components.LevyraBackButton
 import com.luc4n3x.levyra.ui.components.levyraExpressiveCorner
@@ -413,6 +420,32 @@ internal fun SmartCollectionDetail(
     val strings = LocalLevyraStrings.current
     val style = smartCollectionStyle(collectionId)
     val selection = rememberTrackSelectionState()
+    val exportContext = LocalContext.current.applicationContext
+    val exportScope = rememberCoroutineScope()
+    var exportRunning by remember { mutableStateOf(false) }
+    var exportResult by remember { mutableStateOf<AuriaFavoriteCopyResult?>(null) }
+    val onCopyFavorites: (Uri, List<Track>) -> Unit = { folder, selected ->
+        if (!exportRunning && selected.isNotEmpty()) {
+            exportRunning = true
+            exportScope.launch {
+                try {
+                    val report = AuriaFavoriteFileExporter.copyToFolder(exportContext, folder, selected)
+                    exportResult = report
+                    if (report.copied > 0) {
+                        viewModel.requestLocalLibraryScan(
+                            com.luc4n3x.levyra.data.locallibrary.LocalScanMode.Quick
+                        )
+                    }
+                } catch (cancel: CancellationException) {
+                    throw cancel
+                } catch (_: Exception) {
+                    exportResult = AuriaFavoriteCopyResult(0, 0, 0, selected.size)
+                } finally {
+                    exportRunning = false
+                }
+            }
+        }
+    }
     var batchAddTargets by remember { mutableStateOf<List<Track>>(emptyList()) }
     val selectableIds = remember(tracks) { tracks.map(::trackSelectionKey) }
     val lazyItemKeys = remember(tracks) {
@@ -455,6 +488,18 @@ internal fun SmartCollectionDetail(
                             shuffled.firstOrNull()?.let { viewModel.playFrom(shuffled, it) }
                         }
                     )
+                }
+                if (collectionId == SMART_COLLECTION_FAVORITES) {
+                    item(key = "favorite-file-copy") {
+                        AuriaFavoriteFileCopyAction(
+                            tracks = if (selection.isActive) selectedTracks else tracks,
+                            selectionActive = selection.isActive,
+                            running = exportRunning,
+                            result = exportResult,
+                            onDismissResult = { exportResult = null },
+                            onCopy = onCopyFavorites
+                        )
+                    }
                 }
                 if (tracks.isEmpty()) {
                     item(key = "smart-empty") { LibraryEmpty(style.icon, strings.emptySearchPrompt) }
