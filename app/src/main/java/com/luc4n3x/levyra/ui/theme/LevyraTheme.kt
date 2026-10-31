@@ -536,7 +536,10 @@ object LevyraThemeController {
         pureBlack: Boolean = false,
         accentOverride: Int? = null
     ) {
-        val base = LevyraThemes.byId(presetId)
+        val selected = LevyraThemes.byId(presetId)
+        val base = if (AuriaVisualMode.fromTheme(presetId) == AuriaVisualMode.Flow &&
+            presetId != LevyraThemes.AURIA_FLOW && presetId != LevyraThemes.AURIA_HALO
+        ) LevyraThemes.auriaFlow else selected
         val tinted = when {
             accentOverride != null -> withAccent(base, Color(accentOverride))
             base.followsCover && coverAccentStart != null && coverAccentEnd != null ->

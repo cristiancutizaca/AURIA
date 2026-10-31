@@ -47,7 +47,7 @@ internal fun AuriaVisualModePicker(
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 pair.forEach { mode ->
                     val palette = LevyraThemes.byId(mode.themeId)
-                    val isSelected = selectedId == mode.themeId
+                    val isSelected = AuriaVisualMode.fromTheme(selectedId) == mode
                     val shape = when (mode) {
                         AuriaVisualMode.Flow -> RoundedCornerShape(topStart = 28.dp, topEnd = 8.dp, bottomEnd = 28.dp, bottomStart = 8.dp)
                         AuriaVisualMode.Nebula -> RoundedCornerShape(30.dp)
