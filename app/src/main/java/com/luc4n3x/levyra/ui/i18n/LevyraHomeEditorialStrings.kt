@@ -38,7 +38,7 @@ Selected for you
 Available today
 Released this week
 Popular in the charts
-AURIA Collections
+AURIA · Orbits
 Curated playlists around the music you love
 New this week
 Local hits
@@ -64,7 +64,7 @@ Scelto per te
 Disponibile da oggi
 Uscito questa settimana
 Tra i brani in classifica
-AURIA Collections
+AURIA · Orbits
 Playlist curate intorno alla musica che ami
 Novità della settimana
 Hit italiane
@@ -90,7 +90,7 @@ Elegido para ti
 Disponible desde hoy
 Lanzado esta semana
 Popular en las listas
-AURIA Collections
+AURIA · Orbits
 Playlists seleccionadas en torno a la música que amas
 Novedades del momento
 Esenciales locales
@@ -116,7 +116,7 @@ Choisi pour vous
 Disponible dès aujourd’hui
 Sorti cette semaine
 Populaire dans les classements
-AURIA Collections
+AURIA · Orbits
 Playlists pensées autour de la musique que vous aimez
 Nouveautés du moment
 Essentiels locaux
@@ -142,7 +142,7 @@ Für dich ausgewählt
 Ab heute verfügbar
 Diese Woche erschienen
 Beliebt in den Charts
-AURIA Collections
+AURIA · Orbits
 Kuratierte Playlists rund um die Musik, die du liebst
 Gerade neu
 Lokale Essentials
@@ -168,7 +168,7 @@ Escolhido para você
 Disponível a partir de hoje
 Lançado esta semana
 Popular nos tops
-AURIA Collections
+AURIA · Orbits
 Playlists selecionadas em torno da música que você ama
 Novidades do momento
 Essenciais locais
@@ -194,7 +194,7 @@ Voor jou gekozen
 Vanaf vandaag beschikbaar
 Deze week uitgebracht
 Populair in de hitlijsten
-AURIA Collections
+AURIA · Orbits
 Playlists rond de muziek waar je van houdt
 Nu vers
 Lokale essentials
@@ -220,7 +220,7 @@ Wybrane dla Ciebie
 Dostępne od dzisiaj
 Wydane w tym tygodniu
 Popularne na listach
-AURIA Collections
+AURIA · Orbits
 Playlisty dopasowane do muzyki, którą lubisz
 Świeże teraz
 Lokalne klasyki
@@ -246,7 +246,7 @@ Ales pentru tine
 Disponibil de astăzi
 Lansat săptămâna aceasta
 Popular în topuri
-AURIA Collections
+AURIA · Orbits
 Playlisturi create în jurul muzicii pe care o iubești
 Noutăți acum
 Esențiale locale
@@ -272,7 +272,7 @@ Comori ascunse
 Διαθέσιμο από σήμερα
 Κυκλοφόρησε αυτή την εβδομάδα
 Δημοφιλές στα charts
-AURIA Collections
+AURIA · Orbits
 Λίστες φτιαγμένες γύρω από τη μουσική που αγαπάς
 Φρέσκα τώρα
 Τοπικά απαραίτητα
@@ -298,7 +298,7 @@ Utvalt för dig
 Tillgängligt från idag
 Släppt den här veckan
 Populär på topplistorna
-AURIA Collections
+AURIA · Orbits
 Spellistor formade kring musiken du älskar
 Nytt just nu
 Lokala måsten
@@ -324,7 +324,7 @@ Udvalgt til dig
 Tilgængelig fra i dag
 Udgivet i denne uge
 Populær på hitlisterne
-AURIA Collections
+AURIA · Orbits
 Playlister tilpasset den musik du elsker
 Nyt lige nu
 Lokale favoritter
@@ -350,7 +350,7 @@ Vybráno pro vás
 Dostupné ode dneška
 Vydáno tento týden
 Populární v žebříčcích
-AURIA Collections
+AURIA · Orbits
 Playlisty sestavené podle hudby, kterou máš rád
 Čerstvé novinky
 Místní essentials
@@ -376,7 +376,7 @@ Skryté poklady
 Доступно від сьогодні
 Вийшло цього тижня
 Популярне в чартах
-AURIA Collections
+AURIA · Orbits
 Плейлисти, створені навколо музики, яку ви любите
 Свіже зараз
 Місцеві хіти
@@ -402,7 +402,7 @@ AURIA Collections
 Доступно с сегодняшнего дня
 Вышло на этой неделе
 Популярно в чартах
-AURIA Collections
+AURIA · Orbits
 Плейлисты, собранные вокруг любимой музыки
 Свежее сейчас
 Местные хиты
@@ -428,7 +428,7 @@ Senin için seçildi
 Bugünden itibaren kullanılabilir
 Bu hafta yayınlandı
 Listelerde popüler
-AURIA Collections
+AURIA · Orbits
 Sevdiğin müziğe göre hazırlanmış çalma listeleri
 Şu an yeni
 Yerel vazgeçilmezler
@@ -506,7 +506,7 @@ AURIA セレクション
 本日より配信
 今週リリース
 チャートで注目
-AURIA Collections
+AURIA · Orbits
 あなたの好きな音楽を中心に選んだプレイリスト
 今すぐ聴きたい新曲
 ローカル定番
@@ -532,7 +532,7 @@ AURIA 셀렉션
 오늘부터 감상 가능
 이번 주 발매
 차트에서 인기
-AURIA Collections
+AURIA · Orbits
 좋아하는 음악을 중심으로 구성한 플레이리스트
 지금 막 나온 음악
 로컬 필수곡
@@ -558,7 +558,7 @@ AURIA चयन
 आज से उपलब्ध
 इस सप्ताह रिलीज़
 चार्ट में लोकप्रिय गीत
-AURIA Collections
+AURIA · Orbits
 आपके पसंदीदा संगीत के आसपास तैयार प्लेलिस्ट
 अभी नया
 स्थानीय पसंदीदा
@@ -584,7 +584,7 @@ Dipilih untukmu
 Tersedia mulai hari ini
 Dirilis minggu ini
 Populer di tangga lagu
-AURIA Collections
+AURIA · Orbits
 Playlist yang disusun dari musik yang kamu sukai
 Baru saat ini
 Esensial lokal
@@ -610,7 +610,7 @@ Chọn riêng cho bạn
 Có từ hôm nay
 Phát hành tuần này
 Phổ biến trên bảng xếp hạng
-AURIA Collections
+AURIA · Orbits
 Playlist được xây dựng quanh âm nhạc bạn yêu thích
 Mới ngay lúc này
 Tinh hoa địa phương
@@ -636,7 +636,7 @@ AURIA คัดสรร
 ฟังได้ตั้งแต่วันนี้
 เปิดตัวสัปดาห์นี้
 เพลงยอดนิยมในชาร์ต
-AURIA Collections
+AURIA · Orbits
 เพลย์ลิสต์ที่จัดขึ้นจากเพลงที่คุณชื่นชอบ
 เพลงใหม่ตอนนี้
 เพลงท้องถิ่นที่ต้องฟัง
@@ -662,7 +662,7 @@ Pinili para sa iyo
 Available simula ngayon
 Inilabas ngayong linggo
 Popular sa charts
-AURIA Collections
+AURIA · Orbits
 Mga playlist na binuo ayon sa musikang gusto mo
 Bagong-bago ngayon
 Lokal na essentials

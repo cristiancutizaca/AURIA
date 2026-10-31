@@ -215,7 +215,12 @@ fun LevyraNowPlaying(
     val density = LocalDensity.current
     val rightToLeft = LocalLayoutDirection.current == LayoutDirection.Rtl
     val artworkUrl = track?.let(::preferredPlayerArtworkUrl).orEmpty()
-    val visualMode = state.interfaceSettings.playerVisualMode
+    val visualMode = auriaPlayerVisualMode(
+        state.interfaceSettings.playerVisualMode,
+        com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(
+            com.luc4n3x.levyra.ui.theme.LevyraActivePalette.id
+        )
+    )
     val backgroundMode = state.interfaceSettings.playerBackground.let { selected ->
         if (selected == PlayerBackgroundMode.Dark && state.interfaceSettings.pureBlack) {
             PlayerBackgroundMode.PureBlack

@@ -640,13 +640,22 @@ private fun AuriaBrandGlyph(size: Dp) {
     Box(
         modifier = Modifier
             .size(size)
-            .clip(RoundedCornerShape(25.dp))
-            .background(Brush.linearGradient(listOf(Color(0xFF141B32), Color(0xFF101222)))),
+            .clip(RoundedCornerShape(28.dp))
+            .background(Brush.linearGradient(listOf(Color(0xFF0A0F26), Color(0xFF201039))))
+            .drawBehind {
+                drawCircle(
+                    brush = Brush.sweepGradient(
+                        listOf(Color(0xFF8B5CF6), Color(0xFFC8B4FF), Color(0xFFFF9E8A), Color(0xFF8B5CF6))
+                    ),
+                    radius = size.minDimension * 0.40f,
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.5.dp.toPx())
+                )
+            },
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = "A",
-            color = Color(0xFF89E8DF),
+            color = Color(0xFFF1F5FF),
             fontSize = (size.value * 0.68f).sp,
             lineHeight = (size.value * 0.75f).sp,
             fontWeight = FontWeight.Black,
@@ -909,7 +918,7 @@ private fun SetupAppearanceStage(
     accent: Color,
     onLight: (Boolean) -> Unit
 ) {
-    val darkPalette = remember { LevyraThemes.byId(LevyraThemes.LEVYRA_AURA) }
+    val darkPalette = remember { LevyraThemes.byId(LevyraThemes.AURIA_FLOW) }
     val lightPalette = remember { LevyraThemes.byId(LevyraThemes.FROST) }
     Column(
         modifier = Modifier

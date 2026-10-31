@@ -85,6 +85,13 @@ internal fun LibrarySectionGrid(
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.colorScheme
+    val auriaMode = com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(
+        com.luc4n3x.levyra.ui.theme.LevyraActivePalette.id
+    )
+    if (auriaMode != null) {
+        AuriaLibrarySectionGrid(entries, onOpen, auriaMode, modifier)
+        return
+    }
     val rows = entries.chunked(2)
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(LibrarySectionGap)) {
         rows.forEachIndexed { rowIndex, row ->
@@ -98,6 +105,61 @@ internal fun LibrarySectionGrid(
                         modifier = Modifier.weight(1f)
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AuriaLibrarySectionGrid(
+    entries: List<LibrarySectionEntry>,
+    onOpen: (LibraryCategory) -> Unit,
+    mode: com.luc4n3x.levyra.ui.theme.AuriaVisualMode,
+    modifier: Modifier
+) {
+    val colors = MaterialTheme.colorScheme
+    val compact = mode == com.luc4n3x.levyra.ui.theme.AuriaVisualMode.Pulse ||
+        mode == com.luc4n3x.levyra.ui.theme.AuriaVisualMode.Studio
+    val rows = if (compact) entries.map { listOf(it) } else entries.chunked(2)
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        rows.forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach { entry ->
+                    val label = entry.category.libraryLabel(LocalLevyraStrings.current)
+                    val shape = RoundedCornerShape(if (compact) 14.dp else 24.dp)
+                    Row(
+                        modifier = Modifier.weight(1f)
+                            .heightIn(min = if (compact) 58.dp else 94.dp)
+                            .clip(shape)
+                            .background(colors.surfaceContainerHigh)
+                            .levyraPressable(onClick = { onOpen(entry.category) },
+                                role = Role.Button, onClickLabel = label,
+                                pressedScale = LevyraPressScale.Tile)
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier.size(if (compact) 36.dp else 42.dp)
+                                .clip(RoundedCornerShape(if (compact) 10.dp else 14.dp))
+                                .background(colors.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(entry.category.sectionIcon(), contentDescription = null,
+                                tint = colors.onPrimaryContainer, modifier = Modifier.size(21.dp))
+                        }
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text(label, style = MaterialTheme.typography.titleSmall,
+                                color = colors.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            if (entry.summary.isNotBlank()) {
+                                Text(entry.summary, color = colors.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                        }
+                    }
+                }
+                if (row.size == 1 && !compact) Spacer(Modifier.weight(1f))
             }
         }
     }

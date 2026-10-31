@@ -182,6 +182,14 @@ internal fun LevyraThemeStudioOverlay(
                 }
             }
 
+            item(contentType = "auria-visual-modes") {
+                AuriaVisualModePicker(
+                    selectedId = selectedPresetId,
+                    onSelect = onSelectPreset,
+                    languageCode = strings.code
+                )
+            }
+
             item(contentType = "studio-preview") {
                 ThemeStudioPreview(
                     palette = preview,
@@ -1427,4 +1435,6 @@ internal fun themeStudioPaletteFor(
     )
 }
 
-private fun themeStudioRows(): List<List<LevyraPalette>> = LevyraThemes.presets.chunked(2)
+private fun themeStudioRows(): List<List<LevyraPalette>> = LevyraThemes.presets
+    .filterNot { palette -> LevyraThemes.auriaDesigns.any { it.id == palette.id } }
+    .chunked(2)
