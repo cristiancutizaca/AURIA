@@ -2166,6 +2166,9 @@ fun LevyraApp(
             activity?.finish()
         }
     }
+    val auriaModeForChrome = com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset)
+    val effectiveNavStyle = auriaNavStyle(auriaModeForChrome, navigationStudio.settings.style)
+    val effectiveMiniStyle = auriaMiniStyle(auriaModeForChrome, miniPlayerStudio.settings.style)
     val visualCapabilities = rememberLevyraVisualCapabilities(
         selected = state.interfaceSettings.visualPerformance,
         animationsEnabled = state.animationsEnabled
@@ -2181,7 +2184,7 @@ fun LevyraApp(
         LocalLevyraStrings provides currentStrings,
         LocalLevyraHaptics provides rememberLevyraHaptics(state.interfaceSettings.hapticFeedback),
         LocalLayoutDirection provides layoutDirection,
-        LocalNavDockExtraClearance provides navDockExtraClearance(navigationStudio.settings.style, navigationStudio.settings.activeTuning()),
+        LocalNavDockExtraClearance provides navDockExtraClearance(effectiveNavStyle, navigationStudio.settings.tuningFor(effectiveNavStyle)),
         LocalNavArtworkSeed provides navArtworkSeed
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -2505,7 +2508,7 @@ fun LevyraApp(
                                         end = { velocity -> settleExpansion(velocity, false) }
                                     )
                                     val miniStudio = miniPlayerStudio.settings
-                                    if (miniStudio.style == MiniPlayerStyle.Original) {
+                                    if (effectiveMiniStyle == MiniPlayerStyle.Original) {
                                         MiniPlayer(
                                             model = miniModel,
                                             morphAnchors = morphAnchors,
@@ -2517,8 +2520,8 @@ fun LevyraApp(
                                         )
                                     } else {
                                         StyledMiniPlayer(
-                                            style = miniStudio.style,
-                                            tuning = miniStudio.activeTuning(),
+                                            style = effectiveMiniStyle,
+                                            tuning = miniStudio.tuningFor(effectiveMiniStyle),
                                             model = miniModel,
                                             morphAnchors = morphAnchors,
                                             compaction = compactionProvider,
@@ -2526,7 +2529,7 @@ fun LevyraApp(
                                             playbackActions = miniPlaybackActions,
                                             expansionActions = miniExpansionActions,
                                             glass = dockGlass,
-                                            link = dockLink.takeIf { miniStudio.style == MiniPlayerStyle.Connected && !state.showSettings }
+                                            link = dockLink.takeIf { effectiveMiniStyle == MiniPlayerStyle.Connected && !state.showSettings }
                                         )
                                     }
                                 }
@@ -2546,7 +2549,7 @@ fun LevyraApp(
                             }
                         ) {
                             val navStudio = navigationStudio.settings
-                            if (navStudio.style == NavStyle.Original) {
+                            if (effectiveNavStyle == NavStyle.Original) {
                                 BottomTabs(
                                     selected = backgroundTab,
                                     compaction = compactionProvider,
@@ -2554,13 +2557,13 @@ fun LevyraApp(
                                 )
                             } else {
                                 StyledBottomTabs(
-                                    style = navStudio.style,
-                                    tuning = navStudio.activeTuning(),
+                                    style = effectiveNavStyle,
+                                    tuning = navStudio.tuningFor(effectiveNavStyle),
                                     selected = backgroundTab,
                                     compaction = compactionProvider,
                                     onSelect = selectDockTab,
                                     glass = dockGlass,
-                                    link = dockLink.takeIf { navStudio.style == NavStyle.ConnectedDock }
+                                    link = dockLink.takeIf { effectiveNavStyle == NavStyle.ConnectedDock }
                                 )
                             }
                         }
@@ -2590,12 +2593,12 @@ fun LevyraApp(
                                 bottomTabsSlot()
                             }
                         }
-                        if (navigationStudio.settings.style == NavStyle.Original) {
+                        if (effectiveNavStyle == NavStyle.Original) {
                             LevyraAdaptiveDockSurface(glass = dockGlass, modifier = dockModifier, content = dockContent)
                         } else {
                             StyledDockSurface(
-                                style = navigationStudio.settings.style,
-                                tuning = navigationStudio.settings.activeTuning(),
+                                style = effectiveNavStyle,
+                                tuning = navigationStudio.settings.tuningFor(effectiveNavStyle),
                                 glass = dockGlass,
                                 modifier = dockModifier,
                                 content = dockContent
@@ -2731,7 +2734,7 @@ fun LevyraApp(
                         onYoutubeMusicCookie = youtubeMusicViewModel::acceptCookie,
                         onCancelYoutubeMusicLogin = youtubeMusicViewModel::cancelLogin,
                         onAppearance = { light ->
-                            viewModel.setThemePreset(if (light) LevyraThemes.FROST else LevyraThemes.LEVYRA_AURA)
+                            viewModel.setThemePreset(if (light) LevyraThemes.FROST else LevyraThemes.AURIA_FLOW)
                         },
                         onDone = viewModel::completeOnboarding
                     )
@@ -12790,6 +12793,24 @@ private fun HomeEditorialSpotlight(
     backdropBleed: Dp = 0.dp
 ) {
     val track = candidate.track
+    val visualMode = com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(
+        com.luc4n3x.levyra.ui.theme.LevyraActivePalette.id
+    )
+    if (visualMode != null) {
+        LaunchedEffect(track.id, track.accentStart, track.accentEnd) {
+            onPaletteChanged(Color(track.accentStart), Color(track.accentEnd))
+        }
+        AuriaHomeHero(
+            mode = visualMode,
+            title = track.title,
+            artist = track.artist,
+            artwork = artistArtworkUrl.ifBlank { track.largeThumbnailUrl.ifBlank { track.thumbnailUrl } },
+            isPlaying = isCurrent && isPlaying,
+            onOpen = onOpen,
+            header = header
+        )
+        return
+    }
     val strings = LocalLevyraStrings.current
     val interaction = remember { MutableInteractionSource() }
     val context = LocalContext.current

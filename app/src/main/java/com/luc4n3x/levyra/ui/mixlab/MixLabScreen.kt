@@ -43,6 +43,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -89,13 +90,10 @@ import com.luc4n3x.levyra.ui.components.LevyraPressScale
 import com.luc4n3x.levyra.ui.components.levyraPressable
 import com.luc4n3x.levyra.ui.i18n.LocalLevyraStrings
 import com.luc4n3x.levyra.ui.i18n.formatLibraryDuration
-import com.luc4n3x.levyra.ui.theme.LevyraBlack
-import com.luc4n3x.levyra.ui.theme.LevyraCyan
 import com.luc4n3x.levyra.ui.theme.LevyraHapticAction
 import com.luc4n3x.levyra.ui.theme.LevyraInk
 import com.luc4n3x.levyra.ui.theme.LevyraMuted
 import com.luc4n3x.levyra.ui.theme.LevyraOnAccent
-import com.luc4n3x.levyra.ui.theme.LevyraPink
 import com.luc4n3x.levyra.ui.theme.LevyraPlayerDesign
 import com.luc4n3x.levyra.ui.theme.LevyraText
 import com.luc4n3x.levyra.ui.theme.LevyraTypeRhythm
@@ -104,6 +102,10 @@ import com.luc4n3x.levyra.viewmodel.MixLabController
 import com.luc4n3x.levyra.viewmodel.MixLabSession
 import com.luc4n3x.levyra.viewmodel.MixLabStage
 import kotlin.math.roundToInt
+
+private val AuriaDjAccent = Color(0xFFB09AFF)
+private val AuriaDjCoral = Color(0xFFFF9E8A)
+private val AuriaDjBackground = Color(0xFF0A0F26)
 
 @Composable
 internal fun MixLabScreen(
@@ -123,12 +125,13 @@ internal fun MixLabScreen(
 
     Surface(
         modifier = modifier.fillMaxSize(),
-        color = LevyraBlack
+        color = AuriaDjBackground
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
+                .background(Brush.verticalGradient(listOf(AuriaDjBackground, Color(0xFF171D38), AuriaDjBackground)))
         ) {
             MixLabTopBar(
                 stage = session.stage,
@@ -207,9 +210,18 @@ private fun MixLabTopBar(
             )
         }
         Spacer(modifier = Modifier.width(8.dp))
+        Box(
+            modifier = Modifier.size(40.dp).clip(CircleShape)
+                .background(AuriaDjAccent.copy(alpha = 0.14f))
+                .border(1.dp, AuriaDjAccent.copy(alpha = 0.65f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(Icons.Rounded.GraphicEq, contentDescription = null, tint = AuriaDjAccent)
+        }
+        Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = strings.mixLab,
+                text = "AURIA DJ",
                 color = LevyraText,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -227,13 +239,13 @@ private fun MixLabTopBar(
                 Icon(
                     imageVector = Icons.Rounded.Tune,
                     contentDescription = null,
-                    tint = LevyraCyan,
+                    tint = AuriaDjAccent,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = strings.mixLabTuneParameters,
-                    color = LevyraCyan,
+                    color = AuriaDjAccent,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -557,7 +569,7 @@ private fun MixLabConfigureContent(
             MixLabPrimaryActionButton(
                 label = strings.mixLabGenerate,
                 icon = Icons.Rounded.PlayArrow,
-                accent = LevyraCyan,
+                accent = AuriaDjAccent,
                 onClick = controller::generate,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -590,7 +602,7 @@ private fun MixLabPresetChip(
     ) {
         Text(
             text = label,
-            color = LevyraCyan,
+            color = AuriaDjAccent,
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -606,15 +618,15 @@ private fun MixLabSelectChip(
 ) {
     val shape = RoundedCornerShape(10.dp)
     val background by animateColorAsState(
-        targetValue = if (selected) LevyraCyan.copy(alpha = 0.22f) else LevyraAdaptiveCardDeep,
+        targetValue = if (selected) AuriaDjAccent.copy(alpha = 0.22f) else LevyraAdaptiveCardDeep,
         label = "mix-lab-chip-bg"
     )
     val textColor by animateColorAsState(
-        targetValue = if (selected) LevyraCyan else LevyraText,
+        targetValue = if (selected) AuriaDjAccent else LevyraText,
         label = "mix-lab-chip-text"
     )
     val borderColor by animateColorAsState(
-        targetValue = if (selected) LevyraCyan else LevyraAdaptiveHairline,
+        targetValue = if (selected) AuriaDjAccent else LevyraAdaptiveHairline,
         label = "mix-lab-chip-border"
     )
 
@@ -676,8 +688,8 @@ private fun MixLabSliderSection(
                 onValueChange(nextValue)
             },
             colors = SliderDefaults.colors(
-                thumbColor = LevyraCyan,
-                activeTrackColor = LevyraCyan,
+                thumbColor = AuriaDjAccent,
+                activeTrackColor = AuriaDjAccent,
                 inactiveTrackColor = LevyraPlayerDesign.TrackInactive
             ),
             modifier = Modifier.fillMaxWidth()
@@ -688,13 +700,13 @@ private fun MixLabSliderSection(
         ) {
             Text(
                 text = leftLabel,
-                color = if (value < 0.5f) LevyraCyan else LevyraMuted,
+                color = if (value < 0.5f) AuriaDjAccent else LevyraMuted,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = rightLabel,
-                color = if (value >= 0.5f) LevyraCyan else LevyraMuted,
+                color = if (value >= 0.5f) AuriaDjAccent else LevyraMuted,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -714,7 +726,7 @@ private fun MixLabGeneratingContent() {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             CircularProgressIndicator(
-                color = LevyraCyan,
+                color = AuriaDjAccent,
                 strokeWidth = 3.dp,
                 modifier = Modifier.size(48.dp)
             )
@@ -769,13 +781,13 @@ private fun MixLabPreviewContent(
                 ) {
                     Text(
                         text = strings.mixLabPreviewTracks(result.tracks.size),
-                        color = LevyraCyan,
+                        color = AuriaDjAccent,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
                         text = strings.mixLabPreviewArtists(result.artistCount),
-                        color = LevyraPink,
+                        color = AuriaDjCoral,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -801,14 +813,14 @@ private fun MixLabPreviewContent(
                 MixLabPrimaryActionButton(
                     label = strings.mixLabPlay,
                     icon = Icons.Rounded.PlayArrow,
-                    accent = LevyraCyan,
+                    accent = AuriaDjAccent,
                     onClick = onPlay,
                     modifier = Modifier.weight(1f)
                 )
                 MixLabPrimaryActionButton(
                     label = strings.mixLabShuffle,
                     icon = Icons.Rounded.Shuffle,
-                    accent = LevyraPink,
+                    accent = AuriaDjCoral,
                     onClick = onShuffle,
                     modifier = Modifier.weight(1f)
                 )
@@ -943,7 +955,7 @@ private fun MixLabErrorContent(
                 MixLabPrimaryActionButton(
                     label = strings.mixLabErrorRetry,
                     icon = Icons.Rounded.Refresh,
-                    accent = LevyraCyan,
+                    accent = AuriaDjAccent,
                     onClick = onRetry
                 )
                 MixLabSecondaryActionButton(
@@ -983,13 +995,13 @@ private fun MixLabPrimaryActionButton(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = LevyraBlack,
+            tint = AuriaDjBackground,
             modifier = Modifier.size(18.dp)
         )
         Spacer(modifier = Modifier.width(6.dp))
         Text(
             text = label,
-            color = LevyraBlack,
+            color = AuriaDjBackground,
             fontSize = 13.5.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
@@ -1068,7 +1080,7 @@ private fun MixLabSavePlaylistDialog(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
                         .background(LevyraInk)
-                        .border(1.dp, if (isFailed) LevyraPink else LevyraAdaptiveHairline, RoundedCornerShape(10.dp))
+                        .border(1.dp, if (isFailed) AuriaDjCoral else LevyraAdaptiveHairline, RoundedCornerShape(10.dp))
                         .padding(horizontal = 14.dp, vertical = 12.dp)
                 ) {
                     BasicTextField(
@@ -1079,7 +1091,7 @@ private fun MixLabSavePlaylistDialog(
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium
                         ),
-                        cursorBrush = SolidColor(LevyraCyan),
+                        cursorBrush = SolidColor(AuriaDjAccent),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -1087,7 +1099,7 @@ private fun MixLabSavePlaylistDialog(
                 if (isFailed) {
                     Text(
                         text = strings.mixLabSaveFailed,
-                        color = LevyraPink,
+                        color = AuriaDjCoral,
                         fontSize = 12.sp
                     )
                 }
@@ -1100,14 +1112,14 @@ private fun MixLabSavePlaylistDialog(
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(
-                        color = LevyraCyan,
+                        color = AuriaDjAccent,
                         strokeWidth = 2.dp,
                         modifier = Modifier.size(16.dp)
                     )
                 } else {
                     Text(
                         text = if (isFailed) strings.mixLabSaveRetry else strings.mixLabSaveConfirm,
-                        color = LevyraCyan,
+                        color = AuriaDjAccent,
                         fontWeight = FontWeight.Bold
                     )
                 }

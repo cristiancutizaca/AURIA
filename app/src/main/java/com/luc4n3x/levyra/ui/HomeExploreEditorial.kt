@@ -225,8 +225,12 @@ internal fun DiscoveryEditorialCard(
         levyraTonalRole(accentStart, isLight, maxChroma = 46.0)
     }
     val backgroundColor = lerp(colors.surfaceContainerHigh, tonal.container, 0.94f)
-    val contrastPalette = remember(backgroundColor) {
-        editorialContrastPalette(backgroundColor, backgroundColor)
+    val endTonal = remember(accentEnd, isLight) {
+        levyraTonalRole(accentEnd, isLight, maxChroma = 46.0)
+    }
+    val endBackground = lerp(colors.surfaceContainerHigh, endTonal.container, 0.88f)
+    val contrastPalette = remember(backgroundColor, endBackground) {
+        editorialContrastPalette(backgroundColor, endBackground)
     }
     val interaction = remember { MutableInteractionSource() }
     val corner = if (LocalAnimationsEnabled.current) {
@@ -242,7 +246,7 @@ internal fun DiscoveryEditorialCard(
     BoxWithConstraints(
         modifier = modifier
             .clip(RoundedCornerShape(corner))
-            .background(contrastPalette.start)
+            .background(Brush.linearGradient(listOf(contrastPalette.start, contrastPalette.end)))
             .levyraPressable(
                 onClick = onOpen,
                 interactionSource = interaction,
@@ -292,9 +296,9 @@ internal fun DiscoveryEditorialCard(
                     track = artwork,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .offset(x = 16.dp, y = 18.dp)
+                        .offset(x = 8.dp, y = 8.dp)
                         .size(artworkSize)
-                        .rotate(4f)
+                        .rotate(0f)
                         .clip(artworkShape ?: LevyraCardDesign.ArtworkShape)
                 )
             }

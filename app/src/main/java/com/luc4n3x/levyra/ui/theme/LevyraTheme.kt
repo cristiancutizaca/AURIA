@@ -40,6 +40,10 @@ data class LevyraPalette(
 object LevyraThemes {
     const val COSMIC = "cosmic"
     const val AURIA_HALO = "auria_halo"
+    const val AURIA_FLOW = "auria_flow"
+    const val AURIA_NEBULA = "auria_nebula"
+    const val AURIA_PULSE = "auria_pulse"
+    const val AURIA_STUDIO = "auria_studio"
     const val AMOLED = "amoled"
     const val NEON_CYAN = "neon_cyan"
     const val PURPLE_GLASS = "purple_glass"
@@ -97,6 +101,68 @@ object LevyraThemes {
         muted = Color(0xFFADB7CD),
         outline = Color(0x40C8B4FF)
     )
+
+    val auriaFlow = auriaHalo.copy(
+        id = AURIA_FLOW,
+        label = "AURIA Flow",
+        emoji = "◌",
+        black = Color(0xFF090E20),
+        ink = Color(0xFF10162C),
+        panel = Color(0xFF202A43),
+        panelSoft = Color(0xFF2B3651),
+        cyan = Color(0xFFBAA7FF),
+        blue = Color(0xFF877CF1),
+        violet = Color(0xFFB6ADFF),
+        pink = Color(0xFFFFA69F),
+        orange = Color(0xFFFFB78C)
+    )
+
+    val auriaNebula = auriaHalo.copy(
+        id = AURIA_NEBULA,
+        label = "AURIA Nebula",
+        emoji = "✧",
+        black = Color(0xFF070B1C),
+        ink = Color(0xFF0D1028),
+        panel = Color(0xFF1B1A3B),
+        panelSoft = Color(0xFF282650),
+        cyan = Color(0xFFD5B7FF),
+        blue = Color(0xFF8D6FF5),
+        violet = Color(0xFFCFB4FF),
+        pink = Color(0xFFF2A3D3),
+        orange = Color(0xFFFFBAAC)
+    )
+
+    val auriaPulse = auriaHalo.copy(
+        id = AURIA_PULSE,
+        label = "AURIA Pulse",
+        emoji = "♫",
+        black = Color(0xFF0C1020),
+        ink = Color(0xFF121929),
+        panel = Color(0xFF1D2938),
+        panelSoft = Color(0xFF283746),
+        cyan = Color(0xFF9ADDE2),
+        blue = Color(0xFF57ABB9),
+        violet = Color(0xFFB4D5EB),
+        pink = Color(0xFFFFB7A6),
+        orange = Color(0xFFFFD49C)
+    )
+
+    val auriaStudio = auriaHalo.copy(
+        id = AURIA_STUDIO,
+        label = "AURIA Studio",
+        emoji = "▥",
+        black = Color(0xFF0A0B14),
+        ink = Color(0xFF101522),
+        panel = Color(0xFF1B2632),
+        panelSoft = Color(0xFF263743),
+        cyan = Color(0xFF9EE3D6),
+        blue = Color(0xFF59B6AB),
+        violet = Color(0xFFBED7FF),
+        pink = Color(0xFFFFAD89),
+        orange = Color(0xFFFFC88D)
+    )
+
+    val auriaDesigns = listOf(auriaFlow, auriaNebula, auriaPulse, auriaStudio)
 
     val levyraAura = cosmic.copy(
         id = LEVYRA_AURA,
@@ -342,6 +408,10 @@ object LevyraThemes {
     )
 
     val presets: List<LevyraPalette> = listOf(
+        auriaFlow,
+        auriaNebula,
+        auriaPulse,
+        auriaStudio,
         auriaHalo,
         levyraAura,
         coverFlow,
@@ -377,7 +447,7 @@ object LevyraThemes {
     fun customTheme(id: String): LevyraCustomTheme? = customThemes.firstOrNull { it.id == id }
 
     fun byId(id: String): LevyraPalette = when {
-        id.isBlank() -> auriaHalo
+        id.isBlank() -> auriaFlow
         id == AURIA_HALO -> auriaHalo
         id == LEVYRA_AURA || id == LEGACY_APPLE_MUSIC -> levyraAura
         LevyraCustomTheme.isCustomId(id) -> customPalettes[id] ?: levyraAura
@@ -443,7 +513,7 @@ private fun readableOn(color: Color, background: Color, light: Boolean): Color {
 
 private const val MIN_ACCENT_CONTRAST = 3f
 
-private val activePaletteState = mutableStateOf(LevyraThemes.auriaHalo)
+private val activePaletteState = mutableStateOf(LevyraThemes.auriaFlow)
 private val activeFontPresetState = mutableStateOf(LevyraFontPreset.Outfit)
 private val activePureBlackState = mutableStateOf(false)
 private val activeCornerScaleState = mutableStateOf(1f)
