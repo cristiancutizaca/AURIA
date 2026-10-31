@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.luc4n3x.levyra.desktop.app.ui.components.Artwork
+import com.luc4n3x.levyra.desktop.app.ui.components.AuriaDesktopSectionLabel
 import com.luc4n3x.levyra.desktop.app.ui.components.EmptyState
 import com.luc4n3x.levyra.desktop.app.ui.components.LevyraChip
 import com.luc4n3x.levyra.desktop.app.ui.components.ScrollableColumn
@@ -86,6 +87,9 @@ fun LibraryScreen(
         contentPadding = PaddingValues(horizontal = 28.dp, vertical = 22.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        item {
+            AuriaDesktopSectionLabel(strings.libraryTitle)
+        }
         item {
             LibraryHero(
                 title = strings.libraryTitle,

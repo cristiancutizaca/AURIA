@@ -1,6 +1,14 @@
 package com.luc4n3x.levyra.desktop.app.ui.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -73,6 +81,42 @@ fun AuriaDesktopAtmosphere(modifier: Modifier = Modifier, accent: Color) {
                 radius = if (point % 4 == 0) 2.dp.toPx() else 1.dp.toPx(),
                 center = Offset(size.width * (0.42f + (point % 6) * 0.105f),
                     size.height * (0.09f + (point / 6) * 0.16f))
+            )
+        }
+    }
+}
+
+/** Shared AURIA section identity; display copy remains localized by the caller. */
+@Composable
+fun AuriaDesktopSectionLabel(title: String, modifier: Modifier = Modifier) {
+    val colors = MaterialTheme.colorScheme
+    Row(modifier, verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        AuriaHaloMark(Modifier.size(28.dp), colors.primary, colors.tertiary)
+        Text("AURIA / " + title, color = colors.primary,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold)
+    }
+}
+
+/** DJ ribbon belongs to AURIA, not to the inherited source components. */
+@Composable
+fun AuriaDesktopDjSignal(
+    modifier: Modifier = Modifier,
+    accent: Color,
+    secondary: Color
+) {
+    Canvas(modifier.height(25.dp)) {
+        repeat(33) { i ->
+            val level = (5 + ((i * 17 + 3) % 18)) / 23f
+            val h = size.height * level
+            val x = size.width * (i + 0.5f) / 33f
+            drawLine(
+                color = if (i % 8 == 0) secondary else accent,
+                start = Offset(x, (size.height - h) / 2f),
+                end = Offset(x, (size.height + h) / 2f),
+                strokeWidth = size.width / 68f,
+                cap = StrokeCap.Round
             )
         }
     }

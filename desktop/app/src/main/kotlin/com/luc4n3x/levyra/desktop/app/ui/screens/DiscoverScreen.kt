@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.luc4n3x.levyra.desktop.app.state.DiscoverUiState
 import com.luc4n3x.levyra.desktop.app.ui.components.Artwork
+import com.luc4n3x.levyra.desktop.app.ui.components.AuriaDesktopSectionLabel
 import com.luc4n3x.levyra.desktop.app.ui.components.CountryPicker
 import com.luc4n3x.levyra.desktop.app.ui.components.EmptyState
 import com.luc4n3x.levyra.desktop.app.ui.components.LoadingRow
@@ -63,6 +64,7 @@ fun DiscoverScreen(
         contentPadding = PaddingValues(horizontal = 28.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        item { AuriaDesktopSectionLabel(strings.navDiscover) }
         item {
             Column(
                 modifier = Modifier

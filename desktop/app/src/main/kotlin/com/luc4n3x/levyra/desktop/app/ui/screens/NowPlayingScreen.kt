@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.luc4n3x.levyra.desktop.app.state.LyricsUiState
 import com.luc4n3x.levyra.desktop.app.state.PlaybackUiState
 import com.luc4n3x.levyra.desktop.app.ui.components.Artwork
+import com.luc4n3x.levyra.desktop.app.ui.components.AuriaDesktopDjSignal
 import com.luc4n3x.levyra.desktop.app.ui.components.AuriaHaloMark
 import com.luc4n3x.levyra.desktop.app.ui.components.EmptyState
 import com.luc4n3x.levyra.desktop.app.ui.components.LoadingRow
@@ -144,9 +145,14 @@ fun NowPlayingScreen(
                                         cornerRadius = 16.dp
                                     )
                                 }
+                                AuriaDesktopDjSignal(
+                                    modifier = Modifier.fillMaxWidth().padding(top = 13.dp),
+                                    accent = accent,
+                                    secondary = MaterialTheme.colorScheme.tertiary
+                                )
                                 Text(
                                     text = djMix.incoming.title,
-                                    modifier = Modifier.padding(top = 18.dp),
+                                    modifier = Modifier.padding(top = 8.dp),
                                     style = MaterialTheme.typography.bodyMedium,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis

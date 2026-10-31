@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import com.luc4n3x.levyra.desktop.app.ui.components.CountryPicker
+import com.luc4n3x.levyra.desktop.app.ui.components.AuriaDesktopSectionLabel
 import com.luc4n3x.levyra.desktop.app.ui.components.EqualizerBars
 import com.luc4n3x.levyra.desktop.app.ui.components.LanguagePicker
 import com.luc4n3x.levyra.desktop.app.ui.components.LevyraChip
@@ -74,7 +75,10 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         item {
-            Text(text = strings.navSettings, style = MaterialTheme.typography.displaySmall)
+            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                AuriaDesktopSectionLabel(strings.navSettings)
+                Text(text = strings.navSettings, style = MaterialTheme.typography.displaySmall)
+            }
         }
 
         item {

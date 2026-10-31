@@ -48,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.luc4n3x.levyra.desktop.app.state.DiscoverUiState
 import com.luc4n3x.levyra.desktop.app.ui.components.Artwork
+import com.luc4n3x.levyra.desktop.app.ui.components.AuriaDesktopSectionLabel
 import com.luc4n3x.levyra.desktop.app.ui.components.AuriaHaloMark
 import com.luc4n3x.levyra.desktop.app.ui.components.SectionHeader
 import com.luc4n3x.levyra.desktop.app.ui.components.ScrollableColumn
@@ -115,7 +116,8 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                AuriaDesktopSectionLabel(strings.navHome)
                 Text(
                     text = strings.homeGreeting,
                     style = MaterialTheme.typography.displaySmall
