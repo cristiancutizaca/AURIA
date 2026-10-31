@@ -138,6 +138,7 @@ import com.luc4n3x.levyra.feature.radio.RadioStation
 import com.luc4n3x.levyra.player.LevyraPipBridge
 import com.luc4n3x.levyra.player.PlaybackService
 import com.luc4n3x.levyra.ui.LevyraLayoutMode
+import com.luc4n3x.levyra.ui.AuriaHaloEmblem
 import com.luc4n3x.levyra.ui.LevyraPlayerPane
 import com.luc4n3x.levyra.ui.MotionBackdropPalette
 import com.luc4n3x.levyra.ui.artwork.ArtworkPreviewOverlay
@@ -547,11 +548,17 @@ fun LevyraNowPlaying(
             if (track != null && (track.videoUrl.isNotBlank() || track.counterpartVideoId.isNotBlank())) {
                 modeSwitchContent?.invoke()
             } else {
-                PlayerSourceEyebrow(
-                    label = strings.playingFrom,
-                    source = track?.source ?: "LEVYRA",
-                    surfaces = surfaces
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    AuriaHaloEmblem(Modifier.size(22.dp), primary, secondary)
+                    PlayerSourceEyebrow(
+                        label = strings.playingFrom,
+                        source = track?.source ?: "AURIA",
+                        surfaces = surfaces
+                    )
+                }
             }
         }
         val headerTrailing: @Composable () -> Unit = {

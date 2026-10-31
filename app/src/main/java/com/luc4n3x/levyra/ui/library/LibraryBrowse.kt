@@ -56,6 +56,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.luc4n3x.levyra.domain.Playlist
+import com.luc4n3x.levyra.ui.AuriaSectionBrand
 import com.luc4n3x.levyra.domain.Track
 import com.luc4n3x.levyra.ui.components.LevyraGroupedInnerCorner
 import com.luc4n3x.levyra.ui.components.LevyraGroupedOuterCorner
@@ -121,17 +122,27 @@ private fun AuriaLibrarySectionGrid(
     val compact = mode == com.luc4n3x.levyra.ui.theme.AuriaVisualMode.Pulse ||
         mode == com.luc4n3x.levyra.ui.theme.AuriaVisualMode.Studio
     val rows = if (compact) entries.map { listOf(it) } else entries.chunked(2)
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(9.dp)) {
+        AuriaSectionBrand("AURIA  /  LIBRARY", Modifier.padding(vertical = 5.dp))
         rows.forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { entry ->
                     val label = entry.category.libraryLabel(LocalLevyraStrings.current)
-                    val shape = RoundedCornerShape(if (compact) 14.dp else 24.dp)
+                    val shape = when (mode) {
+                        com.luc4n3x.levyra.ui.theme.AuriaVisualMode.Flow ->
+                            RoundedCornerShape(topStart = 26.dp, topEnd = 7.dp, bottomEnd = 26.dp, bottomStart = 7.dp)
+                        com.luc4n3x.levyra.ui.theme.AuriaVisualMode.Nebula -> RoundedCornerShape(32.dp)
+                        com.luc4n3x.levyra.ui.theme.AuriaVisualMode.Pulse -> RoundedCornerShape(8.dp)
+                        com.luc4n3x.levyra.ui.theme.AuriaVisualMode.Studio -> RoundedCornerShape(14.dp)
+                    }
                     Row(
                         modifier = Modifier.weight(1f)
                             .heightIn(min = if (compact) 58.dp else 94.dp)
                             .clip(shape)
-                            .background(colors.surfaceContainerHigh)
+                            .background(Brush.horizontalGradient(listOf(
+                                colors.surfaceContainerHigh, colors.secondaryContainer.copy(alpha = .46f)
+                            )))
+                            .border(1.dp, colors.primary.copy(alpha = .19f), shape)
                             .levyraPressable(onClick = { onOpen(entry.category) },
                                 role = Role.Button, onClickLabel = label,
                                 pressedScale = LevyraPressScale.Tile)

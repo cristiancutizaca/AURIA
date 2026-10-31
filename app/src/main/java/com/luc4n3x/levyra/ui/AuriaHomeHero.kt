@@ -61,6 +61,8 @@ internal fun AuriaHomeHero(
     val palette = LevyraActivePalette
     Column(Modifier.fillMaxWidth()) {
         header?.invoke()
+        AuriaSectionBrand("AURIA  /  " + mode.name.uppercase(),
+            modifier = Modifier.padding(start = 20.dp, top = 8.dp))
         val backdrop = Brush.linearGradient(
             listOf(palette.panel, palette.ink, palette.panelSoft)
         )
@@ -151,7 +153,7 @@ internal fun AuriaHomeHero(
                             }
                             AuriaHeroPlay(palette.cyan, palette.black, isPlaying)
                         }
-                        AuriaStudioWaveform(palette.cyan, palette.violet)
+                        AuriaSignalRibbon(Modifier.fillMaxWidth(), palette.cyan, palette.violet)
                     }
                 }
             }

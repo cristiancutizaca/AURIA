@@ -85,6 +85,8 @@ import com.luc4n3x.levyra.domain.MixLabParams
 import com.luc4n3x.levyra.domain.MoodEngine
 import com.luc4n3x.levyra.domain.Track
 import com.luc4n3x.levyra.ui.LevyraAdaptiveCardDeep
+import com.luc4n3x.levyra.ui.AuriaHaloEmblem
+import com.luc4n3x.levyra.ui.AuriaSignalRibbon
 import com.luc4n3x.levyra.ui.LevyraAdaptiveHairline
 import com.luc4n3x.levyra.ui.components.LevyraPressScale
 import com.luc4n3x.levyra.ui.components.levyraPressable
@@ -138,7 +140,10 @@ internal fun MixLabScreen(
                 onClose = onClose,
                 onTuneParameters = controller::tuneParameters
             )
-
+            AuriaSignalRibbon(
+                Modifier.fillMaxWidth().padding(horizontal = 22.dp),
+                AuriaDjAccent.copy(alpha = .65f), AuriaDjCoral
+            )
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -216,7 +221,7 @@ private fun MixLabTopBar(
                 .border(1.dp, AuriaDjAccent.copy(alpha = 0.65f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Rounded.GraphicEq, contentDescription = null, tint = AuriaDjAccent)
+            AuriaHaloEmblem(Modifier.size(34.dp), AuriaDjAccent, AuriaDjCoral)
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {

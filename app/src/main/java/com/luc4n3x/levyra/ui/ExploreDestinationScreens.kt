@@ -3,6 +3,8 @@
 package com.luc4n3x.levyra.ui
 
 import com.luc4n3x.levyra.ui.components.LevyraBackButton
+import com.luc4n3x.levyra.ui.AuriaSectionBrand
+import com.luc4n3x.levyra.ui.AuriaHaloEmblem
 import com.luc4n3x.levyra.ui.components.LevyraSectionHeader
 import com.luc4n3x.levyra.ui.components.LevyraPlayAllIconButton
 import androidx.compose.ui.unit.Dp
@@ -1105,27 +1107,8 @@ private fun ExploreMoodsHero(title: String, subtitle: String) {
             .fillMaxWidth()
             .height(ExploreMoodsHeroHeight)
     ) {
-        ExploreExpressiveShape(
-            shape = MaterialShapes.Sunny.toShape(),
-            color = colors.primaryContainer.copy(alpha = 0.62f),
-            size = 112.dp,
-            rotation = 18f,
-            modifier = Modifier.align(Alignment.TopEnd).offset(x = 26.dp, y = (-8).dp)
-        )
-        ExploreExpressiveShape(
-            shape = MaterialShapes.Cookie9Sided.toShape(),
-            color = colors.tertiaryContainer.copy(alpha = 0.78f),
-            size = 54.dp,
-            rotation = -12f,
-            modifier = Modifier.align(Alignment.TopEnd).offset(x = (-104).dp, y = 10.dp)
-        )
-        ExploreExpressiveShape(
-            shape = MaterialShapes.Clover4Leaf.toShape(),
-            color = colors.secondaryContainer.copy(alpha = 0.86f),
-            size = 34.dp,
-            rotation = 24f,
-            modifier = Modifier.align(Alignment.TopEnd).offset(x = (-14).dp, y = 96.dp)
-        )
+        AuriaHaloEmblem(Modifier.align(Alignment.TopEnd).padding(end = 16.dp).size(110.dp),
+            colors.primary, colors.tertiary)
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
@@ -1133,6 +1116,7 @@ private fun ExploreMoodsHero(title: String, subtitle: String) {
                 .padding(bottom = 10.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            AuriaSectionBrand("AURIA  /  DISCOVER")
             Text(
                 text = title,
                 color = colors.onBackground,
@@ -1416,7 +1400,9 @@ internal fun ExploreDiscoveryCategoryCard(
     onClick: () -> Unit
 ) {
     val (accentStart, accentEnd) = accentColors ?: exploreCategoryPalette(identity)
-    val shape = RoundedCornerShape(16.dp)
+    val shape = if (prominent)
+        RoundedCornerShape(topStart = 34.dp, topEnd = 9.dp, bottomEnd = 34.dp, bottomStart = 9.dp)
+    else RoundedCornerShape(topStart = 22.dp, topEnd = 7.dp, bottomEnd = 22.dp, bottomStart = 7.dp)
     val metrics = exploreCategoryCardMetrics(prominent)
     val longTitle = title.length >= 14
     val titleSize = if (longTitle) metrics.titleSize * 0.92f else metrics.titleSize

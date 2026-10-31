@@ -1,6 +1,7 @@
 package com.luc4n3x.levyra.ui.theme
 
 import com.luc4n3x.levyra.ui.components.LevyraBackButton
+import com.luc4n3x.levyra.ui.AuriaHaloEmblem
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -162,6 +164,10 @@ internal fun LevyraThemeStudioOverlay(
             item(contentType = "studio-header") {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     LevyraBackButton(onClick = onClose, contentDescription = strings.back)
+                    AuriaHaloEmblem(
+                        Modifier.size(36.dp).padding(start = 3.dp),
+                        MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary
+                    )
                     Column(modifier = Modifier.padding(start = LevyraPlayerDesign.SpaceXs)) {
                         Text(
                             strings.themeStudio,
