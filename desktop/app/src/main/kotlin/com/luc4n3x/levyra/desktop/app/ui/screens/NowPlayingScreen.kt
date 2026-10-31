@@ -1,6 +1,7 @@
 package com.luc4n3x.levyra.desktop.app.ui.screens
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -36,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.luc4n3x.levyra.desktop.app.state.LyricsUiState
 import com.luc4n3x.levyra.desktop.app.state.PlaybackUiState
 import com.luc4n3x.levyra.desktop.app.ui.components.Artwork
+import com.luc4n3x.levyra.desktop.app.ui.components.AuriaHaloMark
 import com.luc4n3x.levyra.desktop.app.ui.components.EmptyState
 import com.luc4n3x.levyra.desktop.app.ui.components.LoadingRow
 import com.luc4n3x.levyra.desktop.app.ui.components.SectionHeader
@@ -91,6 +95,8 @@ fun NowPlayingScreen(
                         modifier = Modifier.size(20.dp)
                     )
                 }
+                AuriaHaloMark(Modifier.size(26.dp), accent, MaterialTheme.colorScheme.tertiary)
+                androidx.compose.foundation.layout.Spacer(Modifier.width(10.dp))
                 Text(
                     text = strings.navNowPlaying,
                     style = MaterialTheme.typography.titleMedium,
@@ -147,19 +153,39 @@ fun NowPlayingScreen(
                                 )
                             }
                         } else {
-                            Artwork(
-                                url = track.artworkUrl,
-                                modifier = Modifier
-                                    .size(340.dp)
-                                    .clip(RoundedCornerShape(26.dp))
-                                    .background(
-                                        Brush.linearGradient(
-                                            listOf(accent.copy(alpha = 0.5f), accent.copy(alpha = 0.1f))
-                                        )
-                                    ),
-                                cornerRadius = 26.dp,
-                                iconSize = 56.dp
-                            )
+                            Box(Modifier.size(366.dp), contentAlignment = Alignment.Center) {
+                                Canvas(Modifier.size(366.dp)) {
+                                    val outer = size.minDimension * 0.48f
+                                    drawCircle(
+                                        color = accent.copy(alpha = 0.22f),
+                                        radius = outer,
+                                        style = Stroke(width = 2.dp.toPx())
+                                    )
+                                    drawCircle(
+                                        color = accent.copy(alpha = 0.10f),
+                                        radius = outer * 0.87f,
+                                        style = Stroke(width = 1.dp.toPx())
+                                    )
+                                    drawCircle(
+                                        color = accent.copy(alpha = 0.64f),
+                                        radius = 4.dp.toPx(),
+                                        center = Offset(center.x + outer * 0.83f, center.y - outer * 0.55f)
+                                    )
+                                }
+                                Artwork(
+                                    url = track.artworkUrl,
+                                    modifier = Modifier
+                                        .size(306.dp)
+                                        .clip(RoundedCornerShape(topStart = 52.dp, topEnd = 12.dp, bottomEnd = 52.dp, bottomStart = 12.dp))
+                                        .background(
+                                            Brush.linearGradient(
+                                                listOf(accent.copy(alpha = 0.5f), accent.copy(alpha = 0.1f))
+                                            )
+                                        ),
+                                    cornerRadius = 26.dp,
+                                    iconSize = 56.dp
+                                )
+                            }
                         }
                         Text(
                             text = track.title,

@@ -9,16 +9,16 @@ import androidx.compose.ui.unit.sp
 object LevyraCardDesign {
     val ThumbCorner: Dp = 10.dp
     val ArtworkCorner: Dp = 12.dp
-    val EditorialCorner: Dp = 20.dp
-    val SurfaceCorner: Dp = 24.dp
+    val EditorialCorner: Dp = 30.dp
+    val SurfaceCorner: Dp = 32.dp
 
     val ThumbShape: Shape = RoundedCornerShape(ThumbCorner)
     val ArtworkShape: Shape = RoundedCornerShape(ArtworkCorner)
     val EditorialShape: Shape = RoundedCornerShape(EditorialCorner)
     val SurfaceShape: Shape = RoundedCornerShape(SurfaceCorner)
 
-    val RowThumb: Dp = 56.dp
-    val RowHeight: Dp = 72.dp
+    val RowThumb: Dp = 60.dp
+    val RowHeight: Dp = 78.dp
     val RowTextGap: Dp = 14.dp
     val RowLineGap: Dp = 3.dp
     val RowHorizontalPadding: Dp = 4.dp

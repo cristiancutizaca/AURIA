@@ -536,7 +536,10 @@ object LevyraThemeController {
         pureBlack: Boolean = false,
         accentOverride: Int? = null
     ) {
-        val base = LevyraThemes.byId(presetId)
+        val selected = LevyraThemes.byId(presetId)
+        val base = if (AuriaVisualMode.fromTheme(presetId) == AuriaVisualMode.Flow &&
+            presetId != LevyraThemes.AURIA_FLOW && presetId != LevyraThemes.AURIA_HALO
+        ) LevyraThemes.auriaFlow else selected
         val tinted = when {
             accentOverride != null -> withAccent(base, Color(accentOverride))
             base.followsCover && coverAccentStart != null && coverAccentEnd != null ->
@@ -684,6 +687,63 @@ private val LevyraExpressiveShapes = Shapes(
     extraExtraLarge = RoundedCornerShape(44.dp)
 )
 
+/**
+ * AURIA owns its geometry. Flow has an asymmetric sonic sweep,
+ * Nebula uses orbital corners, Pulse is rhythmic/angular and Studio is precise.
+ * Names from the original Kotlin modules are retained as API compatibility only.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+private fun auriaExpressiveShapes(mode: AuriaVisualMode, scale: Float): Shapes {
+    fun shape(tl: Int, tr: Int, br: Int, bl: Int) = RoundedCornerShape(
+        topStart = (tl * scale).dp,
+        topEnd = (tr * scale).dp,
+        bottomEnd = (br * scale).dp,
+        bottomStart = (bl * scale).dp
+    )
+    return when (mode) {
+        AuriaVisualMode.Flow -> Shapes(
+            extraSmall = shape(10, 3, 10, 3),
+            small = shape(18, 5, 18, 5),
+            medium = shape(24, 7, 24, 7),
+            large = shape(32, 9, 32, 9),
+            extraLarge = shape(40, 12, 40, 12),
+            largeIncreased = shape(36, 10, 36, 10),
+            extraLargeIncreased = shape(44, 13, 44, 13),
+            extraExtraLarge = shape(52, 16, 52, 16)
+        )
+        AuriaVisualMode.Nebula -> Shapes(
+            extraSmall = shape(10, 10, 10, 10),
+            small = shape(17, 17, 17, 17),
+            medium = shape(24, 24, 24, 24),
+            large = shape(34, 34, 34, 34),
+            extraLarge = shape(46, 46, 46, 46),
+            largeIncreased = shape(40, 40, 40, 40),
+            extraLargeIncreased = shape(50, 50, 50, 50),
+            extraExtraLarge = shape(58, 58, 58, 58)
+        )
+        AuriaVisualMode.Pulse -> Shapes(
+            extraSmall = shape(3, 3, 3, 3),
+            small = shape(6, 6, 6, 6),
+            medium = shape(9, 9, 9, 9),
+            large = shape(12, 12, 12, 12),
+            extraLarge = shape(16, 16, 16, 16),
+            largeIncreased = shape(14, 14, 14, 14),
+            extraLargeIncreased = shape(18, 18, 18, 18),
+            extraExtraLarge = shape(20, 20, 20, 20)
+        )
+        AuriaVisualMode.Studio -> Shapes(
+            extraSmall = shape(5, 5, 5, 5),
+            small = shape(8, 8, 8, 8),
+            medium = shape(12, 12, 12, 12),
+            large = shape(16, 16, 16, 16),
+            extraLarge = shape(20, 20, 20, 20),
+            largeIncreased = shape(18, 18, 18, 18),
+            extraLargeIncreased = shape(22, 22, 22, 22),
+            extraExtraLarge = shape(26, 26, 26, 26)
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private fun scaledExpressiveShapes(scale: Float): Shapes = Shapes(
     extraSmall = RoundedCornerShape((8 * scale).dp),
@@ -721,8 +781,9 @@ fun LevyraTheme(
     val palette = activePaletteState.value
     val colorScheme = remember(palette) { levyraColorScheme(palette) }
     val cornerScale = activeCornerScaleState.value
-    val shapes = remember(cornerScale) {
-        if (cornerScale == 1f) LevyraExpressiveShapes else scaledExpressiveShapes(cornerScale)
+    val shapes = remember(cornerScale, palette.id) {
+        AuriaVisualMode.fromTheme(palette.id)?.let { auriaExpressiveShapes(it, cornerScale) }
+            ?: if (cornerScale == 1f) LevyraExpressiveShapes else scaledExpressiveShapes(cornerScale)
     }
     val motionScheme = remember(animationsEnabled) {
         if (animationsEnabled) MotionScheme.expressive() else LevyraStaticMotionScheme

@@ -7,7 +7,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.luc4n3x.levyra.desktop.app.state.Destination
 import com.luc4n3x.levyra.desktop.app.ui.i18n.LocalStrings
-import com.luc4n3x.levyra.desktop.app.ui.components.levyraIconPainter
+import com.luc4n3x.levyra.desktop.app.ui.components.AuriaHaloMark
 import com.luc4n3x.levyra.desktop.app.ui.icons.LevyraIcons
 import com.luc4n3x.levyra.desktop.app.ui.icons.OfflineIcons
 import com.luc4n3x.levyra.desktop.app.ui.theme.LevyraMotion
@@ -61,7 +60,7 @@ fun LevyraSidebar(
 ) {
     val strings = LocalStrings.current
     val accent = LocalAccentColor.current
-    val shellShape = RoundedCornerShape(20.dp)
+    val shellShape = RoundedCornerShape(topStart = 30.dp, topEnd = 8.dp, bottomEnd = 30.dp, bottomStart = 8.dp)
     val shellBrush = Brush.verticalGradient(
         colors = listOf(
             accent.copy(alpha = 0.13f),
@@ -79,7 +78,7 @@ fun LevyraSidebar(
 
     Box(
         modifier = modifier
-            .width(228.dp)
+            .width(238.dp)
             .fillMaxHeight()
             .clip(shellShape)
             .background(shellBrush)
@@ -221,11 +220,7 @@ private fun SidebarBrand(
                 ),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = levyraIconPainter(),
-                    contentDescription = appName,
-                    modifier = Modifier.size(36.dp)
-                )
+                AuriaHaloMark(modifier = Modifier.size(36.dp), primary = accent)
             }
         }
 
@@ -237,7 +232,7 @@ private fun SidebarBrand(
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "DESKTOP",
+                text = "AURIA • SOUND SPACE",
                 style = MaterialTheme.typography.labelSmall.copy(
                     letterSpacing = 1.25.sp
                 ),
@@ -311,7 +306,7 @@ private fun SidebarItem(
                 indication = null,
                 onClick = onClick
             ),
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 4.dp, bottomEnd = 16.dp, bottomStart = 4.dp),
         color = background,
         border = if (selected) BorderStroke(1.dp, accent.copy(alpha = 0.28f)) else null
     ) {

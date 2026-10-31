@@ -151,11 +151,11 @@ private val LevyraTypography = Typography(
 )
 
 private val LevyraShapes = Shapes(
-    extraSmall = RoundedCornerShape(5.dp),
-    small = RoundedCornerShape(8.dp),
-    medium = RoundedCornerShape(11.dp),
-    large = RoundedCornerShape(18.dp),
-    extraLarge = RoundedCornerShape(24.dp)
+    extraSmall = RoundedCornerShape(topStart = 8.dp, topEnd = 3.dp, bottomEnd = 8.dp, bottomStart = 3.dp),
+    small = RoundedCornerShape(topStart = 12.dp, topEnd = 4.dp, bottomEnd = 12.dp, bottomStart = 4.dp),
+    medium = RoundedCornerShape(topStart = 18.dp, topEnd = 6.dp, bottomEnd = 18.dp, bottomStart = 6.dp),
+    large = RoundedCornerShape(topStart = 28.dp, topEnd = 9.dp, bottomEnd = 28.dp, bottomStart = 9.dp),
+    extraLarge = RoundedCornerShape(topStart = 40.dp, topEnd = 12.dp, bottomEnd = 40.dp, bottomStart = 12.dp)
 )
 
 object LevyraBrand {

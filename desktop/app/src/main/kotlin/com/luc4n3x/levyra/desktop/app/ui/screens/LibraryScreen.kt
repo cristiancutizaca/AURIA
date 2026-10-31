@@ -276,7 +276,7 @@ private fun LibraryHero(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp),
+        shape = RoundedCornerShape(topStart = 38.dp, topEnd = 10.dp, bottomEnd = 38.dp, bottomStart = 10.dp),
         color = Color.Transparent,
         border = BorderStroke(1.dp, accent.copy(alpha = 0.24f)),
         shadowElevation = 14.dp
@@ -299,7 +299,7 @@ private fun LibraryHero(
         ) {
             Surface(
                 modifier = Modifier.size(76.dp),
-                shape = RoundedCornerShape(22.dp),
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 9.dp, bottomEnd = 28.dp, bottomStart = 9.dp),
                 color = accent.copy(alpha = 0.18f),
                 border = BorderStroke(1.dp, accent.copy(alpha = 0.4f))
             ) {
@@ -396,7 +396,7 @@ private fun LibraryMetricCard(
     val accent = LocalAccentColor.current
     Surface(
         modifier = modifier.height(108.dp).clickable(onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 8.dp, bottomEnd = 22.dp, bottomStart = 8.dp),
         color = if (selected) accent.copy(alpha = 0.13f) else MaterialTheme.colorScheme.surfaceContainer,
         border = BorderStroke(
             1.dp,
@@ -443,7 +443,7 @@ private fun PlaylistLibraryRow(
     val strings = LocalStrings.current
     Surface(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 8.dp, bottomEnd = 22.dp, bottomStart = 8.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
@@ -511,7 +511,7 @@ private fun DownloadLibraryRow(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 8.dp, bottomEnd = 22.dp, bottomStart = 8.dp),
         color = if (isCurrent) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
         border = BorderStroke(
             1.dp,

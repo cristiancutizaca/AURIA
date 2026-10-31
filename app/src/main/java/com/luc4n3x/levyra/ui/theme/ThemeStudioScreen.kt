@@ -109,14 +109,14 @@ import com.luc4n3x.levyra.ui.i18n.themeLibraryCopy
 import kotlin.math.roundToInt
 
 internal val LevyraThemeAccents: List<Int> = listOf(
-    0xFF0A84FF.toInt(),
-    0xFF30D158.toInt(),
-    0xFF5E5CE6.toInt(),
-    0xFFFF9F0A.toInt(),
-    0xFFFF375F.toInt(),
-    0xFF64D2FF.toInt(),
-    0xFFBF5AF2.toInt(),
-    0xFFFFD60A.toInt()
+    0xFFB09AFF.toInt(), // Halo
+    0xFF8B5CF6.toInt(), // Nebula
+    0xFFD5B7FF.toInt(), // Lunar
+    0xFFFF9E8A.toInt(), // Sunrise
+    0xFF9ADDE2.toInt(), // Pulse
+    0xFF59B6AB.toInt(), // Studio
+    0xFFFFC88D.toInt(), // Gold
+    0xFFE9A3D3.toInt()  // Rose
 )
 
 @Composable
@@ -143,7 +143,6 @@ internal fun LevyraThemeStudioOverlay(
     var previewAccent by remember(selectedPresetId, accent) { mutableStateOf<Int?>(null) }
     val basePreview = rememberThemeStudioPreview(selectedPresetId, accent, pureBlack, customThemes)
     val preview = rememberThemeStudioPreview(selectedPresetId, previewAccent ?: accent, pureBlack, customThemes)
-    val presetRows = remember { themeStudioRows() }
     val defaultPresetId = LevyraThemes.defaultPresetId
     val dialogs = remember { ThemeStudioDialogState() }
 
@@ -199,55 +198,16 @@ internal fun LevyraThemeStudioOverlay(
                 )
             }
 
-            item(contentType = "studio-presets") {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        strings.themes,
-                        color = LevyraMuted,
-                        fontSize = 12.sp,
-                        letterSpacing = 0.4.sp,
-                        fontWeight = FontWeight.Black,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = LevyraPlayerDesign.SpaceXs)
-                            .semantics { heading() }
-                    )
+            item(contentType = "auria-restore") {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     TextButton(
                         onClick = { dialogs.confirmRestore = true },
                         enabled = selectedPresetId != defaultPresetId || accent != 0
                     ) {
                         Icon(Icons.Rounded.RestartAlt, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(library[ThemeLibraryText.RestoreDefault], maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Spacer(Modifier.width(6.dp))
+                        Text(library[ThemeLibraryText.RestoreDefault])
                     }
-                }
-            }
-
-            items(
-                count = presetRows.size,
-                key = { index -> "studio-row-$index" },
-                contentType = { "studio-row" }
-            ) { index ->
-                val row = presetRows[index]
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min),
-                    horizontalArrangement = Arrangement.spacedBy(LevyraPlayerDesign.SpaceMd)
-                ) {
-                    row.forEach { palette ->
-                        ThemePresetTile(
-                            palette = palette,
-                            selected = palette.id == selectedPresetId,
-                            onClick = { onSelectPreset(palette.id) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight(),
-                            defaultLabel = library[ThemeLibraryText.DefaultBadge].takeIf { palette.id == defaultPresetId },
-                            selectedLabel = library[ThemeLibraryText.Selected]
-                        )
-                    }
-                    if (row.size == 1) Spacer(modifier = Modifier.weight(1f))
                 }
             }
 
@@ -1435,6 +1395,3 @@ internal fun themeStudioPaletteFor(
     )
 }
 
-private fun themeStudioRows(): List<List<LevyraPalette>> = LevyraThemes.presets
-    .filterNot { palette -> LevyraThemes.auriaDesigns.any { it.id == palette.id } }
-    .chunked(2)

@@ -15,8 +15,9 @@ class AuriaVisualModesTest {
         }
     }
 
-    @Test fun legacyPresetsRemainAvailable() {
-        assertNull(AuriaVisualMode.fromTheme(LevyraThemes.LEVYRA_AURA))
+    @Test fun legacyBuiltInsKeepDataButRenderAsAuriaFlow() {
+        assertEquals(AuriaVisualMode.Flow, AuriaVisualMode.fromTheme(LevyraThemes.LEVYRA_AURA))
+        assertNull(AuriaVisualMode.fromTheme("custom_unknown"))
         assertEquals(AuriaVisualMode.Flow, AuriaVisualMode.fromTheme(LevyraThemes.AURIA_HALO))
         assertEquals(LevyraThemes.AURIA_FLOW, LevyraThemes.byId("").id)
         assertEquals(LevyraThemes.AURIA_HALO, LevyraThemes.byId(LevyraThemes.AURIA_HALO).id)

@@ -519,7 +519,7 @@ private fun SettingsSection(title: String, content: @Composable () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(topStart = 30.dp, topEnd = 10.dp, bottomEnd = 30.dp, bottomStart = 10.dp))
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(22.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
