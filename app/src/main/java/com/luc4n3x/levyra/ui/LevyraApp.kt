@@ -10865,7 +10865,10 @@ private class StudioHomeLook(
 
 @Composable
 private fun rememberStudioHomeLook(homeStudio: LevyraHomeStudioSettings, state: LevyraUiState): StudioHomeLook {
-    val homeStyle = homeStudio.style
+    val homeStyle = auriaHomeStyle(
+        com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset),
+        homeStudio.style
+    )
     val studioLayout = remember(homeStudio) { homeStudio.activeLayout() }
     val homeRenderOrder = remember(studioLayout) { studioLayout.renderOrder() }
     val styleSpec = remember(homeStyle, studioLayout.density) { homeStyleSpec(homeStyle, studioLayout.density) }

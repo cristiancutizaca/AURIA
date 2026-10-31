@@ -87,7 +87,7 @@ internal fun AuriaHomeHero(
                     ) {
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text(copy.radio, color = palette.cyan, style = MaterialTheme.typography.labelMedium)
-                            Text(copy.hero, color = palette.text, style = MaterialTheme.typography.headlineMedium,
+                            Text(title.ifBlank { copy.hero }, color = palette.text, style = MaterialTheme.typography.headlineMedium,
                                 maxLines = 3, overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.semantics { heading() })
                             Text(artist, color = palette.muted, style = MaterialTheme.typography.bodyMedium,
@@ -112,7 +112,7 @@ internal fun AuriaHomeHero(
                         Column(Modifier.align(Alignment.BottomStart).padding(22.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text(copy.radio, color = palette.cyan, style = MaterialTheme.typography.labelMedium)
-                            Text(copy.hero, color = palette.text, style = MaterialTheme.typography.headlineMedium,
+                            Text(title.ifBlank { copy.hero }, color = palette.text, style = MaterialTheme.typography.headlineMedium,
                                 maxLines = 2, modifier = Modifier.semantics { heading() })
                             Text(artist, color = palette.muted, style = MaterialTheme.typography.bodySmall,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -127,7 +127,7 @@ internal fun AuriaHomeHero(
                         AuriaHeroArt(artwork, Modifier.size(94.dp), 12.dp)
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                             Text(copy.radio, color = palette.cyan, style = MaterialTheme.typography.labelSmall)
-                            Text(copy.hero, color = palette.text, style = MaterialTheme.typography.titleLarge,
+                            Text(title.ifBlank { copy.hero }, color = palette.text, style = MaterialTheme.typography.titleLarge,
                                 maxLines = 2, overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.semantics { heading() })
                             Text(artist, color = palette.muted, style = MaterialTheme.typography.bodySmall,
@@ -144,7 +144,7 @@ internal fun AuriaHomeHero(
                             AuriaHeroArt(artwork, Modifier.size(76.dp), 12.dp)
                             Column(Modifier.weight(1f)) {
                                 Text(copy.radio, color = palette.cyan, style = MaterialTheme.typography.labelMedium)
-                                Text(copy.hero, color = palette.text, style = MaterialTheme.typography.titleLarge,
+                                Text(title.ifBlank { copy.hero }, color = palette.text, style = MaterialTheme.typography.titleLarge,
                                     modifier = Modifier.semantics { heading() })
                                 Text(artist, color = palette.muted, style = MaterialTheme.typography.bodySmall,
                                     maxLines = 1, overflow = TextOverflow.Ellipsis)
