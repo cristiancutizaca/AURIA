@@ -7,13 +7,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 object LevyraHomeDesign {
-    val CanvasDark: Color = Color(0xFF050609)
-    val CanvasMid: Color = Color(0xFF0A0C12)
-    val CanvasLight: Color = Color(0xFFF1F3F8)
+    val CanvasDark: Color = Color(0xFF090E20)
+    val CanvasMid: Color = Color(0xFF171D38)
+    val CanvasLight: Color = Color(0xFFFAF8FF)
 
-    val HeaderSurfaceDark: Color = Color(0xCC12141A)
+    val HeaderSurfaceDark: Color = Color(0xDD171D38)
     val HeaderSurfaceLight: Color = Color.White.copy(alpha = 0.90f)
-    val HeaderBorderDark: Color = Color.White.copy(alpha = 0.08f)
+    val HeaderBorderDark: Color = Color(0x40C8B4FF)
     val HeaderBorderLight: Color = Color(0x1811131F)
 
     val HorizontalInset: Dp = 16.dp
