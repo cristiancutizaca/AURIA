@@ -45,6 +45,7 @@ import com.luc4n3x.levyra.desktop.app.state.Destination
 import com.luc4n3x.levyra.desktop.app.state.LevyraAppModel
 import com.luc4n3x.levyra.desktop.app.state.PlaybackUiState
 import com.luc4n3x.levyra.desktop.app.ui.components.DownloadActions
+import com.luc4n3x.levyra.desktop.app.ui.components.AuriaDesktopAtmosphere
 import com.luc4n3x.levyra.desktop.app.ui.components.LocalDownloadActions
 import com.luc4n3x.levyra.desktop.app.ui.components.TrackActions
 import com.luc4n3x.levyra.desktop.app.ui.components.navigation.LevyraSidebar
@@ -232,6 +233,10 @@ fun LevyraRoot(model: LevyraAppModel) {
                             .fillMaxSize()
                             .background(MaterialTheme.colorScheme.background)
                     ) {
+                        AuriaDesktopAtmosphere(
+                            modifier = Modifier.fillMaxSize(),
+                            accent = MaterialTheme.colorScheme.primary
+                        )
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -254,7 +259,7 @@ fun LevyraRoot(model: LevyraAppModel) {
                                     modifier = Modifier
                                         .weight(1f)
                                         .fillMaxHeight(),
-                                    shape = RoundedCornerShape(12.dp),
+                                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 10.dp, bottomEnd = 28.dp, bottomStart = 10.dp),
                                     color = MaterialTheme.colorScheme.surface
                                 ) {
                                     Box(

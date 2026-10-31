@@ -67,12 +67,12 @@ fun DiscoverScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(22.dp))
+                    .clip(RoundedCornerShape(topStart = 40.dp, topEnd = 12.dp, bottomEnd = 40.dp, bottomStart = 12.dp))
                     .background(
                         Brush.linearGradient(
                             listOf(
-                                accent.copy(alpha = 0.27f),
-                                MaterialTheme.colorScheme.surfaceContainerHigh,
+                                accent.copy(alpha = 0.34f),
+                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.41f),
                                 MaterialTheme.colorScheme.surfaceContainer
                             )
                         )
@@ -181,7 +181,7 @@ private fun PodiumCard(
 
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(topStart = 26.dp, topEnd = 8.dp, bottomEnd = 26.dp, bottomStart = 8.dp))
             .background(
                 Brush.verticalGradient(
                     listOf(

@@ -1,6 +1,7 @@
 package com.luc4n3x.levyra.desktop.app.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
@@ -39,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +48,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.luc4n3x.levyra.desktop.app.state.DiscoverUiState
 import com.luc4n3x.levyra.desktop.app.ui.components.Artwork
+import com.luc4n3x.levyra.desktop.app.ui.components.AuriaHaloMark
 import com.luc4n3x.levyra.desktop.app.ui.components.SectionHeader
 import com.luc4n3x.levyra.desktop.app.ui.components.ScrollableColumn
 import com.luc4n3x.levyra.desktop.app.ui.components.TrackActions
@@ -328,7 +331,7 @@ private fun SearchLauncher(label: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(topStart = 21.dp, topEnd = 6.dp, bottomEnd = 21.dp, bottomStart = 6.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(onClick = onClick)
             .padding(horizontal = 18.dp, vertical = 13.dp),
@@ -360,81 +363,95 @@ private fun FeaturedPanel(
     onPlay: () -> Unit,
     onDiscover: () -> Unit
 ) {
-    Row(
+    val orbitAccent = MaterialTheme.colorScheme.tertiary
+    val frame = RoundedCornerShape(
+        topStart = 42.dp, topEnd = 12.dp, bottomEnd = 42.dp, bottomStart = 12.dp
+    )
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(220.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .height(265.dp)
+            .clip(frame)
             .background(
-                Brush.verticalGradient(
+                Brush.linearGradient(
                     listOf(
-                        accent.copy(alpha = 0.15f),
-                        MaterialTheme.colorScheme.surfaceContainerHigh
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.67f),
+                        MaterialTheme.colorScheme.surfaceContainer,
+                        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f)
                     )
                 )
             )
-            .padding(24.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(22.dp)
         ) {
-            Text(
-                text = track?.title ?: emptyTitle,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = track?.displaySubtitle?.ifBlank { emptyBody } ?: emptyBody,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            Row(
-                modifier = Modifier.padding(top = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(13.dp)
             ) {
-                Button(onClick = onPlay) {
-                    Icon(
-                        imageVector = LevyraIcons.Play,
-                        contentDescription = null,
-                        modifier = Modifier.size(17.dp)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                    AuriaHaloMark(Modifier.size(28.dp), MaterialTheme.colorScheme.primary, orbitAccent)
+                    Text(
+                        "AURIA / 01",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(playLabel)
                 }
-                OutlinedButton(onClick = onDiscover) {
-                    Text(discoverLabel)
+                Text(
+                    text = track?.title ?: emptyTitle,
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = track?.displaySubtitle?.ifBlank { emptyBody } ?: emptyBody,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Row(
+                    modifier = Modifier.padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(onClick = onPlay) {
+                        Icon(LevyraIcons.Play, contentDescription = null, modifier = Modifier.size(17.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(playLabel)
+                    }
+                    OutlinedButton(onClick = onDiscover) { Text(discoverLabel) }
                 }
             }
-        }
-
-        Surface(
-            modifier = Modifier.size(172.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shadowElevation = 18.dp
-        ) {
-            if (track != null) {
-                Artwork(
-                    url = track.artworkUrl,
-                    modifier = Modifier.size(172.dp),
-                    cornerRadius = 12.dp,
-                    iconSize = 38.dp
-                )
-            } else {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = LevyraIcons.Disc,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(44.dp)
+            Box(modifier = Modifier.size(212.dp), contentAlignment = Alignment.Center) {
+                Canvas(Modifier.size(210.dp)) {
+                    val radius = size.minDimension * 0.47f
+                    drawCircle(accent.copy(alpha = 0.12f), radius = radius)
+                    drawCircle(
+                        color = orbitAccent.copy(alpha = 0.75f),
+                        radius = radius * 0.90f,
+                        style = Stroke(width = 2.dp.toPx())
                     )
+                    drawCircle(
+                        color = accent.copy(alpha = 0.50f),
+                        radius = radius * 0.69f,
+                        style = Stroke(width = 1.dp.toPx())
+                    )
+                }
+                if (track != null) {
+                    Artwork(
+                        url = track.artworkUrl,
+                        modifier = Modifier.size(153.dp),
+                        cornerRadius = 26.dp,
+                        iconSize = 42.dp
+                    )
+                } else {
+                    AuriaHaloMark(Modifier.size(124.dp), MaterialTheme.colorScheme.primary, orbitAccent)
                 }
             }
         }
