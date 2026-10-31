@@ -10869,7 +10869,7 @@ private fun rememberStudioHomeLook(homeStudio: LevyraHomeStudioSettings, state: 
         com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset),
         homeStudio.style
     )
-    val studioLayout = remember(homeStudio) { homeStudio.activeLayout() }
+    val studioLayout = remember(homeStudio, homeStyle) { homeStudio.layoutFor(homeStyle) }
     val homeRenderOrder = remember(studioLayout) { studioLayout.renderOrder() }
     val styleSpec = remember(homeStyle, studioLayout.density) { homeStyleSpec(homeStyle, studioLayout.density) }
     val homeAnimationsEnabled = state.animationsEnabled && studioLayout.motion != HomeMotion.Reduced

@@ -102,6 +102,8 @@ import com.luc4n3x.levyra.ui.i18n.homeVideoShelfTitle
 import com.luc4n3x.levyra.ui.i18n.speedDialCopy
 import com.luc4n3x.levyra.ui.theme.LevyraHapticAction
 import com.luc4n3x.levyra.ui.theme.LevyraInk
+import com.luc4n3x.levyra.ui.theme.AuriaVisualMode
+import com.luc4n3x.levyra.ui.theme.LevyraActivePalette
 import com.luc4n3x.levyra.ui.theme.LevyraMuted
 import com.luc4n3x.levyra.ui.theme.LevyraText
 import com.luc4n3x.levyra.ui.theme.LocalLevyraHaptics
@@ -190,8 +192,9 @@ internal fun HomeStudioOverlay(
     val haptics = LocalLevyraHaptics.current
     val latestSettings by rememberUpdatedState(settings)
     val update: (LevyraHomeStudioSettings) -> Unit = { next -> onUpdate(next) }
-    val style = settings.style
-    val layout = settings.activeLayout()
+    val auriaMode = AuriaVisualMode.fromTheme(LevyraActivePalette.id)
+    val style = auriaHomeStyle(auriaMode, settings.style)
+    val layout = settings.layoutFor(style)
     var previewStyle by remember { mutableStateOf<HomeStyle?>(null) }
     var confirmResetAll by remember { mutableStateOf(false) }
 
@@ -202,7 +205,7 @@ internal fun HomeStudioOverlay(
 
     fun commitOrder(order: List<HomeSectionId>) {
         val current = latestSettings
-        update(current.updateLayout(current.style) { it.copy(order = order) })
+        update(current.updateLayout(style) { it.copy(order = order) })
     }
 
     fun moveBy(id: HomeSectionId, delta: Int): Boolean {
@@ -246,30 +249,48 @@ internal fun HomeStudioOverlay(
                 HomeStudioLabel(copy.styleSection)
             }
             item(key = "studio-styles", contentType = "studio-styles") {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(horizontal = 0.dp)
-                ) {
-                    items(HomeStyle.entries, key = { it.storageId }) { option ->
-                        HomeStyleCard(
-                            style = option,
-                            selected = option == style,
-                            inUseLabel = copy.inUse,
-                            onClick = { previewStyle = option }
-                        )
+                if (auriaMode == null) {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(horizontal = 0.dp)
+                    ) {
+                        items(HomeStyle.entries, key = { it.storageId }) { option ->
+                            HomeStyleCard(
+                                style = option,
+                                selected = option == style,
+                                inUseLabel = copy.inUse,
+                                onClick = { previewStyle = option }
+                            )
+                        }
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                            .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 7.dp,
+                                bottomEnd = 28.dp, bottomStart = 7.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                            .padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(9.dp)
+                    ) {
+                        AuriaSectionBrand("AURIA  /  " + auriaMode.name.uppercase())
+                        Text(copy.sectionsHint, color = LevyraMuted,
+                            style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
             item(key = "studio-style-description", contentType = "studio-text") {
                 Text(
-                    text = "${homeStyleName(style)} · ${homeStyleDescription(style, copy)}",
+                    text = if (auriaMode == null)
+                        "${homeStyleName(style)} · ${homeStyleDescription(style, copy)}"
+                    else "AURIA · " + auriaMode.name,
                     style = MaterialTheme.typography.bodyMedium,
                     color = LevyraMuted
                 )
             }
             item(key = "studio-sections-label", contentType = "studio-label") {
                 Column {
-                    HomeStudioLabel("${copy.sections} · ${homeStyleName(style)}")
+                    HomeStudioLabel("${copy.sections} · " +
+                        if (auriaMode == null) homeStyleName(style) else "AURIA " + auriaMode.name)
                     Text(text = copy.sectionsHint, style = MaterialTheme.typography.bodySmall, color = LevyraMuted)
                     Text(text = copy.featuredHint, style = MaterialTheme.typography.bodySmall, color = LevyraMuted)
                 }
@@ -345,18 +366,18 @@ internal fun HomeStudioOverlay(
                     },
                     onVisible = { show ->
                         val current = latestSettings
-                        update(current.updateLayout(current.style) { it.withVisibility(id, show) })
+                        update(current.updateLayout(style) { it.withVisibility(id, show) })
                         if (show && !homeSectionGloballyEnabled(id, interfaceSettings)) {
                             onInterfaceSettings(interfaceSettings.withHomeSectionEnabled(id))
                         }
                     },
                     onFeatured = { on ->
                         val current = latestSettings
-                        update(current.updateLayout(current.style) { it.withFeatured(id, on) })
+                        update(current.updateLayout(style) { it.withFeatured(id, on) })
                     },
                     onLayout = { chosen ->
                         val current = latestSettings
-                        update(current.updateLayout(current.style) { it.withLayout(id, chosen) })
+                        update(current.updateLayout(style) { it.withLayout(id, chosen) })
                     }
                 )
             }
