@@ -1210,7 +1210,18 @@ fun LevyraNowPlaying(
             .widthIn(max = detailMaxWidth)
             .align(Alignment.TopCenter)
 
-        if (deckLayout == PlayerDeckLayout.Aura && track != null) {
+        if (auriaMode != null && track != null && !state.isVideoMode &&
+            !liveRadio && playerPane == LevyraPlayerPane.Stacked
+        ) {
+            AuriaIndependentPlayerDeck(
+                track = track,
+                mode = auriaMode,
+                slots = deckSlots,
+                compact = compactPlayer,
+                gutter = gutter,
+                modifier = deckModifier
+            )
+        } else if (deckLayout == PlayerDeckLayout.Aura && track != null) {
             PlayerAuraDeck(
                 track = track,
                 slots = deckSlots,
