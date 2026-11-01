@@ -1,5 +1,6 @@
 package com.luc4n3x.levyra.desktop.app.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
@@ -25,11 +26,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.luc4n3x.levyra.desktop.app.state.DiscoverUiState
 import com.luc4n3x.levyra.desktop.app.ui.components.Artwork
+import com.luc4n3x.levyra.desktop.app.ui.components.AuriaHaloMark
 import com.luc4n3x.levyra.desktop.app.ui.components.AuriaDesktopSectionLabel
 import com.luc4n3x.levyra.desktop.app.ui.components.CountryPicker
 import com.luc4n3x.levyra.desktop.app.ui.components.EmptyState
@@ -66,52 +70,68 @@ fun DiscoverScreen(
     ) {
         item { AuriaDesktopSectionLabel(strings.navDiscover) }
         item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = 40.dp, topEnd = 12.dp, bottomEnd = 40.dp, bottomStart = 12.dp))
+            Box(
+                modifier = Modifier.fillMaxWidth()
+                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 48.dp, bottomStart = 48.dp, bottomEnd = 12.dp))
                     .background(
-                        Brush.linearGradient(
+                        Brush.horizontalGradient(
                             listOf(
-                                accent.copy(alpha = 0.34f),
-                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.41f),
+                                MaterialTheme.colorScheme.surfaceContainerHigh,
+                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .6f),
                                 MaterialTheme.colorScheme.surfaceContainer
                             )
                         )
                     )
-                    .padding(28.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text(
-                    text = strings.chartsTitle,
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = strings.chartsSubtitle,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Row(
-                    modifier = Modifier.padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Canvas(Modifier.fillMaxWidth().height(238.dp)) {
+                    val p = Offset(size.width * .85f, size.height * .51f)
+                    repeat(4) { index ->
+                        drawCircle(
+                            accent.copy(alpha = .25f - index * .047f),
+                            radius = size.height * (.24f + index * .21f),
+                            center = p,
+                            style = Stroke(1.7.dp.toPx())
+                        )
+                    }
+                }
+                Column(
+                    Modifier.fillMaxWidth().padding(27.dp),
+                    verticalArrangement = Arrangement.spacedBy(13.dp)
                 ) {
-                    Button(onClick = onPlayAll, enabled = state.tracks.isNotEmpty()) {
-                        Text(strings.playAll)
+                    Row(horizontalArrangement = Arrangement.spacedBy(13.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        AuriaHaloMark(modifier = Modifier.size(44.dp), primary = accent)
+                        Column {
+                            Text("AURIA  /  03   ·   SIGNAL RADAR",
+                                color = accent,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold)
+                            Text(strings.chartsTitle,
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Black)
+                        }
                     }
-                    OutlinedButton(onClick = onShuffleAll, enabled = state.tracks.isNotEmpty()) {
-                        Text(strings.shufflePlay)
+                    Text(strings.chartsSubtitle,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyLarge)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(onClick = onPlayAll, enabled = state.tracks.isNotEmpty()) {
+                            Text(strings.playAll)
+                        }
+                        OutlinedButton(onClick = onShuffleAll, enabled = state.tracks.isNotEmpty()) {
+                            Text(strings.shufflePlay)
+                        }
+                        OutlinedButton(onClick = onRefresh) { Text(strings.chartsRefresh) }
+                        CountryPicker(
+                            selectedCode = state.country,
+                            label = strings.chartsCountry,
+                            contentDescription = strings.chartsSelectCountry,
+                            onSelected = onCountryChange
+                        )
                     }
-                    OutlinedButton(onClick = onRefresh) {
-                        Text(strings.chartsRefresh)
-                    }
-                    CountryPicker(
-                        selectedCode = state.country,
-                        label = strings.chartsCountry,
-                        contentDescription = strings.chartsSelectCountry,
-                        onSelected = onCountryChange
-                    )
                 }
             }
         }
