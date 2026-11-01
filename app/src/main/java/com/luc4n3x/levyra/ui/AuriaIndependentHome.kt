@@ -72,6 +72,8 @@ private class AuriaHomeWords(es: Boolean) {
     val tracks = if (es) "canciones" else "tracks"
     val identity = if (es) "AURIA / SISTEMA SONORO" else "AURIA / SOUND SYSTEM"
     val fallback = if (es) "Encuentra algo nuevo" else "Find something new"
+    val identify = if (es) "IDENTIFICAR MÚSICA" else "IDENTIFY MUSIC"
+    val identifySub = if (es) "Reconoce música de otras aplicaciones" else "Recognize music from other apps"
 }
 
 /**
@@ -160,6 +162,28 @@ internal fun AuriaIndependentHome(
                 AuriaDestinationCard(words.find, "02", Modifier.weight(1f), colors.primary, onSearch)
                 AuriaDestinationCard(words.discover, "03", Modifier.weight(1f), colors.tertiary, onExplore)
                 AuriaDestinationCard(words.collection, "04", Modifier.weight(1f), colors.primary, onLibrary)
+            }
+        }
+        item(key = "auria-v4-identify", contentType = "auria-identify") {
+            val ink = MaterialTheme.colorScheme
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 20.dp)
+                    .clip(RoundedCornerShape(topStart = 5.dp, topEnd = 24.dp, bottomStart = 24.dp, bottomEnd = 5.dp))
+                    .background(ink.secondaryContainer)
+                    .clickable(role = Role.Button, onClick = viewModel::openRecognition)
+                    .padding(horizontal = 17.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                AuriaHaloEmblem(Modifier.size(37.dp), ink.primary, ink.tertiary)
+                Column(Modifier.weight(1f)) {
+                    Text(words.identify, fontWeight = FontWeight.Black,
+                        color = ink.onSecondaryContainer, fontSize = 14.sp)
+                    Text(words.identifySub, color = ink.onSecondaryContainer.copy(alpha = .8f),
+                        fontSize = 11.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+                Icon(Icons.Rounded.ArrowForward, contentDescription = null,
+                    tint = ink.onSecondaryContainer, modifier = Modifier.size(20.dp))
             }
         }
         if (personal.isNotEmpty()) {
