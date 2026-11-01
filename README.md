@@ -46,6 +46,14 @@ El empaquetado requiere Windows y las herramientas de instalación correspondien
 
 **Estado del DJ:** la superposición de pistas está implementada en código. La sincronización automática por BPM, la selección de puntos musicales de entrada y la separación de voces/instrumentos siguen pendientes de validación e implementación; no se debe presentar como una mezcla profesional ya terminada.
 
+## AURIA V4: experiencia visual independiente
+
+El diseño principal de Android ya utiliza pantallas propias para **Inicio, Buscar, Explorar, Biblioteca, navegación, minirreproductor y reproductor expandido** en los cuatro estilos **Flow, Nebula, Pulse y Studio**. En el Inicio está disponible la entrada a **AURIA Identify**. Windows tiene un nuevo Inicio, barra de navegación y tratamiento visual propio de búsqueda, descubrimiento y biblioteca.
+
+La implementación se realizó preservando las bibliotecas, colas, listas, favoritos y motores multimedia existentes. Los paquetes técnicos heredados permanecen donde son necesarios para compatibilidad, sin presentar AURIA como una actualización oficial de Levyra.
+
+**Estado de la entrega:** código integrado en `main`, pero **sin compilación ni pruebas reales de Android/Windows verificadas**. Puede haber ajustes pendientes en pantallas secundarias y rutas especiales (vídeo, orientación horizontal y diálogos). [Revisar la arquitectura V4 y las pruebas manuales](docs/design/AURIA_V4_INDEPENDENT_VISUAL_SYSTEM.md).
+
 ## Actualizaciones, anuncios y financiación
 
 Las direcciones de actualizaciones se limitan al repositorio `cristiancutizaca/AURIA`. En Android, la instalación automática de actualizaciones está **desactivada** hasta tener un canal y una clave de firma propios. Las notificaciones promocionales heredadas están desactivadas y AURIA no incorpora enlaces de donación del autor del proyecto de origen.
