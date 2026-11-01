@@ -27,6 +27,7 @@ Comparativa de capturas reales del 1 de noviembre de 2026:
 | Inicio | `ui/AuriaIndependentHome.kt` | Escucha, radar y archivo |
 | Navegación | `ui/AuriaIndependentShell.kt` (`AuriaCommandDock`) | Destino prioritario y comandos |
 | Minirreproductor | `ui/AuriaIndependentShell.kt` (`AuriaTransportStrip`) | Transporte de dos niveles |
+| Reproductor expandido | `ui/player/LevyraNowPlaying.kt` | Lienzo AURIA propio y encabezado de modo, conservando controles y superficies de vídeo |
 | Buscar | `ui/AuriaIndependentSearch.kt` | Consola de búsqueda |
 | Explorar | `ui/AuriaIndependentExplore.kt` | Radar y catálogo musical |
 | Biblioteca | `ui/library/AuriaLibraryAtlas.kt` | Bóveda personal organizada |
@@ -42,6 +43,8 @@ La presencia de esos identificadores internos no implica que el diseño visual d
 - `screens/HomeScreen.kt`: inicio ahora utiliza el nuevo escenario en vez de su antiguo encabezado, buscador y featured panel.
 - `screens/SearchScreen.kt`: cabecera de terminal musical e input asimétrico.
 - `screens/DiscoverScreen.kt`: encabezado radar para rankings con anillos orbitales.
+- `screens/LibraryScreen.kt`: bóveda original con indicador de archivo y categorías en métricas.
+- `components/navigation/AuriaDesktopCommandRail.kt`: navegación por índice propia; activada desde `LevyraRoot.kt`.
 
 Las operaciones se conectan al modelo y a los callbacks existentes. El motor de audio no se altera.
 
@@ -66,7 +69,7 @@ Las operaciones se conectan al modelo y a los callbacks existentes. El motor de 
 
 ## Alcance y trabajo todavía no cerrado
 
-- UI Android integrada en `main` en la primera capa V4; revisar el player expandido, modales y secundarios que todavía usen estilos heredados.
+- UI Android integrada en `main` en la primera capa V4; el player expandido ya tiene fondo y cabecera AURIA, pero algunos decks, modales y secundarios aún comparten componentes internos heredados.
 - Windows sigue compartiendo algunos widgets históricos que requieren una auditoría visual adicional.
 - Build y tests automatizados siguen sin validación concluyente en esta entrega; verificar antes de publicar.
 - Nunca presentar una integración de reconocimiento musical como compatible con cualquier aplicación: Android puede bloquear captura interna por políticas de cada app.
