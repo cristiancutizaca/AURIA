@@ -27,7 +27,7 @@ Comparativa de capturas reales del 1 de noviembre de 2026:
 | Inicio | `ui/AuriaIndependentHome.kt` | Escucha, radar y archivo |
 | Navegación | `ui/AuriaIndependentShell.kt` (`AuriaCommandDock`) | Destino prioritario y comandos |
 | Minirreproductor | `ui/AuriaIndependentShell.kt` (`AuriaTransportStrip`) | Transporte de dos niveles |
-| Reproductor expandido | `ui/player/LevyraNowPlaying.kt` | Lienzo AURIA propio y encabezado de modo, conservando controles y superficies de vídeo |
+| Reproductor expandido | `ui/player/AuriaIndependentPlayerDeck.kt` | Estructura AURIA dedicada con cuatro geometrías y slots del reproductor existente, preservando audio, gestos y paneles |
 | Buscar | `ui/AuriaIndependentSearch.kt` | Consola de búsqueda |
 | Explorar | `ui/AuriaIndependentExplore.kt` | Radar y catálogo musical |
 | Biblioteca | `ui/library/AuriaLibraryAtlas.kt` | Bóveda personal organizada |
@@ -69,7 +69,7 @@ Las operaciones se conectan al modelo y a los callbacks existentes. El motor de 
 
 ## Alcance y trabajo todavía no cerrado
 
-- UI Android integrada en `main` en la primera capa V4; el player expandido ya tiene fondo y cabecera AURIA, pero algunos decks, modales y secundarios aún comparten componentes internos heredados.
+- UI Android integrada en `main`: Inicio, Buscar, Explorar, Biblioteca, dock, transporte y un deck expandido propio en modo retrato. En orientación horizontal, vídeo, radio, modales y secundarios permanecen rutas de compatibilidad que requieren auditoría visual.
 - Windows sigue compartiendo algunos widgets históricos que requieren una auditoría visual adicional.
 - Build y tests automatizados siguen sin validación concluyente en esta entrega; verificar antes de publicar.
 - Nunca presentar una integración de reconocimiento musical como compatible con cualquier aplicación: Android puede bloquear captura interna por políticas de cada app.
