@@ -2355,10 +2355,14 @@ fun LevyraApp(
                     .nestedScroll(dockState)
                     .glassBackdropSource(dockGlass)
             ) {
-            LevyraHomeAtmosphere(
-                isLight = LevyraIsLight,
-                accent = yourSoundAccent
-            )
+            if (auriaModeForChrome == null) {
+                LevyraHomeAtmosphere(
+                    isLight = LevyraIsLight,
+                    accent = yourSoundAccent
+                )
+            } else {
+                AuriaIndependentBackdrop(auriaModeForChrome)
+            }
             AnimatedContent(
                 targetState = backgroundTab,
                 modifier = Modifier
@@ -2388,21 +2392,39 @@ fun LevyraApp(
                                 LocalHomeCompactDensity provides
                                     renderSnapshot.state.interfaceSettings.compactHome
                             ) {
-                                HomeStudioHost(
-                                    viewModel = homeViewModel,
-                                    renderSnapshot = renderSnapshot,
-                                    homeListState = homeListState,
-                                    deferredSectionsRevealed = homeDeferredSectionsRevealed,
-                                    accountAvatarUrl = youtubeMusicState.active?.avatarUrl.orEmpty(),
-                                    homeStudio = state.homeStudioSettings,
-                                    onPullRefresh = {
-                                        homeViewModel.refreshHome { youtubeMusicViewModel.refreshHomeAndAwait(state.languageCode) }
-                                    },
-                                    onTrackActions = { track ->
-                                        queueRemovalTarget = null
-                                        trackActionTarget = track
-                                    }
-                                )
+                                if (auriaModeForChrome != null) {
+                                    AuriaIndependentHome(
+                                        viewModel = homeViewModel,
+                                        snapshot = renderSnapshot,
+                                        listState = homeListState,
+                                        mode = auriaModeForChrome,
+                                        onSearch = { viewModel.selectTab(LevyraTab.Search) },
+                                        onExplore = { viewModel.selectTab(LevyraTab.Explore) },
+                                        onLibrary = { viewModel.selectTab(LevyraTab.Library) },
+                                        onOpenPlayer = { viewModel.selectTab(LevyraTab.Player) },
+                                        onRefresh = {
+                                            homeViewModel.refreshHome {
+                                                youtubeMusicViewModel.refreshHomeAndAwait(state.languageCode)
+                                            }
+                                        }
+                                    )
+                                } else {
+                                    HomeStudioHost(
+                                        viewModel = homeViewModel,
+                                        renderSnapshot = renderSnapshot,
+                                        homeListState = homeListState,
+                                        deferredSectionsRevealed = homeDeferredSectionsRevealed,
+                                        accountAvatarUrl = youtubeMusicState.active?.avatarUrl.orEmpty(),
+                                        homeStudio = state.homeStudioSettings,
+                                        onPullRefresh = {
+                                            homeViewModel.refreshHome { youtubeMusicViewModel.refreshHomeAndAwait(state.languageCode) }
+                                        },
+                                        onTrackActions = { track ->
+                                            queueRemovalTarget = null
+                                            trackActionTarget = track
+                                        }
+                                    )
+                                }
                             }
                         }
                         LevyraTab.Search -> {
@@ -2508,7 +2530,16 @@ fun LevyraApp(
                                         end = { velocity -> settleExpansion(velocity, false) }
                                     )
                                     val miniStudio = miniPlayerStudio.settings
-                                    if (effectiveMiniStyle == MiniPlayerStyle.Original) {
+                                    if (auriaModeForChrome != null) {
+                                        AuriaTransportStrip(
+                                            mode = auriaModeForChrome,
+                                            model = miniModel,
+                                            morphAnchors = morphAnchors,
+                                            artworkHidden = { artworkMorphActive },
+                                            playbackActions = miniPlaybackActions,
+                                            expansionActions = miniExpansionActions
+                                        )
+                                    } else if (effectiveMiniStyle == MiniPlayerStyle.Original) {
                                         MiniPlayer(
                                             model = miniModel,
                                             morphAnchors = morphAnchors,
@@ -2549,7 +2580,13 @@ fun LevyraApp(
                             }
                         ) {
                             val navStudio = navigationStudio.settings
-                            if (effectiveNavStyle == NavStyle.Original) {
+                            if (auriaModeForChrome != null) {
+                                AuriaCommandDock(
+                                    mode = auriaModeForChrome,
+                                    selected = backgroundTab,
+                                    onSelect = selectDockTab
+                                )
+                            } else if (effectiveNavStyle == NavStyle.Original) {
                                 BottomTabs(
                                     selected = backgroundTab,
                                     compaction = compactionProvider,
@@ -2593,7 +2630,9 @@ fun LevyraApp(
                                 bottomTabsSlot()
                             }
                         }
-                        if (effectiveNavStyle == NavStyle.Original) {
+                        if (auriaModeForChrome != null) {
+                            Column(modifier = dockModifier, content = dockContent)
+                        } else if (effectiveNavStyle == NavStyle.Original) {
                             LevyraAdaptiveDockSurface(glass = dockGlass, modifier = dockModifier, content = dockContent)
                         } else {
                             StyledDockSurface(
