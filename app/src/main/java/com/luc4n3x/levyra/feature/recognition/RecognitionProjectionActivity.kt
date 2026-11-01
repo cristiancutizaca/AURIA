@@ -1,8 +1,10 @@
 package com.luc4n3x.levyra.feature.recognition
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Bundle
@@ -19,6 +21,12 @@ class RecognitionProjectionActivity : ComponentActivity() {
         ::onConsentResult
     )
 
+    private val audioPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) requestProjectionConsent() else finish()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
@@ -26,6 +34,17 @@ class RecognitionProjectionActivity : ComponentActivity() {
             return
         }
         if (savedInstanceState != null) return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            requestProjectionConsent()
+        } else {
+            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    private fun requestProjectionConsent() {
+        if (isFinishing || isDestroyed) return
         val manager = getSystemService(MediaProjectionManager::class.java)
         if (manager == null) {
             finish()
