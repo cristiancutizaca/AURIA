@@ -40,7 +40,8 @@ La presencia de esos identificadores internos no implica que el diseño visual d
 ## Windows: componentes implementados en esta iteración
 
 - `screens/AuriaDesktopListeningStage.kt`: portada editorial original, órbitas y acciones rápidas.
-- `screens/HomeScreen.kt`: inicio ahora utiliza el nuevo escenario en vez de su antiguo encabezado, buscador y featured panel.
+- `screens/AuriaDesktopHome.kt`: Inicio de escritorio independiente con escenario de escucha, comandos de destinos, señales, ranking personal e historial, conectado a las acciones existentes. Se activa desde `LevyraRoot.kt`.
+- `screens/HomeScreen.kt`: se conserva como referencia de compatibilidad, no como Inicio principal.
 - `screens/SearchScreen.kt`: cabecera de terminal musical e input asimétrico.
 - `screens/DiscoverScreen.kt`: encabezado radar para rankings con anillos orbitales.
 - `screens/LibraryScreen.kt`: bóveda original con indicador de archivo y categorías en métricas.
