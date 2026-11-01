@@ -216,11 +216,12 @@ fun LevyraNowPlaying(
     val density = LocalDensity.current
     val rightToLeft = LocalLayoutDirection.current == LayoutDirection.Rtl
     val artworkUrl = track?.let(::preferredPlayerArtworkUrl).orEmpty()
+    val auriaMode = com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(
+        com.luc4n3x.levyra.ui.theme.LevyraActivePalette.id
+    )
     val visualMode = auriaPlayerVisualMode(
         state.interfaceSettings.playerVisualMode,
-        com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(
-            com.luc4n3x.levyra.ui.theme.LevyraActivePalette.id
-        )
+        auriaMode
     )
     val backgroundMode = state.interfaceSettings.playerBackground.let { selected ->
         if (selected == PlayerBackgroundMode.Dark && state.interfaceSettings.pureBlack) {
@@ -504,17 +505,23 @@ fun LevyraNowPlaying(
             DefaultBackdropFocus
         }
 
-        PlayerVisualHost(
-            backgroundMode = backgroundMode,
-            artworkUrl = artworkUrl,
-            ambience = backdropAmbience,
-            animationsEnabled = animated,
-            isPlaying = state.isPlaying,
-            fixedColors = fixedAccents != null,
-            backdropFocus = backdropFocus,
-            reactiveAura = reactiveAuraStyle,
-            modifier = Modifier.fillMaxSize()
-        )
+        // AURIA modes use their own independent geometry rather than Levyra's
+        // inherited blurred-artwork backdrop. Video keeps its playback surface.
+        if (auriaMode != null && !state.isVideoMode) {
+            com.luc4n3x.levyra.ui.AuriaIndependentBackdrop(auriaMode)
+        } else {
+            PlayerVisualHost(
+                backgroundMode = backgroundMode,
+                artworkUrl = artworkUrl,
+                ambience = backdropAmbience,
+                animationsEnabled = animated,
+                isPlaying = state.isPlaying,
+                fixedColors = fixedAccents != null,
+                backdropFocus = backdropFocus,
+                reactiveAura = reactiveAuraStyle,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
         val headerButtonFill = surfaces.controlQuiet
         val headerButtonBorder = if (surfaces.amoled) surfaces.outline else Color.Transparent
@@ -552,12 +559,23 @@ fun LevyraNowPlaying(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    AuriaHaloEmblem(Modifier.size(22.dp), primary, secondary)
-                    PlayerSourceEyebrow(
-                        label = strings.playingFrom,
-                        source = track?.source ?: "AURIA",
-                        surfaces = surfaces
-                    )
+                    if (auriaMode != null) {
+                        AuriaHaloEmblem(Modifier.size(28.dp), primary, secondary)
+                        Text(
+                            text = "AURIA  /  " + auriaMode.name.uppercase(),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Black,
+                            color = primary,
+                            maxLines = 1
+                        )
+                    } else {
+                        AuriaHaloEmblem(Modifier.size(22.dp), primary, secondary)
+                        PlayerSourceEyebrow(
+                            label = strings.playingFrom,
+                            source = track?.source ?: "AURIA",
+                            surfaces = surfaces
+                        )
+                    }
                 }
             }
         }
