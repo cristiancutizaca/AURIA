@@ -40,6 +40,7 @@ El empaquetado requiere Windows y las herramientas de instalación correspondien
 - Reproducción de música local y online.
 - Biblioteca, favoritos, playlists, letras y descargas.
 - Recomendaciones personalizadas a partir de la escucha.
+- **AURIA Identify (Android)**: reconocimiento bajo demanda de fragmentos escuchados en otras aplicaciones compatibles (Android 10+) o por micrófono, con historial y búsqueda en el catálogo. Integrado en código; pendiente validación de APK y dispositivos.
 - **AURIA DJ** con reproducción continua, preparación de la siguiente canción y superposición prolongada.
 - Reproductor de escritorio y aplicación Android.
 
