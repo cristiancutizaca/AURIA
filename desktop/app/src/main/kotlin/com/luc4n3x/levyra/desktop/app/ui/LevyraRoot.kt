@@ -48,7 +48,7 @@ import com.luc4n3x.levyra.desktop.app.ui.components.DownloadActions
 import com.luc4n3x.levyra.desktop.app.ui.components.AuriaDesktopAtmosphere
 import com.luc4n3x.levyra.desktop.app.ui.components.LocalDownloadActions
 import com.luc4n3x.levyra.desktop.app.ui.components.TrackActions
-import com.luc4n3x.levyra.desktop.app.ui.components.navigation.LevyraSidebar
+import com.luc4n3x.levyra.desktop.app.ui.components.navigation.AuriaDesktopCommandRail
 import com.luc4n3x.levyra.desktop.app.ui.components.tracksTextInputFocus
 import com.luc4n3x.levyra.desktop.app.ui.i18n.LocalStrings
 import com.luc4n3x.levyra.desktop.app.ui.i18n.stringsFor
@@ -248,7 +248,7 @@ fun LevyraRoot(model: LevyraAppModel) {
                                     .fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                LevyraSidebar(
+                                AuriaDesktopCommandRail(
                                     destination = destination,
                                     hasActiveTrack = playback.current != null,
                                     isPlaying = playback.isPlaying,
