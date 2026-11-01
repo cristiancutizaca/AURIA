@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.luc4n3x.levyra.domain.Track
+import com.luc4n3x.levyra.domain.ExploreZone
 import com.luc4n3x.levyra.ui.theme.AuriaVisualMode
 
 /** Radar navigation replaces Levyra's four flower-icon category tiles. */
@@ -174,6 +176,123 @@ internal fun AuriaExploreReleaseLedger(
                         fontSize = 11.sp, overflow = TextOverflow.Ellipsis)
                 }
                 trackActions(track)
+            }
+        }
+    }
+}
+
+/** Two flat, connected scope keys, not Levyra's big pill selectors. */
+@Composable
+internal fun AuriaExploreScopeStrip(
+    scopes: List<ExploreFreshScope>,
+    selected: ExploreFreshScope,
+    localLabel: String,
+    onSelect: (ExploreFreshScope) -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 19.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        scopes.forEachIndexed { i, scope ->
+            val active = scope == selected
+            Column(
+                Modifier.weight(1f)
+                    .clip(RoundedCornerShape(if (i == 0) 5.dp else 17.dp))
+                    .background(if (active) colors.primaryContainer else colors.surfaceContainer)
+                    .clickable(onClick = { onSelect(scope) })
+                    .padding(horizontal = 13.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(if (scope == ExploreFreshScope.Local) "LOCAL / 01" else "GLOBAL / 02",
+                    color = if (active) colors.primary else colors.onSurfaceVariant,
+                    fontWeight = FontWeight.Black, fontSize = 10.sp, letterSpacing = 1.3.sp)
+                Text(if (scope == ExploreFreshScope.Local) localLabel else "En el mundo",
+                    color = colors.onSurface, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            }
+        }
+    }
+}
+
+/** Compact editorial list used instead of the original horizontal release carousel. */
+@Composable
+internal fun AuriaExploreRecentLedger(
+    tracks: List<Track>,
+    onPlay: (Track) -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    if (tracks.isEmpty()) return
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = 19.dp, vertical = 5.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text("02  /  NUEVAS SEÑALES", color = colors.primary, fontSize = 11.sp,
+            fontWeight = FontWeight.Black, letterSpacing = 1.5.sp)
+        tracks.take(10).forEachIndexed { i, track ->
+            Row(
+                Modifier.fillMaxWidth().height(64.dp)
+                    .clip(RoundedCornerShape(7.dp)).background(colors.surfaceContainer)
+                    .clickable(onClick = { onPlay(track) })
+                    .padding(horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(11.dp)
+            ) {
+                Text((i + 1).toString().padStart(2, '0'),
+                    color = colors.primary, fontSize = 11.sp, fontWeight = FontWeight.Black)
+                AsyncImage(
+                    model = track.thumbnailUrl.ifBlank { track.largeThumbnailUrl },
+                    contentDescription = null, contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(43.dp).clip(RoundedCornerShape(5.dp))
+                )
+                Column(Modifier.weight(1f)) {
+                    Text(track.title, color = colors.onSurface, fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(track.artist, color = colors.onSurfaceVariant, fontSize = 11.sp,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+                Icon(Icons.Rounded.ArrowForward, null, tint = colors.primary, modifier = Modifier.size(20.dp))
+            }
+        }
+    }
+}
+
+/** An inventory of genres rather than the same colored mood cards. */
+@Composable
+internal fun AuriaExploreMoodIndex(
+    zones: List<ExploreZone>,
+    onOpen: (ExploreZone) -> Unit,
+    onShowAll: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    Column(
+        Modifier.fillMaxWidth().padding(horizontal = 19.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            Modifier.fillMaxWidth().clickable(onClick = onShowAll),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("03 / ESTACIONES", color = colors.primary, fontSize = 11.sp,
+                fontWeight = FontWeight.Black, letterSpacing = 1.5.sp, modifier = Modifier.weight(1f))
+            Icon(Icons.Rounded.ArrowForward, null, tint = colors.primary, modifier = Modifier.size(18.dp))
+        }
+        zones.take(6).forEachIndexed { i, zone ->
+            Row(
+                Modifier.fillMaxWidth().height(56.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(colors.surfaceContainer)
+                    .clickable(onClick = { onOpen(zone) }).padding(horizontal = 13.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(13.dp)
+            ) {
+                Text((i + 1).toString().padStart(2, '0'), color = colors.primary,
+                    fontWeight = FontWeight.Black, fontSize = 12.sp)
+                Text(zone.emoji, fontSize = 21.sp)
+                Text(zone.label, color = colors.onSurface,
+                    fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f),
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Icon(Icons.Rounded.ArrowForward, null, tint = colors.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp))
             }
         }
     }
