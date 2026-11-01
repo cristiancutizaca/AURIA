@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.luc4n3x.levyra.desktop.app.ui.components.Artwork
+import com.luc4n3x.levyra.desktop.app.ui.components.AuriaHaloMark
 import com.luc4n3x.levyra.desktop.app.ui.components.AuriaDesktopSectionLabel
 import com.luc4n3x.levyra.desktop.app.ui.components.EmptyState
 import com.luc4n3x.levyra.desktop.app.ui.components.LevyraChip
@@ -119,13 +120,7 @@ fun LibraryScreen(
                 horizontalArrangement = Arrangement.spacedBy(9.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                LibraryTab.entries.forEach { tab ->
-                    LevyraChip(
-                        label = tab.label(),
-                        selected = tab == selectedTab,
-                        onClick = { selectedTab = tab }
-                    )
-                }
+                // Tab selection lives in the four AURIA archive metrics above.
                 Spacer(modifier = Modifier.weight(1f))
                 if (selectedTab == LibraryTab.PLAYLISTS) {
                     OutlinedButton(onClick = onImportPlaylist) {
@@ -278,64 +273,49 @@ private fun LibraryHero(
     downloads: Int,
     history: Int
 ) {
+    val palette = MaterialTheme.colorScheme
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 38.dp, topEnd = 10.dp, bottomEnd = 38.dp, bottomStart = 10.dp),
-        color = Color.Transparent,
-        border = BorderStroke(1.dp, accent.copy(alpha = 0.24f)),
-        shadowElevation = 14.dp
+        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 46.dp, bottomStart = 46.dp, bottomEnd = 12.dp),
+        color = palette.surfaceContainerHigh,
+        border = BorderStroke(1.dp, palette.outlineVariant.copy(alpha = .7f)),
+        shadowElevation = 0.dp
     ) {
         Row(
-            modifier = Modifier
+            Modifier.fillMaxWidth()
                 .background(
-                    Brush.linearGradient(
-                        listOf(
-                            accent.copy(alpha = 0.24f),
-                            LevyraBrand.violet.copy(alpha = 0.12f),
-                            MaterialTheme.colorScheme.surfaceContainerHigh,
-                            MaterialTheme.colorScheme.surfaceContainer
-                        )
+                    Brush.horizontalGradient(
+                        listOf(palette.surfaceContainerHigh, palette.surfaceContainer, palette.secondaryContainer)
                     )
                 )
-                .padding(28.dp),
+                .padding(25.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(22.dp)
         ) {
-            Surface(
-                modifier = Modifier.size(76.dp),
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 9.dp, bottomEnd = 28.dp, bottomStart = 9.dp),
-                color = accent.copy(alpha = 0.18f),
-                border = BorderStroke(1.dp, accent.copy(alpha = 0.4f))
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = OfflineIcons.Library,
-                        contentDescription = null,
-                        tint = accent,
-                        modifier = Modifier.size(38.dp)
-                    )
-                }
-            }
-            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            AuriaHaloMark(modifier = Modifier.size(68.dp), primary = accent)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.SemiBold
+                    "AURIA / 04   ·   PERSONAL VAULT",
+                    color = accent,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Text(title.uppercase(),
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = palette.onSurface,
+                    fontWeight = FontWeight.Black)
+                Text(subtitle, color = palette.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
-            Text(
-                text = listOf(playlists, favorites, downloads, history).sum().toString(),
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-                color = accent
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text((playlists + favorites + downloads + history).toString(),
+                    color = accent,
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.Black)
+                Text("ELEMENTOS  /  ARCHIVO", color = palette.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall)
+            }
         }
     }
 }
@@ -399,8 +379,8 @@ private fun LibraryMetricCard(
 ) {
     val accent = LocalAccentColor.current
     Surface(
-        modifier = modifier.height(108.dp).clickable(onClick = onClick),
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 8.dp, bottomEnd = 22.dp, bottomStart = 8.dp),
+        modifier = modifier.height(84.dp).clickable(onClick = onClick),
+        shape = RoundedCornerShape(topStart = 9.dp, topEnd = 24.dp, bottomStart = 24.dp, bottomEnd = 9.dp),
         color = if (selected) accent.copy(alpha = 0.13f) else MaterialTheme.colorScheme.surfaceContainer,
         border = BorderStroke(
             1.dp,
