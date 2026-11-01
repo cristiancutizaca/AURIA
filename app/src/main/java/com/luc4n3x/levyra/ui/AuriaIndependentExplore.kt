@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -143,7 +144,7 @@ internal fun AuriaExploreReleaseLedger(
                 model = tracks.first().largeThumbnailUrl.ifBlank { tracks.first().thumbnailUrl },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxWidth(.42f).fillMaxSize()
+                modifier = Modifier.fillMaxWidth(.42f).fillMaxHeight()
                     .clip(RoundedCornerShape(topStart = 52.dp, bottomStart = 52.dp))
             )
         }
