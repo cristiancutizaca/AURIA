@@ -666,7 +666,10 @@ internal fun LevyraLibraryScreen(
     BackHandler(enabled = !selectionActive && openSmartCollectionName != null) { openSmartCollectionName = null }
     BackHandler(enabled = selectionActive) { selectedKeys = emptySet() }
 
-    Box(modifier = Modifier.fillMaxSize().background(LevyraInk)) {
+    Box(modifier = Modifier.fillMaxSize().background(
+        if (com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset) != null)
+            colors.background else LevyraInk
+    )) {
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize().statusBarsPadding(),
@@ -674,20 +677,25 @@ internal fun LevyraLibraryScreen(
                 start = 16.dp,
                 end = 16.dp,
                 top = 12.dp,
-                bottom = if (state.currentTrack != null || selectionActive) 230.dp else 116.dp
+                bottom = if (state.currentTrack != null || selectionActive ||
+                    com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset) != null
+                ) 225.dp else 116.dp
             ),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item(key = "library-title") {
-                LibraryHero(
-                    title = if (category == LibraryCategory.Overview) strings.libraryTitle else category.libraryLabel(strings),
-                    subtitle = when (category) {
-                        LibraryCategory.Overview -> ""
-                        LibraryCategory.Playlists -> "${visiblePlaylists.size} ${strings.playlistsPlain}"
-                        else -> categorySummary(category)
-                    },
-                    onBack = { switchCategory(LibraryCategory.Overview) }.takeIf { category != LibraryCategory.Overview }
-                )
+                val title = if (category == LibraryCategory.Overview) strings.libraryTitle else category.libraryLabel(strings)
+                val subtitle = when (category) {
+                    LibraryCategory.Overview -> ""
+                    LibraryCategory.Playlists -> "${visiblePlaylists.size} ${strings.playlistsPlain}"
+                    else -> categorySummary(category)
+                }
+                val back = { switchCategory(LibraryCategory.Overview) }.takeIf { category != LibraryCategory.Overview }
+                if (com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset) != null) {
+                    AuriaLibraryTop(title, subtitle, back)
+                } else {
+                    LibraryHero(title = title, subtitle = subtitle, onBack = back)
+                }
             }
 
             if (youtubeMusicAccount != null && category == LibraryCategory.Overview) {
@@ -702,7 +710,9 @@ internal fun LevyraLibraryScreen(
                     onValueChange = { query = it },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     singleLine = true,
-                    shape = CircleShape,
+                    shape = if (com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset) != null)
+                        RoundedCornerShape(topStart = 23.dp, topEnd = 6.dp, bottomStart = 6.dp, bottomEnd = 23.dp)
+                        else CircleShape,
                     textStyle = MaterialTheme.typography.bodyMedium.copy(
                         color = colors.onSurface,
                         fontWeight = FontWeight.Medium
@@ -809,6 +819,24 @@ internal fun LevyraLibraryScreen(
                         actions = overviewSearchActions
                     )
                 } else {
+                    val auriaLibraryMode = com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset)
+                    if (auriaLibraryMode != null) {
+                        item(key = "auria-v4-library-atlas") {
+                            AuriaLibraryAtlas(
+                                mode = auriaLibraryMode,
+                                entries = librarySections,
+                                deviceSongCount = state.localLibrary.catalog.totalCount,
+                                favorites = state.favorites,
+                                recentlyPlayed = state.recentListens,
+                                onOpen = { switchCategory(it) },
+                                onPlay = { track, tracks -> viewModel.playFrom(tracks, track) },
+                                onPlayDevice = {
+                                    val songs = state.localLibrary.catalog.songs
+                                    songs.firstOrNull()?.let { viewModel.playLocalTracks(songs, it) }
+                                }
+                            )
+                        }
+                    } else {
                     item(key = "overview-device-shortcut") {
                         LocalMusicQuickAccessCard(
                             songCount = state.localLibrary.catalog.totalCount,
@@ -876,6 +904,7 @@ internal fun LevyraLibraryScreen(
                             pulse = state.listeningPulse,
                             onOpenInsights = viewModel::openListeningInsights
                         )
+                    }
                     }
                 }
 
