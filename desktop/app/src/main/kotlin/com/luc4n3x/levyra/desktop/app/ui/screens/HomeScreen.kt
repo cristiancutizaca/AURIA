@@ -116,43 +116,19 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                AuriaDesktopSectionLabel(strings.navHome)
-                Text(
-                    text = strings.homeGreeting,
-                    style = MaterialTheme.typography.displaySmall
-                )
-                Text(
-                    text = strings.homeSubtitle,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        item {
-            SearchLauncher(
-                label = strings.homeSearchHint,
-                onClick = onOpenSearch
-            )
-        }
-
-        item {
-            FeaturedPanel(
-                track = featured,
-                accent = accent,
+            AuriaDesktopListeningStage(
+                greeting = strings.homeGreeting,
+                subtitle = strings.homeSubtitle,
+                featured = featured,
                 playLabel = strings.playAll,
-                discoverLabel = strings.navDiscover,
-                emptyTitle = strings.homeEmptyTitle,
-                emptyBody = strings.homeEmptyBody,
+                searchLabel = strings.homeSearchHint,
+                exploreLabel = strings.navDiscover,
                 onPlay = {
-                    if (featuredQueue.isNotEmpty()) {
-                        actions.onPlay(featuredQueue, 0)
-                    } else {
-                        onOpenSearch()
-                    }
+                    if (featuredQueue.isNotEmpty()) actions.onPlay(featuredQueue, 0)
+                    else onOpenSearch()
                 },
-                onDiscover = onOpenDiscover
+                onSearch = onOpenSearch,
+                onExplore = onOpenDiscover
             )
         }
 
