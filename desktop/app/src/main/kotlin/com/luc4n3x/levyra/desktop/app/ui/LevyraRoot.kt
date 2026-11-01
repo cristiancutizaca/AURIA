@@ -56,7 +56,7 @@ import com.luc4n3x.levyra.desktop.app.ui.player.PlayerBar
 import com.luc4n3x.levyra.desktop.app.ui.player.QueuePanel
 import com.luc4n3x.levyra.desktop.app.ui.screens.CollectionScreen
 import com.luc4n3x.levyra.desktop.app.ui.screens.DiscoverScreen
-import com.luc4n3x.levyra.desktop.app.ui.screens.HomeScreen
+import com.luc4n3x.levyra.desktop.app.ui.screens.AuriaDesktopHome
 import com.luc4n3x.levyra.desktop.app.ui.screens.LibraryScreen
 import com.luc4n3x.levyra.desktop.app.ui.screens.LocalMusicScreen
 import com.luc4n3x.levyra.desktop.app.ui.screens.NowPlayingScreen
@@ -276,7 +276,7 @@ fun LevyraRoot(model: LevyraAppModel) {
                                             )
                                     ) {
                                         when (destination) {
-                                            Destination.HOME -> HomeScreen(
+                                            Destination.HOME -> AuriaDesktopHome(
                                                 library = library,
                                                 discover = discover,
                                                 currentTrack = playback.current,
