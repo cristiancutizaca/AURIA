@@ -27508,12 +27508,18 @@ private fun ExploreContentRow(
         ExploreRow.FreshEmpty -> Box(modifier = Modifier.padding(horizontal = HomeHorizontalInset)) {
             EmptyState(strings.exploreEmpty)
         }
-        ExploreRow.FreshScopes -> ExploreFreshScopeRail(
-            scopes = fresh.scopes,
-            selected = fresh.feed.scope,
-            localLabel = fresh.regionLabel,
-            onSelect = onSelectFreshScope
-        )
+        ExploreRow.FreshScopes -> {
+            if (com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset) != null) {
+                AuriaExploreScopeStrip(fresh.scopes, fresh.feed.scope, fresh.regionLabel, onSelectFreshScope)
+            } else {
+                ExploreFreshScopeRail(
+                    scopes = fresh.scopes,
+                    selected = fresh.feed.scope,
+                    localLabel = fresh.regionLabel,
+                    onSelect = onSelectFreshScope
+                )
+            }
+        }
         ExploreRow.FreshSpotlight -> {
             val auriaMode = com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset)
             if (auriaMode != null) {
@@ -27536,35 +27542,52 @@ private fun ExploreContentRow(
                         )
             }
         }
-        ExploreRow.FreshMoment -> Column(
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            ExploreFreshMomentHeader(
-                title = strings.freshMomentTitle,
-                onShowAll = { onShortcut(ExploreShortcut.NewReleases) }
-            )
-            ExploreFreshMomentRail(
-                pages = fresh.momentPages,
-                currentTrackId = state.currentTrack?.id,
-                isPlaying = state.isPlaying,
-                isResolving = state.isResolving,
-                onPlay = onPlayTrack,
-                actions = { track -> trackActions(track) }
-            )
+        ExploreRow.FreshMoment -> {
+            if (com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset) != null) {
+                AuriaExploreRecentLedger(
+                    tracks = fresh.momentPages.flatten(),
+                    onPlay = onPlayTrack
+                )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ExploreFreshMomentHeader(
+                        title = strings.freshMomentTitle,
+                        onShowAll = { onShortcut(ExploreShortcut.NewReleases) }
+                    )
+                    ExploreFreshMomentRail(
+                        pages = fresh.momentPages,
+                        currentTrackId = state.currentTrack?.id,
+                        isPlaying = state.isPlaying,
+                        isResolving = state.isResolving,
+                        onPlay = onPlayTrack,
+                        actions = { track -> trackActions(track) }
+                    )
+                }
+            }
         }
-        is ExploreRow.MoodRail -> ExploreMoodRailRow(
-            zones = row.zones,
-            selectedZoneId = state.exploreZoneId,
-            onOpenAll = onOpenMoods,
-            onOpenZone = onOpenZone,
-            onStartZoneMix = { zone ->
-                viewModel.startLevyraMix(
-                    kind = LevyraMixKind.Genre,
-                    seedQuery = zone.query,
-                    label = zone.label
+        is ExploreRow.MoodRail -> {
+            if (com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset) != null) {
+                AuriaExploreMoodIndex(
+                    zones = row.zones,
+                    onOpen = onOpenZone,
+                    onShowAll = onOpenMoods
+                )
+            } else {
+                ExploreMoodRailRow(
+                    zones = row.zones,
+                    selectedZoneId = state.exploreZoneId,
+                    onOpenAll = onOpenMoods,
+                    onOpenZone = onOpenZone,
+                    onStartZoneMix = { zone ->
+                        viewModel.startLevyraMix(
+                            kind = LevyraMixKind.Genre,
+                            seedQuery = zone.query,
+                            label = zone.label
+                        )
+                    }
                 )
             }
-        )
+        }
     }
 }
 
