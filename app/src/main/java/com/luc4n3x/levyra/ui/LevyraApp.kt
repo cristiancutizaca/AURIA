@@ -25997,6 +25997,30 @@ private fun SearchTrackCard(
     onDownload: () -> Unit
 ) {
     val strings = LocalLevyraStrings.current
+    val auriaSearchMode = com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(
+        com.luc4n3x.levyra.ui.theme.LevyraActivePalette.id
+    )
+    if (auriaSearchMode != null) {
+        AuriaSearchResultRow(
+            track = track,
+            mode = auriaSearchMode,
+            isCurrent = isCurrent,
+            isPlaying = isPlaying,
+            isResolving = isResolving,
+            isFavorite = isFavorite,
+            selected = selected,
+            selectionActive = selectionActive,
+            isDownloading = isDownloading,
+            isDownloaded = isDownloaded,
+            downloadProgress = downloadProgress,
+            onClick = onClick,
+            onLongClick = onLongClick,
+            onFavorite = onFavorite,
+            onAddToPlaylist = onAddToPlaylist,
+            onDownload = onDownload
+        )
+        return
+    }
     val rowAccent = if (isCurrent) rememberNowPlayingAccent(track, LevyraCyan) else LevyraCyan
     val rowPadding by animateDpAsState(
         targetValue = if (isCurrent || selected) 9.dp else 0.dp,
@@ -26341,14 +26365,18 @@ private fun SearchSectionGap() {
 
 @Composable
 private fun SearchGroupedRow(index: Int, count: Int, content: @Composable () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(levyraGroupedListShape(index, count))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.62f))
-            .padding(horizontal = 10.dp, vertical = 2.dp)
-    ) {
-        content()
+    val auriaSearchMode = com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(
+        com.luc4n3x.levyra.ui.theme.LevyraActivePalette.id
+    )
+    if (auriaSearchMode != null) {
+        Box(Modifier.fillMaxWidth().padding(horizontal = 2.dp, vertical = 1.dp)) { content() }
+    } else {
+        Box(
+            modifier = Modifier.fillMaxWidth()
+                .clip(levyraGroupedListShape(index, count))
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.62f))
+                .padding(horizontal = 10.dp, vertical = 2.dp)
+        ) { content() }
     }
 }
 
