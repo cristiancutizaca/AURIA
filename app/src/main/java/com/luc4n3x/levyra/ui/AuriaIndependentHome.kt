@@ -36,6 +36,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +59,7 @@ import com.luc4n3x.levyra.ui.i18n.LocalLevyraStrings
 import com.luc4n3x.levyra.ui.theme.AuriaVisualMode
 import com.luc4n3x.levyra.viewmodel.HomeRenderSnapshot
 import com.luc4n3x.levyra.viewmodel.HomeViewModel
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 private class AuriaHomeWords(es: Boolean) {
     val statement = if (es) "TU MÚSICA. TU UNIVERSO." else "YOUR MUSIC. YOUR UNIVERSE."
@@ -94,6 +98,21 @@ internal fun AuriaIndependentHome(
     onRefresh: () -> Unit
 ) {
     val state = snapshot.state
+    // Preserve the same Home lifecycle/scroll signals used by the old shell.
+    // Without these, the home feed's content freeze and viewport logic can break.
+    LaunchedEffect(listState, viewModel) {
+        snapshotFlow {
+            listState.isScrollInProgress to
+                (listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0)
+        }.distinctUntilChanged().collect { (moving, atTop) ->
+            viewModel.setHomeViewport(moving, atTop)
+        }
+    }
+    DisposableEffect(listState, viewModel) {
+        viewModel.onHomeEntered(listState.firstVisibleItemIndex == 0 &&
+            listState.firstVisibleItemScrollOffset == 0)
+        onDispose { viewModel.onHomeLeft() }
+    }
     val colors = MaterialTheme.colorScheme
     val language = LocalLevyraStrings.current.code
     val words = remember(language) { AuriaHomeWords(language.startsWith("es")) }
