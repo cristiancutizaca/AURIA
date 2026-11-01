@@ -81,6 +81,11 @@ class MusicRecognitionService : Service() {
             finishWith(RecognitionState.Error(RecognitionErrorKind.Unavailable))
             return
         }
+        // AudioPlaybackCapture also needs RECORD_AUDIO, not just MediaProjection consent.
+        if (!hasRecordAudioPermission()) {
+            finishWith(RecognitionState.Error(RecognitionErrorKind.PermissionDenied))
+            return
+        }
         val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
         val resultData = intent.projectionResultData()
         if (resultCode != Activity.RESULT_OK || resultData == null) {
