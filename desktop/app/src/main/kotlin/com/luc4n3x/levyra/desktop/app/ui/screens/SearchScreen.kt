@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.luc4n3x.levyra.desktop.app.state.SearchUiState
 import com.luc4n3x.levyra.desktop.app.ui.components.CollectionCard
+import com.luc4n3x.levyra.desktop.app.ui.components.AuriaHaloMark
 import com.luc4n3x.levyra.desktop.app.ui.components.EmptyState
 import com.luc4n3x.levyra.desktop.app.ui.components.ErrorBanner
 import com.luc4n3x.levyra.desktop.app.ui.components.LevyraChip
@@ -83,6 +84,30 @@ fun SearchScreen(
             .fillMaxSize()
             .padding(horizontal = 28.dp, vertical = 20.dp)
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            AuriaHaloMark(
+                modifier = Modifier.size(53.dp),
+                primary = MaterialTheme.colorScheme.primary
+            )
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(
+                    "AURIA / 02  ·  DISCOVERY TERMINAL",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    strings.navSearch,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Black
+                )
+            }
+        }
         SearchField(
             query = state.query,
             onQueryChange = onQueryChange,
@@ -236,10 +261,10 @@ private fun SearchField(
     val strings = LocalStrings.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        shadowElevation = 8.dp
+        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 35.dp, bottomStart = 35.dp, bottomEnd = 8.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = .4f)),
+        shadowElevation = 0.dp
     ) {
         Row(
             modifier = Modifier.padding(8.dp),
