@@ -101,6 +101,10 @@ internal fun LevyraRecognitionOverlay(
                 }
             }
 
+            item(contentType = "auria-recognition-halo") {
+                AuriaRecognitionHalo(state = state, strings = strings)
+            }
+
             item(contentType = "recognition-state") {
                 RecognitionStateCard(
                     state = state,
@@ -115,12 +119,8 @@ internal fun LevyraRecognitionOverlay(
 
             item(contentType = "recognition-actions") {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    RecognitionActionRow(
-                        label = if (busy) strings.recognitionCancelAction else strings.recognitionListenMicrophone,
-                        icon = if (busy) Icons.Rounded.Tune else Icons.Rounded.Mic,
-                        enabled = true,
-                        onClick = { if (busy) onCancel() else onListenMicrophone() }
-                    )
+                    // Listening to another app is the primary AURIA Identify workflow.
+                    // Permission and audio capture start only when explicitly requested.
                     if (deviceCaptureSupported) {
                         RecognitionActionRow(
                             label = strings.recognitionListenDevice,
@@ -129,6 +129,12 @@ internal fun LevyraRecognitionOverlay(
                             onClick = onListenDevice
                         )
                     }
+                    RecognitionActionRow(
+                        label = if (busy) strings.recognitionCancelAction else strings.recognitionListenMicrophone,
+                        icon = if (busy) Icons.Rounded.Tune else Icons.Rounded.Mic,
+                        enabled = true,
+                        onClick = { if (busy) onCancel() else onListenMicrophone() }
+                    )
                 }
             }
 
