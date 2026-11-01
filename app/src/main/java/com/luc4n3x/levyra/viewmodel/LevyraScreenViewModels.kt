@@ -193,6 +193,7 @@ class HomeViewModel internal constructor(
     fun openSearch() = root.selectTab(LevyraTab.Search)
     fun openDiscover() = root.selectTab(LevyraTab.Explore)
     fun openLibrary() = root.selectTab(LevyraTab.Library)
+    fun openPlayer() = root.selectTab(LevyraTab.Player)
     fun openRecognition() = root.openRecognition()
     fun playAlbumRecommendations(albums: List<AlbumHit>) = root.playAlbumRecommendations(albums)
     fun refreshHomeArtists() = root.refreshHomeArtists()
