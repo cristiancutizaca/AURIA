@@ -104,18 +104,20 @@ internal fun AuriaSearchResultRow(
                 fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(track.artist, color = colors.onSurfaceVariant,
                 fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (isDownloading && downloadProgress != null) {
+                Text("${downloadProgress.coerceIn(0, 100)}%", color = colors.tertiary,
+                    fontSize = 9.sp, fontWeight = FontWeight.Bold)
+            }
         }
         if (selectionActive) {
             Icon(if (selected) Icons.Rounded.CheckCircle else Icons.Rounded.RadioButtonUnchecked,
                 contentDescription = if (selected) "Seleccionada" else "Seleccionar",
                 tint = colors.primary, modifier = Modifier.size(23.dp))
         } else {
-            if (mode != AuriaVisualMode.Pulse) {
-                IconButton(onClick = onFavorite, modifier = Modifier.size(40.dp)) {
-                    Icon(if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                        contentDescription = "Favorito", tint = colors.primary,
-                        modifier = Modifier.size(20.dp))
-                }
+            IconButton(onClick = onFavorite, modifier = Modifier.size(if (mode == AuriaVisualMode.Pulse) 33.dp else 40.dp)) {
+                Icon(if (isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                    contentDescription = "Favorito", tint = colors.primary,
+                    modifier = Modifier.size(19.dp))
             }
             IconButton(onClick = onDownload, modifier = Modifier.size(39.dp)) {
                 Icon(
@@ -125,11 +127,9 @@ internal fun AuriaSearchResultRow(
                     modifier = Modifier.size(21.dp)
                 )
             }
-            if (mode != AuriaVisualMode.Pulse) {
-                IconButton(onClick = onAddToPlaylist, modifier = Modifier.size(37.dp)) {
-                    Icon(Icons.Rounded.Add, contentDescription = "Añadir a lista",
-                        tint = colors.onSurface, modifier = Modifier.size(22.dp))
-                }
+            IconButton(onClick = onAddToPlaylist, modifier = Modifier.size(if (mode == AuriaVisualMode.Pulse) 32.dp else 37.dp)) {
+                Icon(Icons.Rounded.Add, contentDescription = "Añadir a lista",
+                    tint = colors.onSurface, modifier = Modifier.size(20.dp))
             }
         }
     }
