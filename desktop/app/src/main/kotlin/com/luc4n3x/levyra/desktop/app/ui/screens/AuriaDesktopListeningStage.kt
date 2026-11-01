@@ -77,7 +77,9 @@ internal fun AuriaDesktopListeningStage(
         ) {
             val compact = maxWidth < 640.dp
             val artSize = if (compact) 140.dp else 210.dp
-            Canvas(Modifier.fillMaxSize()) {
+            // A LazyColumn measures item height without a vertical bound;
+            // give the orbital canvas a real height rather than a zero-sized fillMaxSize.
+            Canvas(Modifier.fillMaxWidth().height(296.dp)) {
                 val center = Offset(size.width * .84f, size.height * .54f)
                 val d = size.height * .36f
                 drawCircle(colors.primary.copy(alpha = .22f), d, center, style = Stroke(2.dp.toPx()))
