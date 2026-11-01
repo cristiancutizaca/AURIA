@@ -1211,7 +1211,8 @@ fun LevyraNowPlaying(
             .align(Alignment.TopCenter)
 
         if (auriaMode != null && track != null && !state.isVideoMode &&
-            !liveRadio && playerPane == LevyraPlayerPane.Stacked
+            !liveRadio && playerPane == LevyraPlayerPane.Stacked &&
+            state.interfaceSettings.playerVisualMode == PlayerVisualMode.Halo
         ) {
             AuriaIndependentPlayerDeck(
                 track = track,
