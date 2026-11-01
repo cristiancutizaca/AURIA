@@ -15800,27 +15800,48 @@ private fun SearchScreen(viewModel: SearchViewModel, state: LevyraUiState) {
             .padding(horizontal = 18.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        SearchHeader(
-            query = state.query,
-            placeholder = activePlaceholder,
-            animatePlaceholder = state.animationsEnabled,
-            isSearching = state.isSearching,
-            recognitionAvailable = state.recognitionAvailable,
-            recognitionBusy = state.recognitionState is RecognitionState.Listening ||
-                state.recognitionState is RecognitionState.Identifying,
-            onRecognize = viewModel::startMusicRecognition,
-            onCancelRecognition = viewModel::cancelMusicRecognition,
-            onQuery = viewModel::setQuery,
-            onSearch = { query ->
-                focusManager.clearFocus()
-                keyboardController?.hide()
-                viewModel.searchNow(query)
-            },
-            onClear = {
-                viewModel.setQuery("")
-            },
-            onBack = { viewModel.navigateBack() }
-        )
+        val auriaSearchMode = com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset)
+        if (auriaSearchMode != null) {
+            AuriaSearchCommandPanel(
+                mode = auriaSearchMode,
+                query = state.query,
+                placeholder = activePlaceholder,
+                recognitionAvailable = state.recognitionAvailable,
+                recognitionBusy = state.recognitionState is RecognitionState.Listening ||
+                    state.recognitionState is RecognitionState.Identifying,
+                onBack = { viewModel.navigateBack() },
+                onQuery = viewModel::setQuery,
+                onSubmit = { query ->
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                    viewModel.searchNow(query)
+                },
+                onRecognize = viewModel::startMusicRecognition,
+                onCancelRecognition = viewModel::cancelMusicRecognition
+            )
+        } else {
+            SearchHeader(
+                query = state.query,
+                placeholder = activePlaceholder,
+                animatePlaceholder = state.animationsEnabled,
+                isSearching = state.isSearching,
+                recognitionAvailable = state.recognitionAvailable,
+                recognitionBusy = state.recognitionState is RecognitionState.Listening ||
+                    state.recognitionState is RecognitionState.Identifying,
+                onRecognize = viewModel::startMusicRecognition,
+                onCancelRecognition = viewModel::cancelMusicRecognition,
+                onQuery = viewModel::setQuery,
+                onSearch = { query ->
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                    viewModel.searchNow(query)
+                },
+                onClear = {
+                    viewModel.setQuery("")
+                },
+                onBack = { viewModel.navigateBack() }
+            )
+        }
 
         val data = state.searchData
         val filter = state.searchFilter
@@ -15858,6 +15879,19 @@ private fun SearchScreen(viewModel: SearchViewModel, state: LevyraUiState) {
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             if (queryClean.isEmpty()) {
+                if (auriaSearchMode != null) {
+                    item(key = "auria-v4-search-discovery", contentType = "auria-search") {
+                        AuriaSearchDiscovery(
+                            tracks = state.recentSearches,
+                            onPlay = { track ->
+                                focusManager.clearFocus()
+                                keyboardController?.hide()
+                                viewModel.play(track)
+                            },
+                            onRemove = viewModel::removeRecentSearch
+                        )
+                    }
+                } else {
                 item(key = "search-taste-hints", contentType = "search-taste-hints") {
                     SearchTasteHints(
                         suggestions = tasteHintQueries,
@@ -15919,6 +15953,7 @@ private fun SearchScreen(viewModel: SearchViewModel, state: LevyraUiState) {
                             viewModel.searchNow(query)
                         }
                     )
+                }
                 }
             } else {
                 if (querySuggestions.isNotEmpty()) {
@@ -27416,21 +27451,33 @@ private fun ExploreContentRow(
 ) {
     val strings = LocalLevyraStrings.current
     when (row) {
-        ExploreRow.Shortcuts -> Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            ExplorePageHeader(
-                title = strings.exploreTitle,
-                subtitle = strings.exploreSubtitle,
-                modifier = Modifier.padding(horizontal = HomeHorizontalInset)
-            )
-            ExplorePrimaryShortcuts(
-                availableAnchors = availableAnchors,
-                onSelect = onShortcut,
-                onOpenJam = onOpenJam,
-                onOpenRadio = onOpenRadio,
-                modifier = Modifier
-            )
+        ExploreRow.Shortcuts -> {
+            val auriaMode = com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset)
+            if (auriaMode != null) {
+                AuriaExploreLanding(
+                    mode = auriaMode,
+                    onNew = { onShortcut(ExploreShortcut.NewReleases) },
+                    onSamples = { onShortcut(ExploreShortcut.Samples) },
+                    onMoods = onOpenMoods,
+                    onRadio = onOpenRadio,
+                    onJam = onOpenJam
+                )
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ExplorePageHeader(
+                        title = strings.exploreTitle,
+                        subtitle = strings.exploreSubtitle,
+                        modifier = Modifier.padding(horizontal = HomeHorizontalInset)
+                    )
+                    ExplorePrimaryShortcuts(
+                        availableAnchors = availableAnchors,
+                        onSelect = onShortcut,
+                        onOpenJam = onOpenJam,
+                        onOpenRadio = onOpenRadio,
+                        modifier = Modifier
+                    )
+                }
+            }
         }
         ExploreRow.MixTools -> Column(
             verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -27467,15 +27514,28 @@ private fun ExploreContentRow(
             localLabel = fresh.regionLabel,
             onSelect = onSelectFreshScope
         )
-        ExploreRow.FreshSpotlight -> ExploreFreshSpotlight(
-            tracks = fresh.feed.spotlight,
-            currentTrackId = state.currentTrack?.id,
-            isPlaying = state.isPlaying,
-            isResolving = state.isResolving,
-            onPlay = onPlayTrack,
-            onOpenAlbum = { track -> viewModel.openAlbum(trackAlbumHit(track)) },
-            actions = { track -> trackActions(track) }
-        )
+        ExploreRow.FreshSpotlight -> {
+            val auriaMode = com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset)
+            if (auriaMode != null) {
+                AuriaExploreReleaseLedger(
+                    tracks = fresh.feed.spotlight,
+                    mode = auriaMode,
+                    onPlay = onPlayTrack,
+                    onAlbum = { track -> viewModel.openAlbum(trackAlbumHit(track)) },
+                    trackActions = trackActions
+                )
+            } else {
+                ExploreFreshSpotlight(
+                            tracks = fresh.feed.spotlight,
+                            currentTrackId = state.currentTrack?.id,
+                            isPlaying = state.isPlaying,
+                            isResolving = state.isResolving,
+                            onPlay = onPlayTrack,
+                            onOpenAlbum = { track -> viewModel.openAlbum(trackAlbumHit(track)) },
+                            actions = { track -> trackActions(track) }
+                        )
+            }
+        }
         ExploreRow.FreshMoment -> Column(
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
