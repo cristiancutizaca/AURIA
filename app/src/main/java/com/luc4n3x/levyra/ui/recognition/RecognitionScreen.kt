@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -126,6 +125,7 @@ internal fun LevyraRecognitionOverlay(
                             label = strings.recognitionListenDevice,
                             icon = Icons.Rounded.PhoneAndroid,
                             enabled = !busy,
+                            primary = true,
                             onClick = onListenDevice
                         )
                     }
@@ -308,9 +308,8 @@ private fun RecognitionResultBody(
 private fun RecognitionArtwork(url: String, description: String) {
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
-            .clip(RoundedCornerShape(18.dp))
+            .size(170.dp)
+            .clip(RoundedCornerShape(26.dp))
             .background(LevyraInk),
         contentAlignment = Alignment.Center
     ) {
@@ -345,15 +344,21 @@ private fun RecognitionActionRow(
     label: String,
     icon: ImageVector,
     enabled: Boolean,
+    primary: Boolean = false,
     onClick: () -> Unit
 ) {
-    val tint = if (enabled) LevyraText else LevyraMuted
+    val palette = androidx.compose.material3.MaterialTheme.colorScheme
+    val tint = when {
+        !enabled -> LevyraMuted
+        primary -> palette.onPrimaryContainer
+        else -> LevyraText
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(LevyraPanel),
+            .clip(RoundedCornerShape(if (primary) 22.dp else 16.dp))
+            .background(if (primary) palette.primaryContainer else LevyraPanel),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onClick, enabled = enabled) {
