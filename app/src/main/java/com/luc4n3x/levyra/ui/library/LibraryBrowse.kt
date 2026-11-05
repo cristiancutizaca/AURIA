@@ -191,6 +191,7 @@ private fun LibraryCategory.sectionBadgePolygon(): RoundedPolygon = when (this) 
     LibraryCategory.Artists -> MaterialShapes.Clover4Leaf
     LibraryCategory.Offline -> MaterialShapes.Cookie4Sided
     LibraryCategory.Device -> MaterialShapes.Gem
+    LibraryCategory.Recognized -> MaterialShapes.Cookie9Sided
     LibraryCategory.Collections, LibraryCategory.Overview -> MaterialShapes.SoftBurst
 }
 
@@ -201,6 +202,7 @@ private fun LibraryCategory.sectionIcon(): ImageVector = when (this) {
     LibraryCategory.Artists -> Icons.Rounded.Mic
     LibraryCategory.Offline -> Icons.Rounded.DownloadDone
     LibraryCategory.Device -> Icons.Rounded.PhoneAndroid
+    LibraryCategory.Recognized -> Icons.Rounded.MusicNote
     LibraryCategory.Collections, LibraryCategory.Overview -> Icons.Rounded.CollectionsBookmark
 }
 
