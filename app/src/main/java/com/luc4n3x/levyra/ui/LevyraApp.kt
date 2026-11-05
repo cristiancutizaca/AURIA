@@ -2450,7 +2450,10 @@ fun LevyraApp(
                             LevyraLibraryScreen(
                                 libraryViewModel, screenState, onOpenDownloads = { showDownloadsFolder = true },
                                 youtubeMusicAccount = youtubeMusicState.active,
-                                onOpenYoutubeMusic = { showYoutubeMusic = true }
+                                onOpenYoutubeMusic = { showYoutubeMusic = true },
+                                recognizedSongs = state.recognitionHistory,
+                                onOpenRecognizedSong = viewModel::openRecognitionResult,
+                                onDeleteRecognizedSong = viewModel::deleteRecognitionEntry
                             )
                         }
                         LevyraTab.Player -> Unit
