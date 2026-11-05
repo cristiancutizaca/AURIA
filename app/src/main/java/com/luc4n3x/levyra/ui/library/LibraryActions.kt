@@ -1128,6 +1128,7 @@ internal fun LibraryCategory.libraryLabel(strings: LevyraStrings): String = when
     LibraryCategory.Offline -> strings.offline
     LibraryCategory.Device -> strings.localOnDevice
     LibraryCategory.Collections -> com.luc4n3x.levyra.ui.i18n.LevyraPersonalCollectionCatalog.forCode(strings.code).category
+    LibraryCategory.Recognized -> recognizedLibraryTitle(strings.code)
 }
 
 internal fun LibrarySort.libraryLabel(strings: LevyraStrings): String = when (this) {
