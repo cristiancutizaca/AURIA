@@ -26,6 +26,14 @@ AURIA recognizes a short excerpt of a track that the user hears in another appli
 - `ui/recognition/AuriaRecognitionHalo.kt` and `RecognitionScreen.kt`: AURIA-branded capture state and preferred device-capture action.
 - `feature/recognition/MusicRecognitionTileService.kt`: Quick Settings shortcut.
 
+## Recognized music in Library
+
+- **Library > Music identified / Música identificada** displays a smart folder containing successful audio identifications.
+- Recognition results are saved automatically to the existing on-device Room history. The folder shows newest results first, displays cover/title/artist, supports search, and hides repeat entries with the same recognition identity.
+- Tapping a song reopens its identification result and catalog match. Removing a song deletes its history entry as well. Using **Clear history** in the recognition screen also empties this smart folder.
+- This is **not** a physical Android audio directory or an automatic music download. It stores track information, not sound files.
+- History retention has increased from 100 to 5,000 entries. Manual device testing and compile checks remain pending.
+
 ## Android platform constraints
 
 - Internal playback capture only works with apps that explicitly allow their audio to be captured, on Android 10+.
