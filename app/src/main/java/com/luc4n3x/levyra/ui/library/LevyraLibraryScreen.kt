@@ -320,6 +320,9 @@ internal fun LevyraLibraryScreen(
     var showImportPlaylistCard by rememberSaveable { mutableStateOf(true) }
     var openSmartCollectionName by rememberSaveable { mutableStateOf<String?>(null) }
     val collectionStrings = remember(strings.code) { LevyraPersonalCollectionCatalog.forCode(strings.code) }
+    val recognizedEntries = remember(state.recognitionHistory) {
+        state.recognitionHistory.distinctBy { it.identityKey }
+    }
     val personalCollections by viewModel.personalCollections.summaries.collectAsStateWithLifecycle()
     val personalCollectionSyncing by viewModel.personalCollections.syncingIds.collectAsStateWithLifecycle()
     val collectionImportState by viewModel.personalCollections.importState.collectAsStateWithLifecycle()
@@ -589,7 +592,7 @@ internal fun LevyraLibraryScreen(
             LibraryCategory.Offline -> catalog.offlineItems
                 .filter { it.key in selectedKeys }
                 .map { it.track }
-            LibraryCategory.Device, LibraryCategory.Collections -> emptyList()
+            LibraryCategory.Device, LibraryCategory.Collections, LibraryCategory.Recognized -> emptyList()
             LibraryCategory.Overview, LibraryCategory.Songs -> catalog.tracks.filter { libraryTrackKey(it) in selectedKeys }
         }.distinctBy(::libraryTrackKey)
     }
@@ -617,6 +620,7 @@ internal fun LevyraLibraryScreen(
         LibraryCategory.Offline -> strings.formatDownloadedTrackCount(state.downloads.size)
         LibraryCategory.Device -> strings.formatTrackCount(state.localLibrary.catalog.totalCount)
         LibraryCategory.Collections -> collectionStrings.title
+        LibraryCategory.Recognized -> strings.formatTrackCount(recognizedEntries.size)
     }
     val librarySections = remember(
         strings,
@@ -624,7 +628,8 @@ internal fun LevyraLibraryScreen(
         state.playlists,
         state.downloads.size,
         state.localLibrary.catalog.totalCount,
-        collectionStrings
+        collectionStrings,
+        recognizedEntries.size
     ) {
         LibraryBrowseCategories.map { LibrarySectionEntry(it, categorySummary(it)) }
     }
@@ -778,6 +783,7 @@ internal fun LevyraLibraryScreen(
             if (
                 category != LibraryCategory.Overview &&
                 category != LibraryCategory.Collections &&
+                category != LibraryCategory.Recognized &&
                 (category != LibraryCategory.Playlists || state.playlists.isNotEmpty())
             ) {
                 item(key = "library-toolbar") {
@@ -799,7 +805,7 @@ internal fun LevyraLibraryScreen(
                                 LibraryCategory.Albums -> visibleAlbums.mapTo(linkedSetOf()) { "album:${it.key}" }
                                 LibraryCategory.Artists -> visibleArtists.mapTo(linkedSetOf()) { "artist:${it.key}" }
                                 LibraryCategory.Offline -> visibleOffline.mapTo(linkedSetOf()) { it.key }
-                                LibraryCategory.Device, LibraryCategory.Collections -> linkedSetOf()
+                                LibraryCategory.Device, LibraryCategory.Collections, LibraryCategory.Recognized -> linkedSetOf()
                                 LibraryCategory.Overview, LibraryCategory.Songs ->
                                     visibleTracks.mapTo(linkedSetOf(), ::libraryTrackKey)
                             }
@@ -1108,6 +1114,14 @@ internal fun LevyraLibraryScreen(
                         }
                     }
                 }
+
+                LibraryCategory.Recognized -> recognizedLibrarySection(
+                    entries = recognizedEntries,
+                    query = query,
+                    languageCode = strings.code,
+                    onOpen = viewModel::openRecognitionResult,
+                    onSearch = { viewModel.searchRecognitionResult(it.result) }
+                )
 
                 LibraryCategory.Collections -> personalCollectionsSection(
                     collections = personalCollections,
