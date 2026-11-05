@@ -83,7 +83,7 @@ class RecognitionHistoryStore(private val dao: RecognitionHistoryDao) {
     }
 
     companion object {
-        const val MAX_ENTRIES = 100
+        const val MAX_ENTRIES = 5_000
 
         fun from(context: Context): RecognitionHistoryStore =
             RecognitionHistoryStore(LevyraDatabase.get(context.applicationContext).recognitionHistoryDao())
