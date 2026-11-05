@@ -379,6 +379,10 @@ class ExploreViewModel(root: LevyraViewModel) : LevyraScreenViewModel(root, ::ex
 }
 
 class LibraryViewModel(root: LevyraViewModel) : LevyraScreenViewModel(root, ::libraryProjection) {
+    fun openRecognitionResult(entry: com.luc4n3x.levyra.feature.recognition.RecognitionHistoryEntry) =
+        root.openRecognitionResult(entry)
+    fun searchRecognitionResult(result: com.luc4n3x.levyra.feature.recognition.RecognitionResult) =
+        root.searchRecognitionResult(result)
     val personalCollections: PersonalCollectionsController get() = root.personalCollections
     fun refreshSmartOffline() = root.refreshSmartOffline()
     fun openYourSound() = root.openYourSound()
