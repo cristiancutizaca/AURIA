@@ -95,6 +95,7 @@ import com.luc4n3x.levyra.domain.filterByTagIds
 import com.luc4n3x.levyra.domain.hiddenInLibrary
 import com.luc4n3x.levyra.domain.visibleInLibrary
 import com.luc4n3x.levyra.domain.Track
+import com.luc4n3x.levyra.feature.recognition.RecognitionHistoryEntry
 import com.luc4n3x.levyra.domain.visibleDownloadBatches
 import com.luc4n3x.levyra.ui.i18n.LocalLevyraStrings
 import com.luc4n3x.levyra.ui.i18n.formatLibraryBytes
@@ -275,7 +276,10 @@ internal fun LevyraLibraryScreen(
     state: LevyraUiState,
     onOpenDownloads: () -> Unit,
     youtubeMusicAccount: com.luc4n3x.levyra.data.youtubemusic.YoutubeMusicAccount? = null,
-    onOpenYoutubeMusic: () -> Unit = {}
+    onOpenYoutubeMusic: () -> Unit = {},
+    recognizedSongs: List<RecognitionHistoryEntry> = emptyList(),
+    onOpenRecognizedSong: (RecognitionHistoryEntry) -> Unit = {},
+    onDeleteRecognizedSong: (String) -> Unit = {}
 ) {
     val strings = LocalLevyraStrings.current
     val colors = MaterialTheme.colorScheme
@@ -319,6 +323,8 @@ internal fun LevyraLibraryScreen(
     var pendingDownloadDelete by remember { mutableStateOf<DownloadedTrack?>(null) }
     var showImportPlaylistCard by rememberSaveable { mutableStateOf(true) }
     var openSmartCollectionName by rememberSaveable { mutableStateOf<String?>(null) }
+    var openRecognizedFolder by rememberSaveable { mutableStateOf(false) }
+    val recognizedSongCount = remember(recognizedSongs) { recognizedSongs.distinctBy { it.identityKey }.size }
     val collectionStrings = remember(strings.code) { LevyraPersonalCollectionCatalog.forCode(strings.code) }
     val recognizedEntries = remember(state.recognitionHistory) {
         state.recognitionHistory.distinctBy { it.identityKey }
@@ -663,7 +669,7 @@ internal fun LevyraLibraryScreen(
     )
 
     BackHandler(
-        enabled = !selectionActive && openSmartCollectionName == null && openCollection == null &&
+        enabled = !selectionActive && !openRecognizedFolder && openSmartCollectionName == null && openCollection == null &&
             category != LibraryCategory.Overview
     ) {
         switchCategory(LibraryCategory.Overview)
@@ -825,6 +831,12 @@ internal fun LevyraLibraryScreen(
                         actions = overviewSearchActions
                     )
                 } else {
+                    item(key = "overview-recognized-music-folder") {
+                        RecognitionLibraryShortcut(
+                            count = recognizedSongCount,
+                            onOpen = { openRecognizedFolder = true }
+                        )
+                    }
                     val auriaLibraryMode = com.luc4n3x.levyra.ui.theme.AuriaVisualMode.fromTheme(state.themePreset)
                     if (auriaLibraryMode != null) {
                         item(key = "auria-v4-library-atlas") {
@@ -1350,6 +1362,15 @@ internal fun LevyraLibraryScreen(
                 },
                 viewModel = viewModel,
                 onClose = { openSmartCollectionName = null }
+            )
+        }
+
+        if (openRecognizedFolder) {
+            RecognitionLibraryFolder(
+                history = recognizedSongs,
+                onOpenEntry = onOpenRecognizedSong,
+                onDeleteEntry = onDeleteRecognizedSong,
+                onClose = { openRecognizedFolder = false }
             )
         }
     }
