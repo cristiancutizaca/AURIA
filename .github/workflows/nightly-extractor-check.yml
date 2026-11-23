@@ -192,7 +192,7 @@ jobs:
             "build-tools;36.0.0"
 
       - name: Setup Gradle before sandbox hardening
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6
         with:
           cache-disabled: true
 
@@ -229,7 +229,7 @@ jobs:
         id: codex
         if: steps.confirm.outputs.decision == 'repair' && steps.agent.outputs.available == 'true'
         continue-on-error: true
-        uses: openai/codex-action@bdf19a4a223ec2549a3e2274a0cf61556bc07675 # v1.13
+        uses: openai/codex-action@306c6a196a99dcc6582530c396a19d2672d5e9ec # v1.14
         with:
           openai-api-key: ${{ secrets.LEVYRA_CANARY_OPENROUTER_API_KEY }}
           responses-api-endpoint: https://openrouter.ai/api/v1/responses
@@ -443,7 +443,7 @@ jobs:
             "build-tools;36.0.0"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.4.0
+        uses: gradle/actions/setup-gradle@v6
         with:
           cache-disabled: true
 
